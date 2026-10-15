@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detector de la secuencia 101</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="afd.css">
+<link rel="stylesheet" href="detector.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     BLOQUE I · EL PROBLEMA
+     ===================================================================== -->
+
+<!-- 1 · PORTADA -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Autómatas finitos · Programación en Python</div>
+  <h1 class="center" style="font-size:62px;margin-top:20px;line-height:1.08">Detector de la secuencia 101</h1>
+  <p class="center" style="font-family:var(--serif);font-size:34px;color:var(--navy);margin-top:6px">un autómata finito determinista en Python</p>
+  <p class="sub" style="font-size:23px;margin-top:8px">Una máquina que lee tarjetas una por una y avisa cuando ve 1, 0, 1 seguidas.</p>
+  <div class="ctrl" style="margin-top:28px;gap:22px;flex-wrap:nowrap" data-claim="det101" data-acc="01010">
+    <div class="col-c"><div class="cinta" style="padding-top:0"><span class="c">0</span><span class="c leido">1</span><span class="c leido">0</span><span class="c leido">1</span><span class="c">0</span></div><span class="hint">¡aquí hay un 101!</span></div>
+    <i class="fa-solid fa-arrow-right-long" style="font-size:34px;color:var(--accent)" aria-hidden="true"></i>
+    <div class="panel" style="padding:4px 10px"><div class="diag" data-diagrama="det101" data-escala=".72" data-marca="q3:ok"></div></div>
+    <i class="fa-solid fa-arrow-right-long" style="font-size:34px;color:var(--accent)" aria-hidden="true"></i>
+    <div class="col-c"><i class="fa-brands fa-python" style="font-size:54px;color:var(--accent)"></i><span class="tag ac" style="font-size:18px;padding:4px 14px"><i class="fa-solid fa-circle-check"></i> acepta</span></div>
+  </div>
+  <aside class="notes">Bienvenida. Hoy resolvemos un ejercicio completo: diseñar un autómata que detecta 101 y programarlo en Python, con pruebas. Primero lo entendemos como un juego de tarjetas, después dibujamos la máquina y al final la escribimos en código.</aside>
+</section>
+
+<!-- 2 · EL PROBLEMA PARA NIÑOS -->
+<section data-transition="convex" id="problema">
+  <div class="kicker">I · El problema</div>
+  <div class="route" data-on="1"></div>
+  <h2>El juego de las tarjetas</h2>
+  <div class="q"><i class="fa-solid fa-circle-question"></i><p>Te paso tarjetas con 0 o 1, una por una. Tienes que gritar «¡la encontré!» si en algún momento ves <b>1, 0, 1</b> seguidas.</p></div>
+  <div class="split" style="grid-template-columns:1fr 440px;margin-top:24px">
+    <div class="list tight">
+      <div class="item fragment fade-right"><div class="sq">Σ</div><div><div class="t">Solo hay dos tipos de tarjeta</div><div class="v">el alfabeto es Σ = {0, 1}</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-link"></i></div><div><div class="t">Tienen que ir juntas</div><div class="v">1, 0, 1 consecutivas, en cualquier lugar</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-lock"></i></div><div><div class="t">Una vez encontrada, ya ganaste</div><div class="v">las tarjetas que siguen no cambian nada</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-ban"></i></div><div><div class="t">Una tarjeta rara lo arruina todo</div><div class="v">si aparece un 2 o una letra: se rechaza</div></div></div>
+    </div>
+    <div class="def hl fragment fade-left">
+      <div class="head"><i class="fa-solid fa-bullseye"></i> Lo que hay que programar</div>
+      <div class="body">Una función <span class="mono">acepta(cadena)</span> que regrese <span class="mono">True</span> si la cadena contiene 101 y <span class="mono">False</span> si no, usando un <b>autómata finito determinista</b>.</div>
+    </div>
+  </div>
+  <aside class="notes">Juega con el grupo: dicta 1, 1, 0, 1 lentamente y pide que griten cuando la encuentren. Pregunta: ¿qué tenías que recordar mientras escuchabas? Solo "cuánto de 101 llevo". Esa es la idea del autómata.</aside>
+</section>
+
+<!-- 3 · EJEMPLOS -->
+<section data-transition="slide" id="ejemplos">
+  <div class="kicker">I · El problema · Ejemplos</div>
+  <div class="route" data-on="1"></div>
+  <h2>¿Cuáles cadenas se aceptan?</h2>
+  <table class="tbl ej mt24" data-claim="det101" data-acc="101,01010,1101" data-rej="1111,1001,ε">
+    <thead><tr><th>Cadena</th><th>Resultado</th><th>¿Por qué?</th></tr></thead>
+    <tbody>
+      <tr class="fragment fade-up"><td class="mono">101</td><td><span class="str si">aceptada</span></td><td>Es exactamente 101.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">0<u>101</u>0</td><td><span class="str si">aceptada</span></td><td>Contiene 101 en medio.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">1<u>101</u></td><td><span class="str si">aceptada</span></td><td>Termina con 101.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">1111</td><td><span class="str nop">rechazada</span></td><td>Nunca aparece el 0 en medio.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">1001</td><td><span class="str nop">rechazada</span></td><td>Hay dos ceros: 1, 0, 0, 1 no es 1, 0, 1.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">ε</td><td><span class="str nop">rechazada</span></td><td>La cadena vacía no tiene símbolos.</td></tr>
+    </tbody>
+  </table>
+  <div class="note fragment fade-up" data-claim="det101" data-re="(0+1)*101(0+1)*"><i class="fa-solid fa-square-root-variable"></i><span>En lenguaje formal: \(L=\{\,w\in\{0,1\}^*\mid w \text{ contiene } 101\,\}=L\big((0+1)^*101(0+1)^*\big)\).</span></div>
+  <aside class="notes">Pide que digan el resultado antes de cada fila. Las palabras subrayadas marcan dónde está el 101. El caso 1001 es la trampa clásica: tiene los mismos símbolos, pero no consecutivos en ese orden.</aside>
+</section>
+
+<!-- 4 · LA REGLA ESPECIAL -->
+<section data-transition="convex" id="regla">
+  <div class="kicker">I · El problema · La regla especial</div>
+  <div class="route" data-on="1"></div>
+  <h2>Prohibido hacer trampa</h2>
+  <div class="two" style="margin-top:22px">
+    <div class="panel">
+      <h3 class="no-t"><i class="fa-solid fa-ban"></i> No se vale</h3>
+      <div class="cmd" style="font-size:20px;display:block;text-align:center;margin:10px 0">"101" in cadena</div>
+      <div class="hint center">ni <span class="mono">find</span>, <span class="mono">index</span>, <span class="mono">contains</span>, <span class="mono">indexOf</span>… Sería pedirle la respuesta a Python.</div>
+    </div>
+    <div class="panel fragment fade-left">
+      <h3 class="yes-t"><i class="fa-solid fa-robot"></i> Sí se vale</h3>
+      <div class="hint center" style="font-size:19px;color:var(--ink)">Una máquina que lee <b>una tarjeta a la vez</b> y cambia de <b>estado</b> según una tabla de reglas.</div>
+    </div>
+  </div>
+  <div class="def hl mt24 fragment fade-up">
+    <div class="head"><i class="fa-solid fa-brain"></i> ¿Por qué así?</div>
+    <div class="body">Porque el ejercicio es practicar <b>autómatas</b>: la máquina no puede «mirar toda la cadena»; solo puede recordar lo indispensable con un número <b>finito</b> de estados.</div>
+  </div>
+  <aside class="notes">Esto también es como funcionan muchos programas reales que reciben datos poco a poco (por la red, por el teclado): no pueden esperar a tener toda la cadena.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE II · DISEÑAR EL AFD
+     ===================================================================== -->
+
+<!-- 5 · QUÉ RECORDAR -->
+<section data-transition="concave" id="recordar">
+  <div class="kicker">II · Diseñar el autómata</div>
+  <div class="route" data-on="2"></div>
+  <h2>¿Qué necesita recordar la máquina?</h2>
+  <p class="lead center mt8">Solo <b>cuánto de 101 lleva</b>: como una barra de progreso de 3 casillas.</p>
+  <div class="progresos" data-claim="det101" data-q="q0,q1,q2,q3" data-q0="q0" data-f="q3">
+    <div class="prog fragment fade-up"><span class="qn">q<sub>0</sub></span><div class="barra"><span>1</span><span>0</span><span>1</span></div><div class="t">Nada útil todavía</div><div class="d">el inicio</div></div>
+    <div class="prog fragment fade-up"><span class="qn">q<sub>1</sub></span><div class="barra"><span class="ya">1</span><span>0</span><span>1</span></div><div class="t">Vi «1»</div><div class="d">1 de 3</div></div>
+    <div class="prog fragment fade-up"><span class="qn">q<sub>2</sub></span><div class="barra"><span class="ya">1</span><span class="ya">0</span><span>1</span></div><div class="t">Vi «10»</div><div class="d">2 de 3</div></div>
+    <div class="prog fin fragment fade-up"><span class="qn">q<sub>3</sub></span><div class="barra"><span class="ya">1</span><span class="ya">0</span><span class="ya">1</span></div><div class="t">¡Vi «101»!</div><div class="d">aceptación · ya no se sale</div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-info"></i><span>Cuatro estados bastan, sin importar lo larga que sea la cadena: \(Q=\{q_0,q_1,q_2,q_3\}\), inicial \(q_0\), aceptación \(F=\{q_3\}\).</span></div>
+  <aside class="notes">Cada estado es una "foto" de lo que importa: cuántas tarjetas de 101 ya tengo en fila. No hace falta recordar las tarjetas viejas.</aside>
+</section>
+
+<!-- 6 · TRANSICIONES QUE AVANZAN -->
+<section data-transition="slide" id="avanzar">
+  <div class="kicker">II · Diseñar el autómata · Transiciones</div>
+  <div class="route" data-on="2"></div>
+  <h2>Las flechas fáciles: avanzar en la barra</h2>
+  <div class="panel mt16"><div class="diag" data-diagrama="det101" data-escala="1.2"></div></div>
+  <div class="three" style="margin-top:18px" data-claim="det101" data-delta="q0:1=q1;q1:0=q2;q2:1=q3">
+    <div class="pieza fragment fade-up" data-hl="avanza"><span class="ic">1</span><div><div class="t">\(q_0\xrightarrow{1}q_1\)</div><div class="v">llegó el primer 1</div></div></div>
+    <div class="pieza fragment fade-up" data-hl="avanza"><span class="ic">0</span><div><div class="t">\(q_1\xrightarrow{0}q_2\)</div><div class="v">después del 1, un 0</div></div></div>
+    <div class="pieza fragment fade-up" data-hl="avanza"><span class="ic">1</span><div><div class="t">\(q_2\xrightarrow{1}q_3\)</div><div class="v">¡se completó 101!</div></div></div>
+  </div>
+  <aside class="notes">Las flechas azules llenan la barra de progreso una casilla a la vez. Pero cada estado necesita UNA flecha por cada símbolo (0 y 1): faltan las otras, que son las interesantes.</aside>
+</section>
+
+<!-- 7 · TRANSICIONES CON TRUCO -->
+<section data-transition="slide" id="truco">
+  <div class="kicker">II · Diseñar el autómata · Transiciones</div>
+  <div class="route" data-on="2"></div>
+  <h2>Las flechas con truco: ¿y si llega la tarjeta equivocada?</h2>
+  <div class="panel mt16"><div class="diag" data-diagrama="det101" data-escala="1.2"></div></div>
+  <div class="two tight" style="margin-top:14px;gap:12px 22px" data-claim="det101" data-delta="q0:0=q0;q1:1=q1;q2:0=q0;q3:0=q3;q3:1=q3">
+    <div class="pieza fragment fade-up" data-hl="quedarse"><span class="ic">0</span><div><div class="t">\(q_0\xrightarrow{0}q_0\): un 0 al inicio no sirve</div><div class="v">seguimos esperando un 1</div></div></div>
+    <div class="pieza fragment fade-up" data-hl="quedarse"><span class="ic">1</span><div><div class="t">\(q_1\xrightarrow{1}q_1\): en «11», el último 1 sirve</div><div class="v">puede ser el inicio de 101</div></div></div>
+    <div class="pieza fragment fade-up" data-hl="reinicia"><span class="ic">0</span><div><div class="t">\(q_2\xrightarrow{0}q_0\): «100» no sirve</div><div class="v">ningún final de «100» empieza 101</div></div></div>
+    <div class="pieza fragment fade-up" data-hl="trampa"><span class="ic">0,1</span><div><div class="t">\(q_3\) se queda en \(q_3\)</div><div class="v">una vez encontrada, ya ganamos</div></div></div>
+  </div>
+  <aside class="notes">Truco de diseño: cuando llega la tarjeta equivocada, pregúntate "¿cuál es el pedazo más largo del final que todavía sirve como inicio de 101?". En 11 es "1" (q1); en 100 no hay ninguno (q0).</aside>
+</section>
+
+<!-- 8 · DIAGRAMA Y TABLA -->
+<section data-transition="convex" id="diagrama">
+  <div class="kicker">II · Diseñar el autómata · Resultado</div>
+  <div class="route" data-on="2"></div>
+  <h2>El autómata completo: diagrama y tabla</h2>
+  <div class="split" style="grid-template-columns:minmax(0,1fr) 390px;margin-top:20px;align-items:center">
+    <div class="panel"><div class="diag" data-diagrama="det101"></div>
+      <div class="hint center">Flecha de entrada: inicio. Doble círculo: aceptación.</div></div>
+    <div class="panel" data-claim="det101" data-tipo="AFD"><h3>Tabla de transición δ</h3><div data-tabla="det101"></div><div class="ttab-leyenda">→ inicial · * aceptación · una flecha por estado y símbolo</div></div>
+  </div>
+  <aside class="notes">Diagrama y tabla se generan desde la misma definición, así que coinciden. El verificador comprueba además que esta tabla es exactamente la que usa el programa en Python.</aside>
+</section>
+
+<!-- 9 · DEFINICIÓN FORMAL -->
+<section data-transition="slide" id="formal">
+  <div class="kicker">II · Diseñar el autómata · Definición formal</div>
+  <div class="route" data-on="2"></div>
+  <h2>La definición matemática</h2>
+  <div class="big mt16">\(M=(Q,\Sigma,\delta,q_0,F)\)</div>
+  <div class="comp mt24" style="max-width:900px;margin-left:auto;margin-right:auto" data-claim="det101" data-q="q0,q1,q2,q3" data-q0="q0" data-f="q3" data-tipo="AFD">
+    <span class="sym">\(Q\)</span><span class="qué">estados</span><span class="val">\(\{q_0,q_1,q_2,q_3\}\)</span>
+    <span class="sym">\(\Sigma\)</span><span class="qué">alfabeto</span><span class="val">\(\{0,1\}\)</span>
+    <span class="sym">\(\delta\)</span><span class="qué">\(\delta:Q\times\Sigma\rightarrow Q\)</span><span class="val">la tabla de la diapositiva anterior</span>
+    <span class="sym">\(q_0\)</span><span class="qué">estado inicial</span><span class="val">\(q_0\)</span>
+    <span class="sym">\(F\)</span><span class="qué">estados de aceptación</span><span class="val">\(\{q_3\}\)</span>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-gavel"></i><span>Una cadena \(w\) se acepta si, después de leerla <b>completa</b>, la máquina termina en \(F\): \(\delta^*(q_0,w)=q_3\).</span></div>
+  <aside class="notes">Es determinista porque de cada estado sale exactamente una flecha por símbolo: 4 estados × 2 símbolos = 8 transiciones.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE III · VERLO FUNCIONAR
+     ===================================================================== -->
+
+<!-- 10 · SIMULACIÓN ACEPTADA -->
+<section data-transition="concave" id="sim-acepta">
+  <div class="kicker">III · Verlo funcionar · Cadena aceptada</div>
+  <div class="route" data-on="3"></div>
+  <h2>Leamos 01010 tarjeta por tarjeta</h2>
+  <div class="sim mt8" data-afn="det101" data-w="01010">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-camino"></div>
+  </div>
+  <div class="hint center" data-claim="det101" data-w="01010" data-sets="q0;q0;q1;q2;q3;q3" data-acc="01010">Recorrido: \(q_0\to q_0\to q_1\to q_2\to q_3\to q_3\). Termina en \(q_3\): se acepta.</div>
+  <aside class="notes">Pulsa "Paso" y pide que digan el siguiente estado antes de cada clic. El último 0 llega cuando ya estamos en q3: se queda ahí.</aside>
+</section>
+
+<!-- 11 · SIMULACIÓN RECHAZADA -->
+<section data-transition="slide" id="sim-rechaza">
+  <div class="kicker">III · Verlo funcionar · Cadena rechazada</div>
+  <div class="route" data-on="3"></div>
+  <h2>Leamos 1001: la trampa de los dos ceros</h2>
+  <div class="sim mt8" data-afn="det101" data-w="1001">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-camino"></div>
+  </div>
+  <div class="hint center" data-claim="det101" data-w="1001" data-sets="q0;q1;q2;q0;q1" data-rej="1001">Con «100» la barra se vacía (\(q_2\xrightarrow{0}q_0\)); el último 1 solo llega a \(q_1\). Se rechaza.</div>
+  <aside class="notes">Momento clave: el segundo 0. La máquina tenía "10" y llega otro 0: ya no hay nada que aprovechar.</aside>
+</section>
+
+<!-- 12 · LABORATORIO -->
+<section data-transition="zoom" id="laboratorio">
+  <div class="kicker">III · Verlo funcionar · Laboratorio</div>
+  <div class="route" data-on="3"></div>
+  <h2>Laboratorio: prueba tus propias cadenas</h2>
+  <div class="sim mt8" data-afn="det101" data-w="110100" data-edit>
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-camino"></div>
+  </div>
+  <aside class="notes">Escribe cadenas propuestas por los alumnos. Prueba también una tarjeta rara (por ejemplo 1021): la máquina no tiene flecha para el 2 y la cadena se rechaza, igual que en el programa de Python.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE IV · LA SOLUCIÓN EN PYTHON
+     ===================================================================== -->
+
+<!-- 13 · LA TABLA EN PYTHON -->
+<section data-transition="concave" id="python-tabla">
+  <div class="kicker">IV · La solución en Python · Los datos</div>
+  <div class="route" data-on="4"></div>
+  <h2>Del dibujo al código: la tabla es un diccionario</h2>
+  <div class="split" style="grid-template-columns:790px minmax(0,1fr);margin-top:14px">
+    <div class="code">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; detector_101.py <span class="lin">líneas 7–20</span></div>
+      <div class="src">
+<pre data-archivo="detector_101.py"><code>ESTADO_INICIAL = "q0"
+ESTADO_ACEPTACION = "q3"
+
+# Función de transición δ: (estado actual, símbolo leído) -> estado siguiente
+TRANSICIONES = {
+    ("q0", "0"): "q0",  # nada útil todavía
+    ("q0", "1"): "q1",  # vimos «1»
+    ("q1", "0"): "q2",  # vimos «10»
+    ("q1", "1"): "q1",  # «11»: el último 1 puede empezar la secuencia
+    ("q2", "0"): "q0",  # «100»: hay que empezar de nuevo
+    ("q2", "1"): "q3",  # «101»: ¡encontrada!
+    ("q3", "0"): "q3",  # ya la encontramos:
+    ("q3", "1"): "q3",  # nada cambia el resultado
+}</code></pre>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="1" style="--l:1;--n:2"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="2" style="--l:4;--n:2"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="3" style="--l:7"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="3" style="--l:8"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="3" style="--l:11"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="4" style="--l:6"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="4" style="--l:9"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="4" style="--l:10"></div>
+        <div class="hl fragment fade-in" data-fragment-index="5" style="--l:12;--n:2"></div>
+      </div>
+    </div>
+    <div class="steps small">
+      <div class="step fragment fade-left" data-fragment-index="1">Dónde empieza (\(q_0\)) y dónde se gana (\(q_3\)).</div>
+      <div class="step fragment fade-left" data-fragment-index="2">Un <b>diccionario</b>: la llave es (estado, tarjeta) y el valor, el estado siguiente.</div>
+      <div class="step fragment fade-left" data-fragment-index="3">Las tres flechas que <b>avanzan</b> la barra.</div>
+      <div class="step fragment fade-left" data-fragment-index="4">Las que se <b>quedan</b> o <b>reinician</b>.</div>
+      <div class="step fragment fade-left" data-fragment-index="5">\(q_3\) siempre regresa a \(q_3\).</div>
+    </div>
+  </div>
+  <aside class="notes">Cada línea del diccionario es una flecha del diagrama: 8 líneas, 8 flechas. Si alguien cambia una flecha del dibujo, tiene que cambiar exactamente una línea del código.</aside>
+</section>
+
+<!-- 14 · LA FUNCIÓN acepta -->
+<section data-transition="slide" id="python-acepta">
+  <div class="kicker">IV · La solución en Python · La función</div>
+  <div class="route" data-on="4"></div>
+  <h2>La función <span class="mono" style="font-size:.85em">acepta(cadena)</span>, línea por línea</h2>
+  <div class="split" style="grid-template-columns:790px minmax(0,1fr);margin-top:14px">
+    <div class="code">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; detector_101.py <span class="lin">líneas 23–36</span></div>
+      <div class="src">
+<pre data-archivo="detector_101.py"><code>def acepta(cadena):
+    """Regresa True si la cadena binaria contiene 101 y False en otro caso.
+
+    Las cadenas con símbolos fuera del alfabeto {0, 1} se rechazan.
+    """
+    if not isinstance(cadena, str):
+        return False
+    estado = ESTADO_INICIAL
+    for simbolo in cadena:
+        siguiente = TRANSICIONES.get((estado, simbolo))
+        if siguiente is None:  # símbolo fuera del alfabeto
+            return False
+        estado = siguiente
+    return estado == ESTADO_ACEPTACION</code></pre>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="1" style="--l:6;--n:2"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="2" style="--l:8"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="3" style="--l:9"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="4" style="--l:10"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="5" style="--l:11;--n:2"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="6" style="--l:13"></div>
+        <div class="hl fragment fade-in" data-fragment-index="7" style="--l:14"></div>
+      </div>
+    </div>
+    <div class="steps small">
+      <div class="step fragment fade-left" data-fragment-index="1">Si no es texto, no es una cadena: <b>False</b>.</div>
+      <div class="step fragment fade-left" data-fragment-index="2">Empezamos en \(q_0\).</div>
+      <div class="step fragment fade-left" data-fragment-index="3">Tomamos las tarjetas <b>una por una</b>.</div>
+      <div class="step fragment fade-left" data-fragment-index="4">Buscamos la flecha en la tabla.</div>
+      <div class="step fragment fade-left" data-fragment-index="5">Si no hay flecha, la tarjeta es rara: <b>False</b>.</div>
+      <div class="step fragment fade-left" data-fragment-index="6">Nos movemos al estado siguiente.</div>
+      <div class="step fragment fade-left" data-fragment-index="7">Al final: ¿estamos en \(q_3\)?</div>
+    </div>
+  </div>
+  <aside class="notes">La función regresa siempre un booleano (True o False). La validación del alfabeto sale gratis de la tabla: una pareja (estado, símbolo) que no está en el diccionario significa un símbolo fuera de {0, 1}.</aside>
+</section>
+
+<!-- 15 · SÍMBOLOS RAROS -->
+<section data-transition="slide" id="raros">
+  <div class="kicker">IV · La solución en Python · Casos límite</div>
+  <div class="route" data-on="4"></div>
+  <h2>Tarjetas raras y entradas extrañas</h2>
+  <div class="split" style="grid-template-columns:1fr 470px;margin-top:20px">
+    <table class="tbl ej" data-claim="det101" data-rej="1021,1012,abc,ε">
+      <thead><tr><th>Entrada</th><th>Resultado</th><th>¿Qué pasa?</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">"1021"</td><td><span class="str nop">False</span></td><td>No hay flecha con «2».</td></tr>
+        <tr><td class="mono">"1012"</td><td><span class="str nop">False</span></td><td>Tiene 101, pero el «2» la invalida.</td></tr>
+        <tr><td class="mono">"abc"</td><td><span class="str nop">False</span></td><td>Ningún símbolo es 0 o 1.</td></tr>
+        <tr><td class="mono">""</td><td><span class="str nop">False</span></td><td>Cadena vacía: termina en \(q_0\).</td></tr>
+        <tr><td class="mono">None</td><td><span class="str nop">False</span></td><td>No es una cadena.</td></tr>
+      </tbody>
+    </table>
+    <div class="list" style="gap:14px">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-key"></i> El truco de <span class="mono" style="text-transform:none">.get</span></div>
+        <div class="body small"><span class="mono">TRANSICIONES.get((estado, simbolo))</span> regresa <span class="mono">None</span> si esa pareja no existe. Así, cualquier símbolo fuera de {0, 1} se detecta sin escribir otra regla.</div>
+      </div>
+      <div class="note" style="margin-top:0"><i class="fa-solid fa-circle-info"></i><span>«1012» contiene 101, pero el enunciado pide rechazar <b>cualquier</b> cadena con símbolos fuera del alfabeto: el programa se detiene en el «2».</span></div>
+    </div>
+  </div>
+  <aside class="notes">Todas estas entradas tienen su prueba automática en test_detector_101.py (clase TestCasosLimite).</aside>
+</section>
+
+<!-- 16 · ¿DÓNDE ESTÁ EL in? -->
+<section data-transition="convex" id="sin-trampa">
+  <div class="kicker">IV · La solución en Python · Sin trampa</div>
+  <div class="route" data-on="4"></div>
+  <h2>¿Y la palabra <span class="mono" style="font-size:.85em">in</span> que aparece en el código?</h2>
+  <div class="two" style="margin-top:24px">
+    <div class="panel">
+      <h3 class="yes-t"><i class="fa-solid fa-circle-check"></i> Esto sí está</h3>
+      <div class="cmd" style="font-size:20px;display:block;text-align:center;margin:10px 0">for simbolo in cadena:</div>
+      <div class="hint center" style="color:var(--ink)">Es un <b>ciclo</b>: «para cada tarjeta de la cadena». Recorre los símbolos uno por uno; no busca nada.</div>
+    </div>
+    <div class="panel fragment fade-left">
+      <h3 class="no-t"><i class="fa-solid fa-circle-xmark"></i> Esto no está</h3>
+      <div class="cmd" style="font-size:20px;display:block;text-align:center;margin:10px 0">"101" in cadena</div>
+      <div class="hint center" style="color:var(--ink)">Esa sería una <b>búsqueda de subcadena</b>: justo lo prohibido. Tampoco hay <span class="mono">find</span>, <span class="mono">index</span>, <span class="mono">count</span> ni expresiones regulares.</div>
+    </div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-magnifying-glass"></i><span>El verificador de la presentación revisa <span class="mono">detector_101.py</span> y confirma que no contiene <span class="mono">"101"</span>, <span class="mono">find</span>, <span class="mono">index</span>, <span class="mono">count</span>, <span class="mono">re</span> ni <span class="mono">__contains__</span>.</span></div>
+  <aside class="notes">La misma palabra de Python (in) tiene dos usos: en un for significa "recorrer"; en una condición significa "¿está adentro?". Solo usamos el primero.</aside>
+</section>
+
+<!-- 17 · recorrido -->
+<section data-transition="slide" id="python-recorrido">
+  <div class="kicker">IV · La solución en Python · Para ver el camino</div>
+  <div class="route" data-on="4"></div>
+  <h2>Una función extra: <span class="mono" style="font-size:.85em">recorrido(cadena)</span></h2>
+  <div class="split" style="grid-template-columns:790px minmax(0,1fr);margin-top:16px">
+    <div class="code">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; detector_101.py <span class="lin">líneas 39–47</span></div>
+      <div class="src">
+<pre data-archivo="detector_101.py"><code>def recorrido(cadena):
+    """Lista de estados visitados, o None si aparece un símbolo inválido."""
+    estados = [ESTADO_INICIAL]
+    for simbolo in cadena:
+        siguiente = TRANSICIONES.get((estados[-1], simbolo))
+        if siguiente is None:
+            return None
+        estados.append(siguiente)
+    return estados</code></pre>
+      </div>
+    </div>
+    <div class="list" style="gap:14px">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-shoe-prints"></i> Deja huellas</div>
+        <div class="body small">Hace lo mismo que <span class="mono">acepta</span>, pero <b>anota</b> cada estado visitado en una lista. Sirve para explicar y para probar.</div>
+      </div>
+      <div class="cmd" style="display:block;font-size:16px" data-claim="det101" data-w="1001" data-sets="q0;q1;q2;q0;q1">recorrido("1001")<br>→ ['q0', 'q1', 'q2', 'q0', 'q1']</div>
+    </div>
+  </div>
+  <aside class="notes">estados[-1] es el último estado de la lista, es decir, el estado actual. El resultado coincide con la simulación de la diapositiva 11.</aside>
+</section>
+
+<!-- 18 · PROGRAMA PRINCIPAL Y SALIDA -->
+<section data-transition="slide" id="python-main">
+  <div class="kicker">IV · La solución en Python · Ejecutarlo</div>
+  <div class="route" data-on="4"></div>
+  <h2>El programa principal y su salida real</h2>
+  <div class="code mt16">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; detector_101.py <span class="lin">líneas 50–55</span></div>
+    <div class="src">
+<pre data-archivo="detector_101.py"><code>if __name__ == "__main__":
+    for cadena in ["101", "01010", "1101", "1111", "1001", "", "1021"]:
+        camino = recorrido(cadena)
+        pasos = " -> ".join(camino) if camino else "símbolo inválido"
+        resultado = "Aceptada" if acepta(cadena) else "Rechazada"
+        print(f"{cadena or '(vacía)':>8}  {resultado:<9}  {pasos}")</code></pre>
+    </div>
+  </div>
+  <div class="term mt16 fragment fade-up">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; terminal</div>
+<pre><span class="p">$</span> python detector_101.py
+<span data-py-salida="programa">     101  Aceptada   q0 -> q1 -> q2 -> q3
+   01010  Aceptada   q0 -> q0 -> q1 -> q2 -> q3 -> q3
+    1101  Aceptada   q0 -> q1 -> q1 -> q2 -> q3
+    1111  Rechazada  q0 -> q1 -> q1 -> q1 -> q1
+    1001  Rechazada  q0 -> q1 -> q2 -> q0 -> q1
+ (vacía)  Rechazada  q0
+    1021  Rechazada  símbolo inválido</span></pre>
+  </div>
+  <aside class="notes">Esta es la salida real del programa (el verificador vuelve a ejecutarlo y la compara). Coincide con la tabla del enunciado y con las simulaciones.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE V · LAS PRUEBAS
+     ===================================================================== -->
+
+<!-- 19 · LAS PRUEBAS -->
+<section data-transition="concave" id="pruebas">
+  <div class="kicker">V · Las pruebas</div>
+  <div class="route" data-on="5"></div>
+  <h2>¿Cómo sabemos que funciona? Con pruebas</h2>
+  <p class="lead center mt8" style="font-size:21px">El archivo <span class="mono">test_detector_101.py</span> usa <span class="mono">unittest</span> (viene con Python) y tiene 4 grupos:</p>
+  <div class="two tight" style="gap:12px 22px;margin-top:16px">
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-circle-check"></i></div><div><div class="t">Aceptadas</div><div class="v">101 en cualquier lugar · lo de después no importa</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-circle-xmark"></i></div><div><div class="t">Rechazadas</div><div class="v">1111, 1001 y cadenas «casi 101»</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-triangle-exclamation"></i></div><div><div class="t">Casos límite</div><div class="v">ε, símbolos raros, None, cadenas de 150 000 símbolos</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-diagram-project"></i></div><div><div class="t">El autómata</div><div class="v">tabla completa · recorridos · todas las cadenas cortas</div></div></div>
+  </div>
+  <div class="code mt16 fragment fade-up">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; test_detector_101.py <span class="lin">un ejemplo</span></div>
+    <div class="src">
+<pre data-archivo="test_detector_101.py"><code>    def test_simbolos_fuera_del_alfabeto(self):
+        for cadena in ["2", "102", "1012", "10a1", "abc", "1 01", "101 ", "１０１"]:
+            with self.subTest(cadena=cadena):
+                self.assertFalse(acepta(cadena))</code></pre>
+    </div>
+  </div>
+  <aside class="notes">subTest permite probar muchas cadenas en una sola prueba y, si una falla, dice cuál. "１０１" son dígitos de ancho completo (otro alfabeto): también se rechazan.</aside>
+</section>
+
+<!-- 20 · LA PRUEBA EXHAUSTIVA -->
+<section data-transition="slide" id="exhaustiva">
+  <div class="kicker">V · Las pruebas · La más fuerte</div>
+  <div class="route" data-on="5"></div>
+  <h2>Probar todas las cadenas cortas</h2>
+  <div class="code mt16">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; test_detector_101.py</div>
+    <div class="src">
+<pre data-archivo="test_detector_101.py"><code>def contiene_101_referencia(cadena):
+    """Respuesta de referencia SOLO para las pruebas: aquí sí se busca la subcadena."""
+    return "101" in cadena</code></pre>
+    </div>
+  </div>
+  <div class="code mt16 fragment fade-up">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; test_detector_101.py</div>
+    <div class="src">
+<pre data-archivo="test_detector_101.py"><code>    def test_todas_las_cadenas_hasta_longitud_12(self):
+        revisadas = 0
+        for n in range(13):
+            for simbolos in itertools.product("01", repeat=n):
+                cadena = "".join(simbolos)
+                self.assertEqual(acepta(cadena), contiene_101_referencia(cadena), cadena)
+                revisadas += 1
+        self.assertEqual(revisadas, 2 ** 13 - 1)</code></pre>
+    </div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-scale-balanced"></i><span>Compara el autómata con una <b>respuesta del maestro</b> en las \(2^{13}-1=8191\) cadenas de longitud 0 a 12. La búsqueda de subcadena solo se usa aquí, <b>en las pruebas</b>, nunca en el detector.</span></div>
+  <aside class="notes">Si alguien cambia mal una sola flecha, esta prueba lo detecta casi seguro. No es una demostración para todas las longitudes, pero es una revisión muy completa.</aside>
+</section>
+
+<!-- 21 · RESULTADO DE LAS PRUEBAS -->
+<section data-transition="slide" id="resultado-pruebas">
+  <div class="kicker">V · Las pruebas · Ejecución</div>
+  <div class="route" data-on="5"></div>
+  <h2>Las pruebas ejecutadas</h2>
+  <div class="term chico mt16">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; terminal</div>
+<pre><span class="p">$</span> python -m unittest -v test_detector_101
+<span data-py-salida="pruebas">test_101_en_cualquier_posicion (test_detector_101.TestAceptadas.test_101_en_cualquier_posicion) ... ok
+test_despues_de_encontrarla_nada_cambia (test_detector_101.TestAceptadas.test_despues_de_encontrarla_nada_cambia) ... ok
+test_ejemplos_del_enunciado (test_detector_101.TestAceptadas.test_ejemplos_del_enunciado) ... ok
+test_funcion_de_transicion_completa (test_detector_101.TestAutomata.test_funcion_de_transicion_completa) ... ok
+test_recorridos_conocidos (test_detector_101.TestAutomata.test_recorridos_conocidos) ... ok
+test_todas_las_cadenas_hasta_longitud_12 (test_detector_101.TestAutomata.test_todas_las_cadenas_hasta_longitud_12) ... ok
+test_cadena_vacia (test_detector_101.TestCasosLimite.test_cadena_vacia) ... ok
+test_cadenas_largas (test_detector_101.TestCasosLimite.test_cadenas_largas) ... ok
+test_entrada_que_no_es_cadena (test_detector_101.TestCasosLimite.test_entrada_que_no_es_cadena) ... ok
+test_siempre_regresa_un_booleano (test_detector_101.TestCasosLimite.test_siempre_regresa_un_booleano) ... ok
+test_simbolos_fuera_del_alfabeto (test_detector_101.TestCasosLimite.test_simbolos_fuera_del_alfabeto) ... ok
+test_casi_101 (test_detector_101.TestRechazadas.test_casi_101) ... ok
+test_ejemplos_del_enunciado (test_detector_101.TestRechazadas.test_ejemplos_del_enunciado) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.025s
+
+<span class="ok-t">OK</span></span></pre>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-check" style="color:var(--ok)"></i><span><b>13 pruebas, 13 correctas.</b> Incluyen los 6 ejemplos del enunciado, casos límite y la revisión de 8191 cadenas.</span></div>
+  <aside class="notes">Salida real con Python 3.12 (el tiempo puede variar de una máquina a otra). El verificador de la presentación vuelve a ejecutar las pruebas y compara esta salida.</aside>
+</section>
+
+<!-- 22 · ERRORES FRECUENTES -->
+<section data-transition="convex" id="errores">
+  <div class="kicker">V · Errores frecuentes</div>
+  <div class="route" data-on="5"></div>
+  <h2>Errores frecuentes al diseñar este autómata</h2>
+  <div class="three" style="margin-top:16px">
+    <div class="panel" data-claim="errQ1" data-rej="1101"><h3 class="no-t" style="font-size:19px"><i class="fa-solid fa-bug"></i> «11» regresa a \(q_0\)</h3>
+      <div class="diag" data-diagrama="errQ1" data-escala=".5"></div>
+      <div class="small"><b>Falla con 1101:</b> el segundo 1 sí podía empezar 101. Corrección: \(q_1\xrightarrow{1}q_1\).</div></div>
+    <div class="panel" data-claim="errQ2" data-acc="10001"><h3 class="no-t" style="font-size:19px"><i class="fa-solid fa-bug"></i> «100» va a \(q_1\)</h3>
+      <div class="diag" data-diagrama="errQ2" data-escala=".5"></div>
+      <div class="small"><b>Acepta 10001</b>, que no contiene 101. Corrección: \(q_2\xrightarrow{0}q_0\).</div></div>
+    <div class="panel" data-claim="errQ3" data-rej="1010"><h3 class="no-t" style="font-size:19px"><i class="fa-solid fa-bug"></i> \(q_3\) no se queda</h3>
+      <div class="diag" data-diagrama="errQ3" data-escala=".5"></div>
+      <div class="small"><b>Rechaza 1010</b>: después de 101 «olvida» que ganó. Corrección: \(q_3\xrightarrow{0,1}q_3\).</div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-lightbulb"></i><span>Por eso la prueba exhaustiva es tan útil: cada uno de estos errores falla en alguna de las 8191 cadenas.</span></div>
+  <aside class="notes">Cada contraejemplo lo verifica el motor de autómatas de la presentación con los diagramas incorrectos dibujados aquí.</aside>
+</section>
+
+<!-- 23 · RESUMEN -->
+<section data-transition="zoom" id="resumen">
+  <div class="kicker">Resumen</div>
+  <h2>Lo que hicimos</h2>
+  <div class="two tight" style="gap:10px 22px;margin-top:14px">
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-brain"></i></div><div><div class="t">Pensamos qué recordar</div><div class="v">cuánto de 101 llevamos: 4 estados</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-diagram-project"></i></div><div><div class="t">Dibujamos el AFD</div><div class="v">8 flechas: una por estado y símbolo</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-brands fa-python"></i></div><div><div class="t">Lo programamos en Python</div><div class="v">un diccionario y un ciclo for</div></div></div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-ban"></i></div><div><div class="t">Sin búsquedas de subcadenas</div><div class="v">solo estados y transiciones</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-list-check"></i></div><div><div class="t">Lo probamos</div><div class="v">13 pruebas, incluidas 8191 cadenas</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-download"></i></div><div><div class="t">Descarga el código</div><div class="v"><a class="dl" href="detector_101.py" download>detector_101.py</a> · <a class="dl" href="test_detector_101.py" download>test_detector_101.py</a></div></div></div>
+    </div>
+  </div>
+  <div class="term mt16" style="max-width:760px;margin-left:auto;margin-right:auto">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; para ejecutarlo</div>
+<pre><span class="p">$</span> python detector_101.py                    <span class="c"># ejemplos</span>
+<span class="p">$</span> python -m unittest -v test_detector_101   <span class="c"># pruebas</span></pre>
+  </div>
+  <p class="quote fragment zoom-in" style="font-family:var(--serif);font-style:italic;font-weight:600;font-size:25px;color:var(--navy);text-align:center;margin-top:14px"><i class="fa-solid fa-quote-left ac" style="font-style:normal;margin-right:8px"></i>Una máquina con muy poca memoria puede resolver un gran problema si recuerda justo lo necesario.</p>
+  <aside class="notes">Los dos archivos están en la carpeta de la presentación y se pueden descargar desde aquí.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/math/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="motor-regex.js"></script>
+<script src="afn.js"></script>
+<script src="automata.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>

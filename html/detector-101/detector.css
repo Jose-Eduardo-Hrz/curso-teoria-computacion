@@ -1,0 +1,74 @@
+/* =====================================================================
+   DETECTOR DE 101 · Complemento propio de esta presentación
+   Orden de carga: tema-redes.css → mate.css → afd.css → este.
+   afd.css es una copia SIN CAMBIOS de la presentación de AFD (diagramas,
+   tablas, cinta, simulador, cadenas). Aquí solo se añade: bloques de código
+   Python con resaltado por línea, barras de progreso de los estados,
+   resaltado de grupos de flechas y la tabla de ejemplos.
+   ===================================================================== */
+
+:root{ --code-bg:#14202b; --code-bar:#263544; }
+
+/* ---------- Bloque de código (oscuro, como .term) ---------- */
+.code{--lh:23px; --pt:10px; background:var(--code-bg); border-radius:12px; border:2.5px solid var(--navy); box-shadow:5px 5px 0 var(--navy); overflow:hidden;}
+.code .bar{background:var(--code-bar); padding:6px 14px; display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:13px; color:#a9b6c2;}
+.code .bar b{width:12px; height:12px; border-radius:50%; display:inline-block;}
+.code .bar b:nth-child(1){background:#ff5f57} .code .bar b:nth-child(2){background:#febc2e} .code .bar b:nth-child(3){background:var(--accent)}
+.code .bar .lin{margin-left:auto; color:#7d8b98;}
+.code .src{position:relative;}
+.reveal .code pre{position:relative; z-index:1; margin:0; padding:var(--pt) 14px var(--pt) 34px; font-family:var(--mono); font-size:15.5px; line-height:var(--lh);
+  color:#d8e2ea; white-space:pre; box-shadow:none; width:auto; background:none; text-align:left; word-wrap:normal;}
+.reveal .code pre code{font-family:inherit; background:none; padding:0; max-height:none; overflow:visible;}
+.code.grande{--lh:27px;} .reveal .code.grande pre{font-size:18px;}
+/* Colores de sintaxis (los aplica presentacion.js) */
+.code .k{color:#9dbcf2; font-weight:600;}   /* palabra clave */
+.code .f{color:#ffd479;}                    /* función */
+.code .b{color:#c3a6ff;}                    /* función integrada */
+.code .n{color:#f6a77c;}                    /* número */
+.code .s{color:#a6e3a1;}                    /* texto */
+.code .c{color:#8a9aa8; font-style:italic;} /* comentario y docstring */
+/* Barra de resaltado: fondo + borde + flecha (no depende solo del color) */
+.code .hl{position:absolute; z-index:0; left:0; right:0; top:calc(var(--pt) + (var(--l) - 1) * var(--lh)); height:calc(var(--n,1) * var(--lh));
+  background:rgba(255,212,121,.17); border-left:5px solid #ffd479;}
+.code .hl:before{content:"▶"; position:absolute; left:9px; top:calc(var(--lh) / 2); transform:translateY(-50%); font-size:12px; color:#ffd479;}
+
+/* Terminal con la salida real */
+.term pre{font-size:14px; line-height:1.5;}
+.term.chico pre{font-size:12.5px; line-height:1.45;}
+.term .ok-t{color:#a6e3a1; font-weight:600;}
+
+/* ---------- Estados con barra de progreso ---------- */
+.progresos{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:20px;}
+.prog{background:var(--card); border:2.5px solid var(--navy); border-radius:14px; box-shadow:4px 4px 0 var(--navy); padding:12px; text-align:center;}
+.prog.fin{border-color:var(--accent-d); box-shadow:0 0 0 6px var(--accent-l), 4px 4px 0 var(--accent-d);}
+.prog .qn{display:block; font-family:var(--serif); font-size:30px; font-weight:600; color:var(--navy);}
+.prog .qn sub{font-size:.6em;}
+.barra{display:flex; justify-content:center; gap:4px; margin:8px 0;}
+.barra span{width:40px; height:40px; border:2.5px solid var(--navy); border-radius:8px; display:grid; place-items:center; font:600 22px var(--mono); color:#b9c2ca; background:#fff;}
+.barra span.ya{background:var(--accent-l); border-color:var(--accent-d); color:var(--accent-d);}
+.prog .t{font-weight:600; color:var(--navy); font-size:18px;}
+.prog .d{font-size:15px; color:var(--muted); margin-top:2px;}
+
+/* ---------- Resaltado de grupos de flechas en el diagrama ---------- */
+.hl-avanza .ed[data-k="q0>q1"], .hl-avanza .ed[data-k="q1>q2"], .hl-avanza .ed[data-k="q2>q3"]{stroke:var(--accent); stroke-width:5;}
+.hl-avanza .sh[class~="e-q0>q1"], .hl-avanza .sh[class~="e-q1>q2"], .hl-avanza .sh[class~="e-q2>q3"]{fill:var(--accent);}
+.hl-quedarse .ed[data-k="q0>q0"], .hl-quedarse .ed[data-k="q1>q1"]{stroke:var(--amber); stroke-width:5;}
+.hl-quedarse .sh[class~="e-q0>q0"], .hl-quedarse .sh[class~="e-q1>q1"]{fill:var(--amber);}
+.hl-reinicia .ed[data-k="q2>q0"]{stroke:var(--red); stroke-width:5;} .hl-reinicia .sh[class~="e-q2>q0"]{fill:var(--red);}
+.hl-trampa .ed[data-k="q3>q3"]{stroke:var(--ok); stroke-width:5;} .hl-trampa .sh[class~="e-q3>q3"]{fill:var(--ok);} .hl-trampa .state[data-s="q3"] .st:not(.in){fill:var(--ok-l); stroke:var(--ok);}
+
+/* ---------- Tabla de ejemplos ---------- */
+.tbl.ej{font-family:var(--sans); font-size:19px;}
+.tbl.ej td{padding:6px 14px; vertical-align:middle;}
+.tbl.ej td.mono{font-family:var(--mono); font-weight:600;}
+.tbl.ej .str{font-size:17px;}
+
+/* Utilidades */
+.big{font-size:32px; text-align:center;}
+.kicker .lc, .head .lc, .tbl th .lc{text-transform:none; letter-spacing:0;}
+.dl{display:inline-flex; align-items:center; gap:8px; text-decoration:none;}
+.lab input{font:600 24px var(--mono); color:var(--navy); background:#fff; border:2.5px solid var(--navy); border-radius:10px; padding:5px 12px; box-shadow:3px 3px 0 var(--navy); width:260px;}
+
+/* Tarjeta fuera del alfabeto en el simulador */
+.cinta .c.raro{background:var(--red-l); color:var(--red-t); outline:3px solid var(--red); outline-offset:-3px;}
+.cinta .c.raro:before{color:var(--red);}

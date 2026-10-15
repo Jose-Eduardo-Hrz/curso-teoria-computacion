@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validador de identificadores</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="afd.css">
+<link rel="stylesheet" href="identificador.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     BLOQUE I · EL PROBLEMA
+     ===================================================================== -->
+
+<!-- 1 · PORTADA -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Expresiones regulares · Programación en Python</div>
+  <h1 class="center" style="font-size:62px;margin-top:20px;line-height:1.08">Validador de identificadores</h1>
+  <p class="center" style="font-family:var(--serif);font-size:34px;color:var(--navy);margin-top:6px">¿es un buen nombre para una variable?</p>
+  <p class="sub" style="font-size:23px;margin-top:8px">Revisamos la regla <span class="mono">^[A-Za-z][A-Za-z0-9_]*$</span> carácter por carácter, sin usar expresiones regulares.</p>
+  <div class="two" style="margin-top:34px;max-width:900px;margin-left:auto;margin-right:auto" data-ej-val='["edad_2", "Hola", "x"]' data-ej-inv='["2x", "mi-var", ""]'>
+    <div class="panel center"><h3 class="yes-t"><i class="fa-solid fa-circle-check"></i> Nombres válidos</h3>
+      <div class="strs mt8" style="justify-content:center"><span class="str si">edad_2</span><span class="str si">Hola</span><span class="str si">x</span></div></div>
+    <div class="panel center"><h3 class="no-t"><i class="fa-solid fa-circle-xmark"></i> Nombres inválidos</h3>
+      <div class="strs mt8" style="justify-content:center"><span class="str nop">2x</span><span class="str nop">mi-var</span><span class="str nop eps">(vacía)</span></div></div>
+  </div>
+  <aside class="notes">Bienvenida. Todo programa usa nombres para guardar cosas (variables, funciones). Esos nombres siguen reglas. Hoy escribimos un programa que revisa si un nombre cumple las reglas, y lo conectamos con la expresión regular y con un autómata.</aside>
+</section>
+
+<!-- 2 · EL PROBLEMA PARA NIÑOS -->
+<section data-transition="convex" id="problema">
+  <div class="kicker">I · El problema</div>
+  <div class="route" data-on="1"></div>
+  <h2>Ponerle nombre a las cajitas</h2>
+  <div class="q"><i class="fa-solid fa-box-open"></i><p>En un programa guardamos cosas en «cajitas» (variables) y cada cajita necesita un nombre. Pero no cualquier nombre vale.</p></div>
+  <div class="split" style="grid-template-columns:1fr 420px;margin-top:22px">
+    <div class="steps small">
+      <div class="step fragment fade-right">La primera debe ser una <b>letra inglesa</b>: A–Z o a–z.</div>
+      <div class="step fragment fade-right">Después: <b>letras, dígitos 0–9 o guion bajo</b> «_», cuantos quieras (o ninguno).</div>
+      <div class="step fragment fade-right">Nada de <b>espacios, guiones medios</b> ni otros símbolos.</div>
+      <div class="step fragment fade-right">Lo revisamos <b>todo</b> el nombre, no solo una parte.</div>
+      <div class="step fragment fade-right">Un nombre <b>vacío</b> no es un nombre.</div>
+    </div>
+    <div class="def hl fragment fade-left">
+      <div class="head"><i class="fa-solid fa-bullseye"></i> Lo que hay que programar</div>
+      <div class="body">Una función <span class="mono">es_identificador(cadena)</span> que regrese <span class="mono">True</span> si la cadena es válida y <span class="mono">False</span> si no.</div>
+    </div>
+  </div>
+  <aside class="notes">Como un club con reglas de entrada: el primero de la fila tiene que ser una letra; los demás pueden ser letras, números o guion bajo; y si cualquiera de la fila no cumple, no entra nadie.</aside>
+</section>
+
+<!-- 3 · EJEMPLOS -->
+<section data-transition="slide" id="ejemplos">
+  <div class="kicker">I · El problema · Ejemplos</div>
+  <div class="route" data-on="1"></div>
+  <h2>¿Cuáles nombres son válidos?</h2>
+  <table class="tbl ej mt16" data-ej-val='["x", "Hola", "edad_2", "A1_b2"]' data-ej-inv='["", "2x", "_x", "mi-var", "mi var", "año"]'>
+    <thead><tr><th>Cadena</th><th>Resultado</th><th>¿Por qué?</th></tr></thead>
+    <tbody>
+      <tr class="fragment fade-up"><td class="mono">x</td><td><span class="str si">válido</span></td><td>Una sola letra basta: después vienen «cero o más».</td></tr>
+      <tr class="fragment fade-up"><td class="mono">edad_2</td><td><span class="str si">válido</span></td><td>Letra, luego letras, guion bajo y un dígito.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">A1_b2</td><td><span class="str si">válido</span></td><td>Mayúsculas y minúsculas también cuentan.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">2x</td><td><span class="str nop">inválido</span></td><td>Regla 1: empieza con un dígito.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">_x</td><td><span class="str nop">inválido</span></td><td>Regla 1: el guion bajo no puede ir primero.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">mi-var · mi var</td><td><span class="str nop">inválido</span></td><td>Regla 3: guion medio y espacio están prohibidos.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">año</td><td><span class="str nop">inválido</span></td><td>«ñ» no es una letra inglesa.</td></tr>
+      <tr class="fragment fade-up"><td class="mono">(vacía)</td><td><span class="str nop">inválido</span></td><td>Regla 5: la cadena vacía no es un identificador.</td></tr>
+    </tbody>
+  </table>
+  <aside class="notes">Pide que voten antes de cada fila. "Hola" también es válido (aparece en la portada). Todos estos resultados los comprueba el verificador ejecutando el programa en Python.</aside>
+</section>
+
+<!-- 4 · LA RESTRICCIÓN -->
+<section data-transition="convex" id="restriccion">
+  <div class="kicker">I · El problema · La restricción</div>
+  <div class="route" data-on="1"></div>
+  <h2>Prohibido usar expresiones regulares</h2>
+  <div class="two" style="margin-top:22px">
+    <div class="panel">
+      <h3 class="no-t"><i class="fa-solid fa-ban"></i> No se vale</h3>
+      <div class="cmd" style="font-size:19px;display:block;text-align:center;margin:10px 0">import re</div>
+      <div class="hint center">ni <span class="mono">Pattern</span> (Java), <span class="mono">&lt;regex&gt;</span> (C++) u otras bibliotecas: sería dejar que otro haga el trabajo.</div>
+    </div>
+    <div class="panel fragment fade-left">
+      <h3 class="yes-t"><i class="fa-solid fa-magnifying-glass"></i> Sí se vale</h3>
+      <div class="hint center" style="font-size:19px;color:var(--ink)">Ciclos, condicionales y funciones que revisan <b>cada carácter</b>, uno por uno.</div>
+    </div>
+  </div>
+  <div class="def hl mt24 fragment fade-up">
+    <div class="head"><i class="fa-solid fa-gears"></i> La idea</div>
+    <div class="body">Vamos a entender <b>cómo funciona por dentro</b> una expresión regular: primero la leemos pieza por pieza, después la convertimos en un autómata y al final en código.</div>
+  </div>
+  <aside class="notes">Una expresión regular es una receta; un programa con ciclos y condicionales es una forma de cocinarla a mano. Eso es justo lo que hacen las bibliotecas por dentro.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE II · LA EXPRESIÓN REGULAR
+     ===================================================================== -->
+
+<!-- 5 · PIEZA POR PIEZA -->
+<section data-transition="concave" id="piezas">
+  <div class="kicker">II · Entender la expresión</div>
+  <div class="route" data-on="2"></div>
+  <h2>Leamos la expresión pieza por pieza</h2>
+  <div class="rx-piezas">
+    <div class="pz fragment fade-up"><span class="tk ancla">^</span><span class="ex">aquí <b>empieza</b> la cadena</span></div>
+    <div class="pz fragment fade-up"><span class="tk primero">[A-Za-z]</span><span class="ex"><b>un</b> carácter: una letra mayúscula o minúscula</span></div>
+    <div class="pz fragment fade-up"><span class="tk resto">[A-Za-z0-9_]*</span><span class="ex">letras, dígitos o «_», <b>cero o más</b> veces (eso dice el <span class="mono">*</span>)</span></div>
+    <div class="pz fragment fade-up"><span class="tk ancla">$</span><span class="ex">aquí <b>termina</b> la cadena</span></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-lightbulb"></i><span>Los corchetes <span class="mono">[…]</span> significan «uno de estos caracteres» y <span class="mono">A-Z</span> es un <b>rango</b>: de la A a la Z. Juntas, las piezas dicen: «una letra, y después letras, dígitos o guiones bajos, hasta el final».</span></div>
+  <aside class="notes">Esta es la notación de las bibliotecas de programación, distinta de la notación formal de la clase de expresiones regulares (allí escribiríamos la unión con +). La idea es la misma: un primer carácter fijo y una repetición.</aside>
+</section>
+
+<!-- 6 · CLASES DE CARACTERES -->
+<section data-transition="slide" id="clases">
+  <div class="kicker">II · Entender la expresión · Clases</div>
+  <div class="route" data-on="2"></div>
+  <h2>Cuatro tipos de caracteres</h2>
+  <div class="clases">
+    <div class="cls fragment fade-up"><div class="nm">letra</div><div class="ej">A–Z a–z</div><span class="nn">solo el alfabeto inglés: <b>no</b> ñ, á, Ω</span></div>
+    <div class="cls fragment fade-up"><div class="nm">dígito</div><div class="ej">0–9</div><span class="nn"><b>no</b> otros dígitos como ² o ٣</span></div>
+    <div class="cls fragment fade-up"><div class="nm">guion bajo</div><div class="ej">_</div><span class="nn">el único símbolo permitido</span></div>
+    <div class="cls otro fragment fade-up"><div class="nm">otro</div><div class="ej">␠ - . ! ñ …</div><span class="nn">cualquier otra cosa: prohibido</span></div>
+  </div>
+  <div class="def hl mt24 fragment fade-up">
+    <div class="head"><i class="fa-solid fa-filter"></i> Así se traduce la expresión</div>
+    <div class="body"><span class="mono">[A-Za-z]</span> = «es <b>letra</b>» · <span class="mono">[A-Za-z0-9_]</span> = «es <b>letra</b>, <b>dígito</b> o <b>guion bajo</b>». Cualquier carácter de la clase <b>otro</b> hace que la cadena sea inválida.</div>
+  </div>
+  <aside class="notes">Pregunta: ¿en qué grupo cae el espacio? ¿Y la ñ? Ambos son "otro". Que la ñ no cuente es importante en español: el enunciado pide letras inglesas.</aside>
+</section>
+
+<!-- 7 · ^ Y $ -->
+<section data-transition="slide" id="anclas">
+  <div class="kicker">II · Entender la expresión · La cadena completa</div>
+  <div class="route" data-on="2"></div>
+  <h2>^ y $: no basta con una parte</h2>
+  <div class="split" style="grid-template-columns:1fr 480px;margin-top:24px" data-ej-inv='["abc def", "ok?", "2x"]'>
+    <div class="list" style="gap:14px">
+      <div class="panel"><div class="cinta" style="padding-top:0"><span class="c leido">a</span><span class="c leido">b</span><span class="c leido">c</span><span class="c esp">␠</span><span class="c">d</span><span class="c">e</span><span class="c">f</span></div>
+        <div class="hint center mt8">«abc» sería válido, pero la cadena completa tiene un espacio: <b class="no-t">inválida</b>.</div></div>
+      <div class="panel fragment fade-up"><div class="cinta" style="padding-top:0"><span class="c">2</span><span class="c leido">x</span></div>
+        <div class="hint center mt8">«x» sería válido, pero el primer carácter es un 2: <b class="no-t">inválida</b>.</div></div>
+    </div>
+    <div class="def hl fragment fade-left">
+      <div class="head"><i class="fa-solid fa-anchor"></i> Las anclas</div>
+      <div class="body"><span class="mono">^</span> obliga a revisar <b>desde el primer</b> carácter y <span class="mono">$</span> <b>hasta el último</b>. Sin ellas, la expresión aceptaría cadenas que solo <b>contienen</b> un pedazo válido.</div>
+    </div>
+  </div>
+  <aside class="notes">En nuestro programa, "desde el primero" es revisar cadena[0], y "hasta el último" es que el ciclo recorra la cadena completa sin detenerse antes.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE III · EL AUTÓMATA
+     ===================================================================== -->
+
+<!-- 8 · EL AUTÓMATA -->
+<section data-transition="concave" id="automata">
+  <div class="kicker">III · El autómata</div>
+  <div class="route" data-on="3"></div>
+  <h2>La misma regla como una máquina de 3 estados</h2>
+  <div class="split" style="grid-template-columns:600px minmax(0,1fr);margin-top:14px;align-items:center">
+    <div class="panel"><div class="diag" data-diagrama="ident" data-escala=".95"></div></div>
+    <div class="list tight">
+      <div class="item fragment fade-left" data-hl="q0"><div class="sq">\(q_0\)</div><div><div class="t">Inicio</div><div class="v">aún no leemos nada</div></div></div>
+      <div class="item fragment fade-left" data-hl="q1"><div class="sq">\(q_1\)</div><div><div class="t">Válido (aceptación)</div><div class="v">empezó con letra y todo ha estado bien</div></div></div>
+      <div class="item fragment fade-left" data-hl="qe"><div class="sq">\(q_e\)</div><div><div class="t">Error (trampa)</div><div class="v">algo salió mal: de aquí ya no se sale</div></div></div>
+      <div class="note fragment fade-up" style="margin-top:4px"><i class="fa-solid fa-circle-info"></i><span>La máquina no lee caracteres sueltos sino su <b>tipo</b>: letra, dígito, «_» u otro.</span></div>
+    </div>
+  </div>
+  <aside class="notes">q0 → q1 con letra es la pieza [A-Za-z]; el lazo de q1 es [A-Za-z0-9_]*; y q1 es de aceptación porque al llegar al final ($) todo cumplió.</aside>
+</section>
+
+<!-- 9 · TABLA Y DEFINICIÓN -->
+<section data-transition="slide" id="tabla">
+  <div class="kicker">III · El autómata · Definición</div>
+  <div class="route" data-on="3"></div>
+  <h2>Tabla de transición y definición formal</h2>
+  <div class="split" style="grid-template-columns:minmax(0,1fr) 470px;margin-top:20px">
+    <div class="panel" data-claim="ident" data-tipo="AFD" data-q="q0,q1,qe" data-q0="q0" data-f="q1"><h3>Tabla δ</h3><div data-tabla="ident"></div><div class="ttab-leyenda">L = letra · D = dígito · O = otro · → inicial · * aceptación</div></div>
+    <div class="list" style="gap:12px">
+      <div class="big">\(M=(Q,\Sigma,\delta,q_0,F)\)</div>
+      <div class="comp">
+        <span class="sym">\(Q\)</span><span class="qué">estados</span><span class="val">\(\{q_0,q_1,q_e\}\)</span>
+        <span class="sym">\(\Sigma\)</span><span class="qué">tipos de carácter</span><span class="val">\(\{L,D,\_,O\}\)</span>
+        <span class="sym">\(q_0\)</span><span class="qué">inicial</span><span class="val">\(q_0\)</span>
+        <span class="sym">\(F\)</span><span class="qué">aceptación</span><span class="val">\(\{q_1\}\)</span>
+      </div>
+    </div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-scale-balanced"></i><span>Es un AFD completo: 3 estados × 4 tipos = 12 flechas. Una vez en \(q_e\) todas las flechas regresan a \(q_e\): por eso el programa puede responder <span class="mono">False</span> en cuanto encuentra el primer error.</span></div>
+  <aside class="notes">El alfabeto de la máquina son los 4 tipos de carácter, no los caracteres: así 26 + 26 letras se convierten en un solo símbolo L.</aside>
+</section>
+
+<!-- 10 · SIMULACIÓN VÁLIDA -->
+<section data-transition="concave" id="sim-valida">
+  <div class="kicker">III · El autómata · Simulación</div>
+  <div class="route" data-on="3"></div>
+  <h2>Revisemos «edad_2» carácter por carácter</h2>
+  <div class="sim mt8" data-afn="ident" data-w="edad_2">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+  </div>
+  <aside class="notes">Debajo de cada carácter aparece su tipo. La primera letra lleva de q0 a q1; después todo es letra, «_» o dígito, así que nos quedamos en q1 hasta el final.</aside>
+</section>
+
+<!-- 11 · SIMULACIÓN INVÁLIDA -->
+<section data-transition="slide" id="sim-invalida">
+  <div class="kicker">III · El autómata · Simulación</div>
+  <div class="route" data-on="3"></div>
+  <h2>Revisemos «mi-var»: el guion medio</h2>
+  <div class="sim mt8" data-afn="ident" data-w="mi-var">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+  </div>
+  <aside class="notes">Al leer el guion (tipo "otro") la máquina cae en el estado de error y ya no sale aunque lo demás sean letras. El programa en Python hace lo mismo con un "return False" en cuanto lo encuentra.</aside>
+</section>
+
+<!-- 12 · LABORATORIO -->
+<section data-transition="zoom" id="laboratorio">
+  <div class="kicker">III · El autómata · Laboratorio</div>
+  <div class="route" data-on="3"></div>
+  <h2>Laboratorio: escribe cualquier nombre</h2>
+  <div class="sim mt8" data-afn="ident" data-w="Total_2024" data-edit>
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+  </div>
+  <aside class="notes">Pide nombres a los alumnos: con espacios, con ñ, empezando con número, de una sola letra... La respuesta la da el autómata, que es equivalente al programa (lo comprueba el verificador).</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE IV · LA SOLUCIÓN EN PYTHON
+     ===================================================================== -->
+
+<!-- 13 · AUXILIARES -->
+<section data-transition="concave" id="auxiliares">
+  <div class="kicker">IV · Python · Funciones auxiliares</div>
+  <div class="route" data-on="4"></div>
+  <h2>Primero: ¿es letra? ¿es dígito?</h2>
+  <div class="code mt16">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; identificador.py <span class="lin">líneas 10–17</span></div>
+    <div class="src">
+<pre data-archivo="identificador.py"><code>def es_letra(c):
+    """Letra inglesa A-Z o a-z (no acepta ñ, á ni otras letras)."""
+    return "A" &lt;= c &lt;= "Z" or "a" &lt;= c &lt;= "z"
+
+
+def es_digito(c):
+    """Dígito 0-9 (no acepta otros dígitos de Unicode, como ² o ٣)."""
+    return "0" &lt;= c &lt;= "9"</code></pre>
+    </div>
+  </div>
+  <div class="split" style="grid-template-columns:minmax(0,1fr) 520px;margin-top:18px">
+    <div class="def hl fragment fade-up">
+      <div class="head"><i class="fa-solid fa-ruler-horizontal"></i> Comparar rangos</div>
+      <div class="body small">Los caracteres tienen un orden (su código). <span class="mono">"A" &lt;= c &lt;= "Z"</span> pregunta «¿c está entre la A y la Z?». Es exactamente el rango <span class="mono">[A-Z]</span> de la expresión.</div>
+    </div>
+    <table class="tbl ej fragment fade-left">
+      <thead><tr><th>¿Por qué no usar…?</th><th>Resultado en Python</th></tr></thead>
+      <tbody>
+        <tr data-py-eval="'ñ'.isalpha()" data-py-val="True"><td class="mono">'ñ'.isalpha()</td><td><span class="str nop">True</span> pero «ñ» no es inglesa</td></tr>
+        <tr data-py-eval="'²'.isdigit()" data-py-val="True"><td class="mono">'²'.isdigit()</td><td><span class="str nop">True</span> pero «²» no es 0–9</td></tr>
+        <tr data-py-eval="es_letra('ñ'), es_digito('²')" data-py-val="(False, False)"><td class="mono">es_letra('ñ')</td><td><span class="str si">False</span> como pide el enunciado</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <aside class="notes">isalpha e isdigit entienden todos los idiomas de Unicode, lo cual normalmente es bueno, pero aquí el enunciado pide solo el alfabeto inglés y los dígitos 0 a 9. Los valores de esta tabla los comprueba el verificador ejecutando Python.</aside>
+</section>
+
+<!-- 14 · LA FUNCIÓN PRINCIPAL -->
+<section data-transition="slide" id="funcion">
+  <div class="kicker">IV · Python · La función principal</div>
+  <div class="route" data-on="4"></div>
+  <h2><span class="mono" style="font-size:.85em">es_identificador(cadena)</span>, línea por línea</h2>
+  <div class="split" style="grid-template-columns:775px minmax(0,1fr);margin-top:14px">
+    <div class="code">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; identificador.py <span class="lin">líneas 20–29</span></div>
+      <div class="src">
+<pre data-archivo="identificador.py"><code>def es_identificador(cadena):
+    """Regresa True si la cadena es un identificador válido y False si no."""
+    if not isinstance(cadena, str) or cadena == "":
+        return False
+    if not es_letra(cadena[0]):  # [A-Za-z]
+        return False
+    for c in cadena[1:]:  # [A-Za-z0-9_]*
+        if not (es_letra(c) or es_digito(c) or c == "_"):
+            return False
+    return True  # se revisó hasta el último carácter: $</code></pre>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="1" style="--l:3;--n:2"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="2" style="--l:5;--n:2"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="3" style="--l:7"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="4" style="--l:8;--n:2"></div>
+        <div class="hl fragment fade-in" data-fragment-index="5" style="--l:10"></div>
+      </div>
+    </div>
+    <div class="steps small">
+      <div class="step fragment fade-left" data-fragment-index="1">Si no es texto o está vacía: <b>False</b> (regla 5).</div>
+      <div class="step fragment fade-left" data-fragment-index="2">El primero debe ser letra: <span class="mono">[A-Za-z]</span> (regla 1).</div>
+      <div class="step fragment fade-left" data-fragment-index="3">Recorremos <b>todos</b> los demás: <span class="mono">[A-Za-z0-9_]*</span>.</div>
+      <div class="step fragment fade-left" data-fragment-index="4">Un carácter prohibido: <b>False</b> (reglas 2 y 3).</div>
+      <div class="step fragment fade-left" data-fragment-index="5">Llegamos al final sin errores: <b>True</b>. Eso es el <span class="mono">$</span> (regla 4).</div>
+    </div>
+  </div>
+  <aside class="notes">cadena[1:] es "la cadena sin su primer carácter"; si la cadena tiene un solo carácter, queda vacía y el ciclo no se ejecuta: "x" es válido (cero repeticiones del *).</aside>
+</section>
+
+<!-- 15 · RELACIÓN -->
+<section data-transition="convex" id="relacion">
+  <div class="kicker">IV · Python · Relación con la expresión</div>
+  <div class="route" data-on="4"></div>
+  <h2>Expresión, autómata y código: la misma idea</h2>
+  <table class="tbl rel mt24">
+    <thead><tr><th>Expresión</th><th>Significado</th><th>Autómata</th><th>Python</th></tr></thead>
+    <tbody>
+      <tr class="fragment fade-up"><td class="mono">^</td><td>empezar desde el primer carácter</td><td>estado inicial \(q_0\)</td><td class="mono">cadena[0]</td></tr>
+      <tr class="fragment fade-up"><td class="mono">[A-Za-z]</td><td>una letra</td><td>\(q_0\xrightarrow{L}q_1\)</td><td class="mono">if not es_letra(cadena[0])</td></tr>
+      <tr class="fragment fade-up"><td class="mono">[A-Za-z0-9_]*</td><td>cero o más letras, dígitos o «_»</td><td>lazo en \(q_1\) con L, D, _</td><td class="mono">for c in cadena[1:]</td></tr>
+      <tr class="fragment fade-up"><td class="mono">(lo demás)</td><td>cualquier otro carácter</td><td>flechas a \(q_e\)</td><td class="mono">return False</td></tr>
+      <tr class="fragment fade-up"><td class="mono">$</td><td>hasta el último carácter</td><td>terminar en \(q_1\in F\)</td><td class="mono">return True</td></tr>
+      <tr class="fragment fade-up"><td class="mono">(cadena vacía)</td><td>no hay primera letra</td><td>termina en \(q_0\notin F\)</td><td class="mono">cadena == ""</td></tr>
+    </tbody>
+  </table>
+  <aside class="notes">Esta tabla es la "explicación de cómo se relaciona el algoritmo con la expresión regular" que pide la entrega. Cada pieza de la expresión tiene su parte en el autómata y su línea en el código.</aside>
+</section>
+
+<!-- 16 · PROGRAMA PRINCIPAL -->
+<section data-transition="slide" id="principal">
+  <div class="kicker">IV · Python · Ejecutarlo</div>
+  <div class="route" data-on="4"></div>
+  <h2>El programa principal y su salida real</h2>
+  <div class="code mt16">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; identificador.py <span class="lin">líneas 32–36</span></div>
+    <div class="src">
+<pre data-archivo="identificador.py"><code>if __name__ == "__main__":
+    ejemplos = ["x", "Hola", "edad_2", "A1_b2", "", "2x", "_x", "mi-var", "mi var", "año"]
+    for cadena in ejemplos:
+        resultado = "válido" if es_identificador(cadena) else "inválido"
+        print(f"{repr(cadena):>10}  {resultado}")</code></pre>
+    </div>
+  </div>
+  <div class="term mt16 fragment fade-up" style="max-width:520px">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; terminal</div>
+<pre><span class="p">$</span> python identificador.py
+<span data-py-salida="programa">       'x'  válido
+    'Hola'  válido
+  'edad_2'  válido
+   'A1_b2'  válido
+        ''  inválido
+      '2x'  inválido
+      '_x'  inválido
+  'mi-var'  inválido
+  'mi var'  inválido
+     'año'  inválido</span></pre>
+  </div>
+  <aside class="notes">repr(cadena) muestra la cadena entre comillas, así se ve claramente la cadena vacía ''. Salida real: el verificador vuelve a ejecutar el programa y la compara.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE V · PRUEBAS Y CASOS LÍMITE
+     ===================================================================== -->
+
+<!-- 17 · LAS PRUEBAS -->
+<section data-transition="concave" id="pruebas">
+  <div class="kicker">V · Pruebas unitarias</div>
+  <div class="route" data-on="5"></div>
+  <h2>Pruebas unitarias con unittest</h2>
+  <p class="lead center mt8" style="font-size:21px"><span class="mono">test_identificador.py</span> tiene 14 pruebas en 5 grupos:</p>
+  <div class="two tight" style="gap:12px 22px;margin-top:14px">
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-circle-check"></i></div><div><div class="t">Válidos</div><div class="v">una letra · letras, dígitos y _</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-circle-xmark"></i></div><div><div class="t">Inválidos, regla por regla</div><div class="v">empieza mal · símbolos · cadena incompleta</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-triangle-exclamation"></i></div><div><div class="t">Casos límite</div><div class="v">vacía · "abc\n" · ñ · ² · None · muy largas</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-wrench"></i></div><div><div class="t">Funciones auxiliares</div><div class="v">es_letra y es_digito en sus bordes</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-scale-balanced"></i></div><div><div class="t">Comparación con la expresión</div><div class="v">30 941 cadenas cortas</div></div></div>
+  </div>
+  <div class="code mt16 fragment fade-up">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; test_identificador.py <span class="lin">un ejemplo</span></div>
+    <div class="src">
+<pre data-archivo="test_identificador.py"><code>    def test_letras_que_no_son_inglesas(self):
+        for cadena in ["año", "ñandu", "café", "Ωmega", "x١"]:
+            with self.subTest(cadena=cadena):
+                self.assertFalse(es_identificador(cadena))</code></pre>
+    </div>
+  </div>
+  <aside class="notes">subTest permite probar varias cadenas en una sola prueba y, si una falla, indica cuál. "x١" termina con el dígito árabe uno: también se rechaza.</aside>
+</section>
+
+<!-- 18 · CASOS LÍMITE -->
+<section data-transition="slide" id="limites">
+  <div class="kicker">V · Casos límite</div>
+  <div class="route" data-on="5"></div>
+  <h2>Los casos límite que consideramos</h2>
+  <table class="tbl ej mt16" data-ej-val='["x", "a_", "a__b"]' data-ej-inv='["", "_", "_x", "abc\n", "año", "x²", " a", "a "]'>
+    <thead><tr><th>Caso</th><th>Ejemplo</th><th>Resultado</th><th>Por qué importa</th></tr></thead>
+    <tbody>
+      <tr><td>Cadena vacía</td><td class="mono">""</td><td><span class="str nop">False</span></td><td>No tiene primera letra (y <span class="mono">cadena[0]</span> fallaría).</td></tr>
+      <tr><td>Un solo carácter</td><td class="mono">"x" · "_"</td><td><span class="str si">x</span> <span class="str nop">_</span></td><td>El <span class="mono">*</span> permite cero repeticiones.</td></tr>
+      <tr><td>Guiones bajos</td><td class="mono">"a_" · "a__b"</td><td><span class="str si">True</span></td><td>Permitidos después de la primera letra.</td></tr>
+      <tr><td>Salto de línea final</td><td class="mono">"abc\n"</td><td><span class="str nop">False</span></td><td>Trampa del <span class="mono">$</span> en Python (siguiente diapositiva).</td></tr>
+      <tr><td>Letras no inglesas</td><td class="mono">"año"</td><td><span class="str nop">False</span></td><td><span class="mono">isalpha()</span> la habría aceptado.</td></tr>
+      <tr><td>Otros dígitos</td><td class="mono">"x²"</td><td><span class="str nop">False</span></td><td><span class="mono">isdigit()</span> lo habría aceptado.</td></tr>
+      <tr><td>Espacios en los bordes</td><td class="mono">" a" · "a "</td><td><span class="str nop">False</span></td><td>No se recortan: la cadena completa debe cumplir.</td></tr>
+      <tr><td>No es una cadena</td><td class="mono">None · 123</td><td><span class="str nop">False</span></td><td>La función siempre regresa un booleano.</td></tr>
+    </tbody>
+  </table>
+  <aside class="notes">Esta tabla es la "breve explicación de los casos límite" que pide la entrega. Cada fila tiene su prueba automática en la clase TestCasosLimite.</aside>
+</section>
+
+<!-- 19 · LA TRAMPA DEL $ -->
+<section data-transition="convex" id="trampa">
+  <div class="kicker">V · Casos límite · Una trampa real</div>
+  <div class="route" data-on="5"></div>
+  <h2>La trampa del <span class="mono">$</span> en Python</h2>
+  <div class="code mt16">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; test_identificador.py</div>
+    <div class="src">
+<pre data-archivo="test_identificador.py"><code>    def test_salto_de_linea_al_final(self):
+        self.assertFalse(es_identificador("abc\n"))
+        self.assertIsNotNone(re.match(r"^[A-Za-z][A-Za-z0-9_]*$", "abc\n"))  # la trampa del «$»</code></pre>
+    </div>
+  </div>
+  <div class="two" style="margin-top:20px" data-ej-inv='["abc\n"]'>
+    <div class="def fragment fade-up" style="border-color:var(--red);box-shadow:5px 5px 0 var(--red)" data-py-eval="bool(__import__('re').match(r'^[A-Za-z][A-Za-z0-9_]*$', 'abc\n'))" data-py-val="True">
+      <div class="head" style="border-color:var(--red);color:var(--red-t)"><i class="fa-solid fa-bug"></i> La sorpresa</div>
+      <div class="body small">En Python, <span class="mono">$</span> también acepta <b>un salto de línea al final</b>. Con <span class="mono">re.match</span>, la expresión de referencia ¡acepta <span class="mono">"abc\n"</span>!</div>
+    </div>
+    <div class="def hl fragment fade-up" data-py-eval="bool(__import__('re').fullmatch(r'[A-Za-z][A-Za-z0-9_]*', 'abc\n'))" data-py-val="False">
+      <div class="head"><i class="fa-solid fa-shield-halved"></i> Nuestro programa</div>
+      <div class="body small">Revisa <b>todos</b> los caracteres, incluido <span class="mono">\n</span> (tipo «otro»): regresa <span class="mono">False</span>. Para comparar en las pruebas usamos <span class="mono">fullmatch</span>, que exige la cadena completa.</div>
+    </div>
+  </div>
+  <aside class="notes">Detalle verificado en Python 3.12. Moraleja: escribir la regla a mano nos obliga a pensar en cada carácter, y evita sorpresas como esta. La prueba deja documentado el comportamiento de re.match.</aside>
+</section>
+
+<!-- 20 · COMPARACIÓN EXHAUSTIVA -->
+<section data-transition="slide" id="exhaustiva">
+  <div class="kicker">V · Pruebas · La más fuerte</div>
+  <div class="route" data-on="5"></div>
+  <h2>Comparar con la expresión en miles de cadenas</h2>
+  <div class="code mt8">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; test_identificador.py</div>
+    <div class="src">
+<pre data-archivo="test_identificador.py"><code># Respuesta de referencia SOLO para las pruebas (el validador no usa «re»).
+# Se usa fullmatch: con re.match y «$», Python aceptaría "abc\n".
+REFERENCIA = re.compile(r"[A-Za-z][A-Za-z0-9_]*")</code></pre>
+    </div>
+  </div>
+  <div class="code mt8 fragment fade-up">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; test_identificador.py</div>
+    <div class="src">
+<pre data-archivo="test_identificador.py"><code>    def test_todas_las_cadenas_cortas(self):
+        caracteres = "aZm09_- .ñ²\n$"
+        revisadas = 0
+        for n in range(5):
+            for tupla in itertools.product(caracteres, repeat=n):
+                cadena = "".join(tupla)
+                esperado = REFERENCIA.fullmatch(cadena) is not None
+                self.assertEqual(es_identificador(cadena), esperado, repr(cadena))
+                revisadas += 1
+        self.assertEqual(revisadas, sum(len(caracteres) ** n for n in range(5)))</code></pre>
+    </div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-scale-balanced"></i><span>13 caracteres de prueba (de todos los tipos), cadenas de longitud 0 a 4: \(1+13+13^2+13^3+13^4=30\,941\) comparaciones. La biblioteca <span class="mono">re</span> solo aparece aquí, como <b>respuesta del maestro</b>; <span class="mono">identificador.py</span> no la usa.</span></div>
+  <aside class="notes">Es la prueba que confirma que nuestro algoritmo y la expresión regular dicen lo mismo. No es una demostración para todas las cadenas, pero cubre todas las combinaciones cortas de cada tipo de carácter.</aside>
+</section>
+
+<!-- 21 · RESULTADO -->
+<section data-transition="slide" id="resultado">
+  <div class="kicker">V · Pruebas · Ejecución</div>
+  <div class="route" data-on="5"></div>
+  <h2>Las pruebas ejecutadas</h2>
+  <div class="term chico mt16">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; terminal</div>
+<pre><span class="p">$</span> python -m unittest -v test_identificador
+<span data-py-salida="pruebas">test_digitos_que_no_son_0_a_9 (test_identificador.TestCasosLimite.test_digitos_que_no_son_0_a_9) ... ok
+test_entrada_que_no_es_cadena (test_identificador.TestCasosLimite.test_entrada_que_no_es_cadena) ... ok
+test_identificador_muy_largo (test_identificador.TestCasosLimite.test_identificador_muy_largo) ... ok
+test_letras_que_no_son_inglesas (test_identificador.TestCasosLimite.test_letras_que_no_son_inglesas) ... ok
+test_regla_5_cadena_vacia (test_identificador.TestCasosLimite.test_regla_5_cadena_vacia) ... ok
+test_salto_de_linea_al_final (test_identificador.TestCasosLimite.test_salto_de_linea_al_final) ... ok
+test_siempre_regresa_un_booleano (test_identificador.TestCasosLimite.test_siempre_regresa_un_booleano) ... ok
+test_todas_las_cadenas_cortas (test_identificador.TestComparacionConLaExpresion.test_todas_las_cadenas_cortas) ... ok
+test_es_letra_y_es_digito (test_identificador.TestFuncionesAuxiliares.test_es_letra_y_es_digito) ... ok
+test_regla_1_debe_empezar_con_letra (test_identificador.TestInvalidos.test_regla_1_debe_empezar_con_letra) ... ok
+test_regla_3_simbolos_prohibidos (test_identificador.TestInvalidos.test_regla_3_simbolos_prohibidos) ... ok
+test_regla_4_toda_la_cadena (test_identificador.TestInvalidos.test_regla_4_toda_la_cadena) ... ok
+test_letras_digitos_y_guiones_bajos (test_identificador.TestValidos.test_letras_digitos_y_guiones_bajos) ... ok
+test_una_sola_letra (test_identificador.TestValidos.test_una_sola_letra) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.059s
+
+<span class="ok-t">OK</span></span></pre>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-check" style="color:var(--ok)"></i><span><b>14 pruebas, 14 correctas</b>, incluidas las 5 reglas del enunciado, los casos límite y las 30 941 comparaciones.</span></div>
+  <aside class="notes">Salida real con Python 3.12 (el tiempo puede variar). El verificador de la presentación vuelve a ejecutar las pruebas y compara esta salida.</aside>
+</section>
+
+<!-- 22 · ERRORES FRECUENTES -->
+<section data-transition="convex" id="errores">
+  <div class="kicker">V · Errores frecuentes</div>
+  <div class="route" data-on="5"></div>
+  <h2 style="font-size:38px">Errores frecuentes (y su contraejemplo)</h2>
+  <div class="code mini" style="margin-top:6px">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; errores_frecuentes.py <span class="lin">versiones incorrectas</span></div>
+    <div class="src">
+<pre data-archivo="errores_frecuentes.py"><code>def error_isalpha(cadena):
+    """Usa isalpha/isalnum: acepta letras y dígitos que no son ingleses."""
+    return cadena[:1].isalpha() and all(c.isalnum() or c == "_" for c in cadena)
+
+
+def error_solo_primero(cadena):
+    """Solo revisa el primer carácter: olvida el resto de la cadena."""
+    return cadena != "" and ("A" &lt;= cadena[0] &lt;= "Z" or "a" &lt;= cadena[0] &lt;= "z")
+
+
+def error_alguna_parte(cadena):
+    """Acepta si ALGÚN carácter es letra: no exige la cadena completa."""
+    for c in cadena:
+        if "A" &lt;= c &lt;= "Z" or "a" &lt;= c &lt;= "z":
+            return True
+    return False</code></pre>
+    </div>
+  </div>
+  <div class="term chico fragment fade-up" style="margin-top:6px">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; terminal</div>
+<pre><span class="p">$</span> python errores_frecuentes.py
+<span data-py-salida="errores">error_isalpha('año') = True
+error_solo_primero('a-b') = True
+error_alguna_parte('2x') = True
+error_sin_vacia('') -> IndexError: string index out of range</span></pre>
+  </div>
+  <aside class="notes">Cuatro errores reales: usar isalpha (acepta "año"), revisar solo el primer carácter (acepta "a-b"), aceptar si alguna parte es válida (acepta "2x") y olvidar la cadena vacía antes de leer cadena[0] (el programa truena). El archivo completo está en la carpeta; la salida es real.</aside>
+</section>
+
+<!-- 23 · RESUMEN -->
+<section data-transition="zoom" id="resumen">
+  <div class="kicker">Resumen</div>
+  <h2>Lo que hicimos</h2>
+  <div class="two tight" style="gap:10px 22px;margin-top:14px">
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-puzzle-piece"></i></div><div><div class="t">Leímos la expresión pieza por pieza</div><div class="v">^ · [A-Za-z] · [A-Za-z0-9_]* · $</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-diagram-project"></i></div><div><div class="t">La convertimos en un autómata</div><div class="v">3 estados: inicio, válido y error</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-brands fa-python"></i></div><div><div class="t">La programamos sin «re»</div><div class="v">comparar rangos y un ciclo for</div></div></div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-triangle-exclamation"></i></div><div><div class="t">Cuidamos los casos límite</div><div class="v">vacía · "abc\n" · ñ · ² · espacios</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-list-check"></i></div><div><div class="t">Lo probamos</div><div class="v">14 pruebas · 30 941 comparaciones</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-download"></i></div><div><div class="t">Descarga el código</div><div class="v"><a class="dl" href="identificador.py" download>identificador.py</a> · <a class="dl" href="test_identificador.py" download>test_identificador.py</a> · <a class="dl" href="errores_frecuentes.py" download>errores_frecuentes.py</a></div></div></div>
+    </div>
+  </div>
+  <div class="term mt16" style="max-width:780px;margin-left:auto;margin-right:auto">
+    <div class="bar"><b></b><b></b><b></b>&nbsp; para ejecutarlo</div>
+<pre><span class="p">$</span> python identificador.py                   <span class="c"># ejemplos</span>
+<span class="p">$</span> python -m unittest -v test_identificador   <span class="c"># pruebas</span></pre>
+  </div>
+  <p class="quote fragment zoom-in" style="font-family:var(--serif);font-style:italic;font-weight:600;font-size:25px;color:var(--navy);text-align:center;margin-top:14px"><i class="fa-solid fa-quote-left ac" style="font-style:normal;margin-right:8px"></i>Una expresión regular es una regla; un programa que la revisa carácter por carácter es esa misma regla, explicada paso a paso.</p>
+  <aside class="notes">Los tres archivos de Python están en la carpeta de la presentación y se pueden descargar desde aquí.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/math/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="afn.js"></script>
+<script src="automata.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>
