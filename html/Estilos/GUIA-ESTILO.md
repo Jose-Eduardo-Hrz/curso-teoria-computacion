@@ -6,27 +6,39 @@ Estilo visual de la presentación de DHCP, listo para reutilizar en otras presen
 |---|---|
 | `tema-redes.css` | Hoja de estilos con todos los componentes. |
 | `mate.css` | Complemento para presentaciones de matemáticas y programación (se carga **después** de `tema-redes.css`): pregunta inicial `.q`, definiciones `.def`, pasos numerados `.steps` (`.concl` = conclusión «∴», `.fail` = paso erróneo), veredictos `.verdict`, paneles `.panel`, retos con respuesta `.reto` + `.ans-btn`/`.ans`, cinta de ruta `.route`, tablas y diagramas SVG. Trae también los estilos de los modos de revisión `?verificar` y `?mostrar` (el comportamiento lo aporta el `presentacion.js` de cada presentación). Ajusta el texto base de las diapositivas a 22 px. |
-| `plantilla.html` | Presentación de ejemplo con cada componente funcionando. Cópiala y edítala. |
+| `plantilla.html` | Presentación de ejemplo con cada componente funcionando. Cópiala y edítala. Usa la carpeta `lib/`, así que funciona sin internet. |
+| `lib/` | Dependencias locales, con sus licencias: `reveal/` (reveal.js 5.1.0 y los plugins de fórmulas y notas), `katex/` (KaTeX 0.16.11), `fontawesome/` (Font Awesome Free 6.5.1) y `fuentes/` (IBM Plex Mono, IBM Plex Sans y Source Serif 4). Cópiala completa en cada presentación nueva. |
+| `afd.js`, `afn.js`, `motor-regex.js`, `thompson.js` | Motores reutilizables: autómatas deterministas, no deterministas (con ε) y expresiones regulares formales, y el método de Thompson. Dibujan diagramas y tablas, simulan y validan. `thompson.js` necesita `afn.js` y `motor-regex.js`. |
 | `GUIA-ESTILO.md` | Este documento: reglas de diseño y cómo usar cada pieza. |
 
 ---
 
 ## 1. Arranque rápido
 
-1. Copia `tema-redes.css` y `plantilla.html` a la carpeta de la nueva presentación.
-2. Cambia el nombre de `plantilla.html` (p. ej. `tcp.html`) y reemplaza el contenido de cada `<section>`.
-3. Ábrelo en el navegador. Se necesita internet para los CDN.
+1. Crea una carpeta para la presentación y copia en ella `tema-redes.css`, `plantilla.html` y la carpeta **`lib/` completa** (y `mate.css` si la presentación es de matemáticas o programación).
+2. Cambia el nombre de `plantilla.html` (normalmente `index.html`) y reemplaza el contenido de cada `<section>`.
+3. Ábrelo en el navegador. **No hace falta internet**: todo se carga desde `lib/`, también cuando se sirve con nginx a otros dispositivos de la red.
 
-Cabecera mínima (el orden importa: `tema-redes.css` va al final):
+> Cada presentación es **autocontenida**: usa sus propias copias (`tema-redes.css`, `lib/`…) y nunca enlaza archivos de otra carpeta, ni siquiera de `Estilos/` (`../Estilos/…`).
+
+Cabecera mínima (el orden importa: `tema-redes.css` va después de reveal; `mate.css` y los estilos propios, al final):
 
 ```html
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lib/reveal/reveal.min.css">
+<link rel="stylesheet" href="lib/fontawesome/css/all.min.css">
+<link rel="stylesheet" href="lib/fuentes/fuentes.css">
 <link rel="stylesheet" href="tema-redes.css">
 ```
 
+Y al final del `<body>`:
+
+```html
+<script src="lib/reveal/reveal.min.js"></script>
+```
+
 > No cargues ningún tema de reveal (`white.css`, `black.css`…): el tema es `tema-redes.css`.
+
+> No uses enlaces a CDN (cdnjs, jsdelivr, Google Fonts): en dispositivos sin acceso a esos servidores la presentación se ve rota. Si necesitas otra biblioteca, cópiala dentro de `lib/`.
 
 Configuración de reveal:
 
@@ -40,6 +52,41 @@ Reveal.initialize({
 ```
 
 `center: false` y el lienzo fijo de **1280 × 720** son obligatorios: todos los dispositivos se colocan con coordenadas en píxeles.
+
+### Fórmulas matemáticas (KaTeX)
+
+Agrega los plugins después de `reveal.min.js`:
+
+```html
+<script src="lib/reveal/reveal.min.js"></script>
+<script src="lib/reveal/plugin/math/math.min.js"></script>
+<script src="lib/reveal/plugin/notes/notes.min.js"></script>
+```
+
+y activa KaTeX **desde `lib/katex`** en la configuración:
+
+```js
+Reveal.initialize({
+  /* … opciones anteriores … */
+  katex: {
+    version: '0.16.11',
+    local: 'lib/katex',   // obligatorio: sin esta línea, el plugin descarga KaTeX de cdn.jsdelivr.net
+    delimiters: [
+      { left: '\\[', right: '\\]', display: true },
+      { left: '\\(', right: '\\)', display: false }
+    ],
+    ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+  },
+  plugins: [RevealMath.KaTeX, RevealNotes]
+});
+```
+
+En el HTML las fórmulas se escriben con `\( … \)` (en línea) y `\[ … \]` (en bloque). Si en otro dispositivo aparecen como texto crudo (`\(q_0\)`), falta la línea `local: 'lib/katex'` o la carpeta `lib/katex/`.
+
+> Las mayúsculas decorativas (`.kicker`, `.head`, encabezados de `.tbl`) convierten «ε» en «Ε». Envuelve la ε en `<span class="lc">ε</span>` y agrega a los estilos propios de la presentación:
+> ```css
+> .kicker .lc, .head .lc, .tbl th .lc{text-transform:none; letter-spacing:0;}
+> ```
 
 ---
 
@@ -313,6 +360,6 @@ Usa `data-transition` en cada `<section>` y alterna para dar ritmo:
 
 ## 7. Instrucción para pedírselo a Claude
 
-Copia esto al pedir una nueva presentación y adjunta `tema-redes.css` y `plantilla.html`:
+Copia esto al pedir una nueva presentación (la carpeta `Estilos/` debe estar disponible en el proyecto):
 
-> Crea una presentación en reveal.js 5.1 sobre **[TEMA]**, en español, usando el tema `tema-redes.css` y los componentes de `plantilla.html` (sigue `GUIA-ESTILO.md`). Lienzo 1280×720, `center:false`, dispositivos colocados en px dentro de `.stage`, íconos de Font Awesome 6 free, acento azul marino. Incluye: portada animada, diagrama de secuencia con flechas que se dibujan, una simulación por clics con paquetes (`.pkt` con `--x1/--y1/--x2/--y2`) y subtítulos `.captions`, una diapositiva de detalle por mensaje, una terminal con comandos reales y un resumen. Alterna transiciones (zoom, convex, concave, slide, fade) y usa auto-animate entre el diagrama y la simulación.
+> Crea una presentación en reveal.js 5.1 sobre **[TEMA]**, en español, en su propia carpeta autocontenida dentro de `html/`, usando el tema `tema-redes.css` y los componentes de `plantilla.html` (sigue `GUIA-ESTILO.md`). Copia la carpeta `lib/` de `Estilos/` y carga todo desde ella (sin CDN; fórmulas con KaTeX `local: 'lib/katex'`). Lienzo 1280×720, `center:false`, dispositivos colocados en px dentro de `.stage`, íconos de Font Awesome 6 free, acento azul marino. Incluye: portada animada, diagrama de secuencia con flechas que se dibujan, una simulación por clics con paquetes (`.pkt` con `--x1/--y1/--x2/--y2`) y subtítulos `.captions`, una diapositiva de detalle por mensaje, una terminal con comandos reales y un resumen. Alterna transiciones (zoom, convex, concave, slide, fade) y usa auto-animate entre el diagrama y la simulación.

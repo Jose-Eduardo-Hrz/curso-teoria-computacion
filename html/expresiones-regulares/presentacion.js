@@ -198,6 +198,7 @@
 		viewDistance: VERIFY ? 100 : 3,
 		katex: {
 			version: '0.16.11',
+			local: 'lib/katex', // KaTeX servido desde esta carpeta: no depende de cdn.jsdelivr.net
 			delimiters: [
 				{ left: '\\[', right: '\\]', display: true },
 				{ left: '\\(', right: '\\)', display: false }
