@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autómatas finitos no deterministas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="afd.css">
+<link rel="stylesheet" href="afn.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     BLOQUE I · ¿POR QUÉ NO DETERMINISMO?
+     ===================================================================== -->
+
+<!-- 1 · PORTADA -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Teoría de la computación · Autómatas</div>
+  <h1 class="center" style="font-size:60px;margin-top:20px;line-height:1.08">Autómatas finitos no deterministas</h1>
+  <p class="center" style="font-family:var(--serif);font-size:34px;color:var(--navy);margin-top:8px">máquinas que exploran todos los caminos a la vez</p>
+  <p class="sub" style="font-size:23px;margin-top:8px">Una nueva forma de construir máquinas que reconocen patrones.</p>
+  <div class="panel col-c" style="width:640px;margin:26px auto 0;padding:8px 12px" data-claim="termina01" data-w="0" data-sets="q0;q0,q1">
+    <div class="diag" data-diagram="termina01" data-escala=".95" data-marca="q0:on;q1:on"></div>
+    <span class="hint">Después de leer un 0, la máquina está en <b>dos estados a la vez</b>: \(\{q_0,q_1\}\)</span>
+  </div>
+  <aside class="notes">Bienvenida. En la clase anterior cada símbolo llevaba a un único estado. Hoy relajamos esa regla: desde un estado puede haber varias flechas con el mismo símbolo, o ninguna. La máquina de la portada reconoce las cadenas que terminan en 01.</aside>
+</section>
+
+<!-- 2 · PREGUNTA: EL LABERINTO -->
+<section data-transition="convex" id="laberinto">
+  <div class="kicker">I · ¿Por qué no determinismo?</div>
+  <div class="route" data-on="1"></div>
+  <h2>El laberinto de los caminos</h2>
+  <div class="q"><i class="fa-solid fa-circle-question"></i><p>Buscas la salida de un laberinto lleno de bifurcaciones. ¿Y si pudieras dividirte y probar todos los caminos a la vez?</p></div>
+  <svg class="arbol mt24" viewBox="0 0 760 210" width="760" role="img" aria-label="Un camino se divide en dos; uno se vuelve a dividir. Uno de los tres caminos finales llega a la salida y los otros dos son callejones sin salida">
+    <path class="e" d="M70 105 L240 105"/><path class="e" d="M240 105 L420 45"/><path class="e" d="M240 105 L420 165"/>
+    <path class="e" d="M420 45 L600 25"/><path class="e" d="M420 45 L600 80"/>
+    <g class="nd"><circle cx="70" cy="105" r="20"/><text x="70" y="105">tú</text></g>
+    <g class="nd"><circle cx="240" cy="105" r="17"/></g><g class="nd"><circle cx="420" cy="45" r="17"/></g>
+    <g class="nd rej"><circle cx="420" cy="165" r="17"/></g><text class="x" x="448" y="170">✗ callejón sin salida</text>
+    <g class="nd acc fragment" data-fragment-index="1"><circle cx="600" cy="25" r="17"/></g><text class="ok fragment" data-fragment-index="1" x="628" y="30">✓ ¡salida!</text>
+    <g class="nd rej"><circle cx="600" cy="80" r="17"/></g><text class="x" x="628" y="85">✗ sin salida</text>
+  </svg>
+  <div class="two tight" style="margin-top:6px">
+    <div class="bubble fragment fade-up" data-fragment-index="2" style="position:static"><i class="fa-solid fa-users ac"></i> Si te divides en varios exploradores, ¿cuántos necesitan encontrar la salida?</div>
+    <div class="bubble fragment fade-up" data-fragment-index="3" style="position:static"><i class="fa-solid fa-flag-checkered ac"></i> ¡Basta con <b>uno</b>! Los demás pueden perderse.</div>
+  </div>
+  <aside class="notes">No des definiciones todavía. La idea clave del día es esta: aceptar si AL MENOS UN camino tiene éxito. Pregunta: ¿qué pasa si todos los caminos terminan en callejones? Entonces no hay salida: se rechaza.</aside>
+</section>
+
+<!-- 3 · EJEMPLOS COTIDIANOS -->
+<section data-transition="slide" id="cotidianos">
+  <div class="kicker">I · ¿Por qué no determinismo?</div>
+  <div class="route" data-on="1"></div>
+  <h2>Ideas parecidas en la vida diaria</h2>
+  <div class="split" style="grid-template-columns:1fr 420px;margin-top:20px">
+    <div class="list tight">
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-route"></i></div><div><div class="t">Rutas alternativas en un mapa</div><div class="v">varias opciones desde el mismo cruce</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-magnifying-glass"></i></div><div><div class="t">Buscar una palabra en un texto</div><div class="v">¿empieza aquí? ¿o más adelante? se prueban todas</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-burger"></i></div><div><div class="t">Ingrediente opcional en una receta</div><div class="v">«con o sin queso»: avanzar sin hacer nada</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-sitemap"></i></div><div><div class="t">Árbol de decisiones</div><div class="v">cada pregunta abre varias ramas</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-chess-knight"></i></div><div><div class="t">Juego de mesa</div><div class="v">de una posición salen muchas jugadas posibles</div></div></div>
+    </div>
+    <div>
+      <div class="def hl fragment fade-left">
+        <div class="head"><i class="fa-solid fa-lightbulb"></i> Lo que tienen en común</div>
+        <div class="body">Desde una misma situación hay <b>varias continuaciones</b> posibles, y nos interesa saber si <b>alguna</b> llega a buen puerto.</div>
+      </div>
+      <div class="note fragment fade-up"><i class="fa-solid fa-triangle-exclamation"></i><span>Son <b>analogías</b>. Un AFN no es una máquina mágica que adivina: es un <b>modelo matemático</b> que considera todas las opciones a la vez.</span></div>
+    </div>
+  </div>
+  <aside class="notes">La receta con ingrediente opcional anticipa las transiciones ε: pasar de un paso al siguiente sin "leer" nada. La búsqueda de una palabra es el ejemplo más cercano a los AFN de hoy (termina en 01, contiene 101).</aside>
+</section>
+
+<!-- 4 · RECORDATORIO AFD -->
+<section data-transition="convex" id="recordatorio">
+  <div class="kicker">I · ¿Por qué no determinismo?</div>
+  <div class="route" data-on="1"></div>
+  <h2>Recordatorio: el autómata determinista</h2>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:24px">
+    <div class="panel"><div class="diag" data-diagram="termina1"></div><div class="hint center">AFD «termina en 1» de la clase anterior</div></div>
+    <div class="list" style="gap:16px" data-claim="termina1" data-tipo="AFD">
+      <div class="def">
+        <div class="head"><i class="fa-solid fa-code-branch"></i> En un AFD</div>
+        <div class="body">Desde cada estado sale <b>exactamente una</b> flecha por cada símbolo. En cada momento la máquina está en <b>un solo</b> estado.</div>
+      </div>
+      <div class="q fragment fade-up" style="margin:0"><i class="fa-solid fa-circle-question"></i><p style="font-size:25px">¿Y si permitimos <b>varias</b> flechas con el mismo símbolo, o <b>ninguna</b>?</p></div>
+    </div>
+  </div>
+  <aside class="notes">Esa pregunta es la puerta de entrada al no determinismo. Lo sorprendente que veremos al final: no se gana poder de reconocimiento, pero muchas máquinas se vuelven más fáciles de diseñar.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE II · LEER DIAGRAMAS DE UN AFN
+     ===================================================================== -->
+
+<!-- 5 · TRANSICIONES MÚLTIPLES -->
+<section data-transition="concave" id="multiples">
+  <div class="kicker">II · Leer un AFN</div>
+  <div class="route" data-on="2"></div>
+  <h2>Transiciones múltiples: varias flechas con el mismo símbolo</h2>
+  <div class="split" style="grid-template-columns:600px 1fr;margin-top:24px">
+    <div class="panel"><div class="diag" data-diagram="termina01"></div></div>
+    <div class="list" style="gap:14px" data-claim="termina01" data-delta="q0:0=q0,q1">
+      <div class="pieza fragment fade-left" data-hl="multi"><span class="ic">0</span><div><div class="t">Desde \(q_0\), el 0 tiene <b>dos</b> flechas</div><div class="v">el lazo hacia q0 y la flecha hacia q1</div></div></div>
+      <div class="def hl fragment fade-left">
+        <div class="head"><i class="fa-solid fa-code-fork"></i> ¿Cuál toma?</div>
+        <div class="body"><b>No elige: toma las dos.</b> La máquina se «divide» y sigue ambos caminos a la vez: \(\delta(q_0,0)=\{q_0,q_1\}\).</div>
+      </div>
+      <div class="hint fragment fade-up">Intuición: \(q_1\) es la «apuesta» de que este 0 es el penúltimo símbolo.</div>
+    </div>
+  </div>
+  <aside class="notes">Este autómata reconoce las cadenas que terminan en 01. En q0 "esperamos"; con un 0, además de seguir esperando, apostamos a que empieza el final 01.</aside>
+</section>
+
+<!-- 6 · TRANSICIONES QUE FALTAN -->
+<section data-transition="slide" id="faltan">
+  <div class="kicker">II · Leer un AFN</div>
+  <div class="route" data-on="2"></div>
+  <h2>Cuando no hay flecha, ese camino muere</h2>
+  <div class="split" style="grid-template-columns:600px 1fr;margin-top:24px">
+    <div class="panel"><div class="diag" data-diagram="termina01"></div></div>
+    <div class="list" style="gap:14px" data-claim="termina01" data-delta="q1:0=∅;q2:0=∅;q2:1=∅">
+      <div class="pieza fragment fade-left" data-hl="faltan"><span class="ic"><i class="fa-solid fa-ban"></i></span><div><div class="t">Desde \(q_1\) no sale ninguna flecha con 0</div><div class="v">y desde q2 no sale ninguna</div></div></div>
+      <div class="def hl fragment fade-left">
+        <div class="head"><i class="fa-solid fa-skull"></i> Camino que muere</div>
+        <div class="body">Si un camino necesita una flecha que no existe, <b>ese camino se detiene</b> sin éxito. Escribimos \(\delta(q_1,0)=\varnothing\).</div>
+      </div>
+      <div class="note fragment fade-up" style="margin-top:0"><i class="fa-solid fa-circle-info"></i><span>En un AFD completo esto no puede pasar (hacía falta un estado trampa). En un AFN está <b>permitido</b>: los otros caminos siguen vivos.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Que falte una flecha no es un error en un AFN. El conjunto vacío ∅ indica "ningún estado siguiente".</aside>
+</section>
+
+<!-- 7 · ACEPTACIÓN -->
+<section data-transition="slide" id="aceptacion">
+  <div class="kicker">II · Leer un AFN · Regla de oro</div>
+  <div class="route" data-on="2"></div>
+  <h2>Se acepta si existe al menos un camino válido</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-gavel"></i> Regla de aceptación de un AFN</div>
+    <div class="body lead">Una cadena \(w\) se <b>acepta</b> si existe <b>al menos un</b> camino que empieza en \(q_0\), lee <b>todos</b> los símbolos de \(w\) y <b>termina</b> en un estado final.</div>
+  </div>
+  <div class="three" style="margin-top:24px">
+    <div class="panel fig fragment fade-up"><i class="fa-solid fa-circle-check" style="font-size:40px;color:var(--ok)"></i><h3>Basta uno</h3><div class="figcap">Si un solo camino termina en un estado final, la cadena se acepta, aunque los demás fallen.</div></div>
+    <div class="panel fig fragment fade-up"><i class="fa-solid fa-circle-xmark" style="font-size:40px;color:var(--red)"></i><h3>Se rechaza si fallan todos</h3><div class="figcap">Todos los caminos mueren o terminan fuera de \(F\).</div></div>
+    <div class="panel fig fragment fade-up"><i class="fa-solid fa-book-open" style="font-size:40px;color:var(--accent)"></i><h3>Leer todo</h3><div class="figcap">Pasar por un final a mitad de la cadena <b>no cuenta</b>: hay que leerla completa.</div></div>
+  </div>
+  <aside class="notes">Es un "existe" (∃), no un "para todos" (∀). Compara con el laberinto: basta un explorador que llegue a la salida.</aside>
+</section>
+
+<!-- 8 · ÁRBOL DE CAMINOS -->
+<section data-transition="convex" id="arbol">
+  <div class="kicker">II · Leer un AFN · Árbol de caminos</div>
+  <div class="route" data-on="2"></div>
+  <h2>Todos los caminos de la cadena 0101</h2>
+  <div class="split" style="grid-template-columns:1fr 360px;margin-top:16px">
+    <div class="panel"><div data-arbol="termina01" data-w="0101"></div>
+      <div class="leyenda"><span><i class="c" style="border-color:var(--ok);background:var(--ok-l)"></i> termina en final</span><span><i class="c" style="border-color:var(--red);border-style:dashed;background:var(--red-l)"></i> termina fuera de F</span><span><b class="x" style="color:var(--red-t)">✗</b> muere: no hay flecha</span></div>
+    </div>
+    <div class="list" style="gap:12px" data-claim="termina01" data-caminos="0101=3,1,1" data-acc="0101">
+      <div class="item fragment fade-left"><div class="sq">3</div><div><div class="t">caminos posibles</div><div class="v">el árbol se ramifica con cada 0 en q0</div></div></div>
+      <div class="item fragment fade-left"><div class="sq" style="color:var(--red-t)">1</div><div><div class="t">muere a mitad</div><div class="v">llega a q2 y no hay flecha con 0</div></div></div>
+      <div class="item fragment fade-left"><div class="sq" style="color:var(--ok)">1</div><div><div class="t">termina en q2 ∈ F</div><div class="v">¡basta uno!</div></div></div>
+      <div class="tag ac fragment zoom-in" style="font-size:19px;padding:6px 14px;justify-content:center"><i class="fa-solid fa-circle-check"></i> 0101 se acepta</div>
+    </div>
+  </div>
+  <aside class="notes">El árbol lo dibuja el motor a partir de la definición del autómata. Recorre cada rama con el dedo. Pregunta: ¿cuántos caminos tendría 0110? (también 3, pero ninguno acepta).</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE III · LA MATEMÁTICA DE UN AFN
+     ===================================================================== -->
+
+<!-- 9 · CONJUNTO POTENCIA -->
+<section data-transition="concave" id="potencia">
+  <div class="kicker">III · La matemática</div>
+  <div class="route" data-on="3"></div>
+  <h2>Una herramienta nueva: el conjunto potencia</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-layer-group"></i> Conjunto potencia</div>
+    <div class="body lead">\(\mathcal{P}(Q)\) es el conjunto de <b>todos los subconjuntos</b> de \(Q\), incluidos \(\varnothing\) y el propio \(Q\). Si \(Q\) tiene \(n\) elementos, \(\mathcal{P}(Q)\) tiene \(2^n\).</div>
+  </div>
+  <p class="lead center mt24">Con \(Q=\{q_0,q_1,q_2\}\), hay \(2^3=8\) subconjuntos:</p>
+  <div class="ctrl mt16" style="gap:10px">
+    <span class="conj vacio fragment fade-up" data-fragment-index="1">∅</span>
+    <span class="conj fragment fade-up" data-fragment-index="2">{q<sub>0</sub>}</span><span class="conj fragment fade-up" data-fragment-index="2">{q<sub>1</sub>}</span><span class="conj fragment fade-up" data-fragment-index="2">{q<sub>2</sub>}</span>
+    <span class="conj fragment fade-up" data-fragment-index="3">{q<sub>0</sub>, q<sub>1</sub>}</span><span class="conj fragment fade-up" data-fragment-index="3">{q<sub>0</sub>, q<sub>2</sub>}</span><span class="conj fragment fade-up" data-fragment-index="3">{q<sub>1</sub>, q<sub>2</sub>}</span>
+    <span class="conj fragment fade-up" data-fragment-index="4">{q<sub>0</sub>, q<sub>1</sub>, q<sub>2</sub>}</span>
+  </div>
+  <div class="note fragment fade-up" data-fragment-index="5"><i class="fa-solid fa-lightbulb"></i><span>¿Por qué lo necesitamos? Porque en un AFN, \(\delta\) ya no devuelve <b>un</b> estado sino un <b>conjunto</b> de estados: un elemento de \(\mathcal{P}(Q)\).</span></div>
+  <aside class="notes">1 subconjunto vacío, 3 de un elemento, 3 de dos, 1 de tres: 1+3+3+1 = 8 = 2³. Cada estado "está o no está": 2·2·2 posibilidades.</aside>
+</section>
+
+<!-- 10 · DEFINICIÓN FORMAL -->
+<section data-transition="slide" id="definicion">
+  <div class="kicker">III · La matemática · Definición formal</div>
+  <div class="route" data-on="3"></div>
+  <h2>La definición matemática de un AFN</h2>
+  <div class="big mt8">\(M=(Q,\Sigma,\delta,q_0,F)\)</div>
+  <div class="split" style="grid-template-columns:1fr 430px;margin-top:16px">
+    <div class="comp" data-claim="termina01" data-q="q0,q1,q2" data-q0="q0" data-f="q2" data-tipo="AFN">
+      <span class="sym">\(Q\)</span><span class="qué">conjunto finito de estados</span><span class="val fragment fade-left">\(\{q_0,q_1,q_2\}\)</span>
+      <span class="sym">\(\Sigma\)</span><span class="qué">alfabeto de entrada</span><span class="val fragment fade-left">\(\{0,1\}\)</span>
+      <span class="sym">\(\delta\)</span><span class="qué">\(\delta:Q\times\Sigma\rightarrow\mathcal{P}(Q)\)</span><span class="val fragment fade-left">la tabla <i class="fa-solid fa-arrow-right"></i></span>
+      <span class="sym">\(q_0\)</span><span class="qué">estado inicial, \(q_0\in Q\)</span><span class="val fragment fade-left">\(q_0\)</span>
+      <span class="sym">\(F\)</span><span class="qué">estados finales, \(F\subseteq Q\)</span><span class="val fragment fade-left">\(\{q_2\}\)</span>
+    </div>
+    <div class="panel fragment fade-left"><h3>\(\delta\) de «termina en 01»</h3><div data-table="termina01"></div><div class="ttab-leyenda">→ inicial · * final · celdas = conjuntos</div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-not-equal"></i><span>La única diferencia con el AFD está en \(\delta\): antes devolvía un estado de \(Q\); ahora devuelve un subconjunto de \(Q\), que puede tener <b>varios</b> elementos o ser \(\varnothing\).</span></div>
+  <aside class="notes">Las cinco piezas son las mismas que en un AFD. La tabla se genera desde la misma definición que el diagrama: las celdas en ámbar tienen varios destinos y las grises son ∅.</aside>
+</section>
+
+<!-- 11 · LA FUNCIÓN δ -->
+<section data-transition="slide" id="delta">
+  <div class="kicker">III · La matemática · Función de transición</div>
+  <div class="route" data-on="3"></div>
+  <h2>Leer \(\delta\) en el diagrama y en la tabla</h2>
+  <div class="split" style="grid-template-columns:560px 1fr;margin-top:20px">
+    <div class="panel"><div class="diag" data-diagram="termina01" data-escala=".92"></div></div>
+    <div class="calc" data-claim="termina01" data-delta="q0:0=q0,q1;q0:1=q0;q1:0=∅;q1:1=q2;q2:0=∅;q2:1=∅">
+      <div class="ln fin"><span class="n">2</span><span>\(\delta(q_0,0)=\{q_0,q_1\}\)<small>dos destinos</small></span></div>
+      <div class="ln fragment fade-up"><span class="n">1</span><span>\(\delta(q_0,1)=\{q_0\}\)<small>un destino: un conjunto con un elemento</small></span></div>
+      <div class="ln fragment fade-up"><span class="n">0</span><span>\(\delta(q_1,0)=\varnothing\)<small>ningún destino: el camino muere</small></span></div>
+      <div class="ln fragment fade-up"><span class="n">1</span><span>\(\delta(q_1,1)=\{q_2\}\)</span></div>
+      <div class="ln fragment fade-up"><span class="n">0</span><span>\(\delta(q_2,0)=\delta(q_2,1)=\varnothing\)</span></div>
+    </div>
+  </div>
+  <aside class="notes">El número de la izquierda es cuántos destinos tiene cada pareja. Ojo: {q0} no es lo mismo que q0; en un AFN siempre escribimos conjuntos.</aside>
+</section>
+
+<!-- 12 · δ* -->
+<section data-transition="convex" id="delta-ext">
+  <div class="kicker">III · La matemática · Función extendida</div>
+  <div class="route" data-on="3"></div>
+  <h2>De un símbolo a una cadena: \(\delta^*\) con conjuntos</h2>
+  <div class="two" style="margin-top:18px;gap:28px">
+    <div class="list" style="gap:12px">
+      <div class="def hl">
+        <div class="head">Regla 1 · cadena vacía</div>
+        <div class="body"><div class="formula" style="font-size:26px">\(\delta^*(q,\varepsilon)=\{q\}\)</div></div>
+      </div>
+      <div class="def hl fragment fade-up" data-fragment-index="2">
+        <div class="head">Regla 2 · un símbolo más</div>
+        <div class="body"><div class="formula" style="font-size:24px">\(\delta^*(q,wa)=\displaystyle\bigcup_{p\,\in\,\delta^*(q,w)}\delta(p,a)\)</div><div class="hint center">desde <b>cada</b> estado alcanzado con \(w\), da un paso con \(a\) y junta todo</div></div>
+      </div>
+    </div>
+    <div class="calc" data-claim="termina01" data-ext="q0|ε=q0;q0|0=q0,q1;q0|01=q0,q2">
+      <div class="ln fragment fade-up" data-fragment-index="1"><span class="n">1</span><span>\(\delta^*(q_0,\varepsilon)=\{q_0\}\)</span></div>
+      <div class="ln fragment fade-up" data-fragment-index="3"><span class="n">2</span><span>\(\delta^*(q_0,0)=\delta(q_0,0)=\{q_0,q_1\}\)</span></div>
+      <div class="ln fragment fade-up" data-fragment-index="4"><span class="n">3</span><span>\(\delta^*(q_0,01)=\delta(q_0,1)\cup\delta(q_1,1)\)<small>un paso desde cada estado de \(\{q_0,q_1\}\)</small></span></div>
+      <div class="ln fin fragment fade-up" data-fragment-index="5"><span class="n">=</span><span>\(\{q_0\}\cup\{q_2\}=\{q_0,q_2\}\)</span></div>
+    </div>
+  </div>
+  <aside class="notes">Igual que en el AFD, es una definición recursiva; la diferencia es la unión: juntamos los destinos de todos los estados activos.</aside>
+</section>
+
+<!-- 13 · LENGUAJE -->
+<section data-transition="slide" id="lenguaje">
+  <div class="kicker">III · La matemática · Lenguaje aceptado</div>
+  <div class="route" data-on="3"></div>
+  <h2>¿Qué lenguaje reconoce un AFN?</h2>
+  <div class="big mt8">\(L(M)=\{\,w\in\Sigma^*\mid\delta^*(q_0,w)\cap F\neq\varnothing\,\}\)</div>
+  <p class="lead center">«Al menos un camino termina en un final» se escribe: el conjunto alcanzado <b>comparte</b> algún estado con \(F\).</p>
+  <div class="two" style="margin-top:18px">
+    <div class="panel" data-claim="termina01" data-acc="01,001,101,0101,1101">
+      <h3 class="yes-t"><i class="fa-solid fa-circle-check"></i> En \(L(M)\)</h3>
+      <div class="strs" style="justify-content:center"><span class="str si">01</span><span class="str si">001</span><span class="str si">101</span><span class="str si">0101</span><span class="str si">1101</span></div>
+    </div>
+    <div class="panel fragment fade-left" data-claim="termina01" data-rej="ε,0,1,10,011,0110">
+      <h3 class="no-t"><i class="fa-solid fa-circle-xmark"></i> Fuera de \(L(M)\)</h3>
+      <div class="strs" style="justify-content:center"><span class="str nop eps">ε</span><span class="str nop">0</span><span class="str nop">1</span><span class="str nop">10</span><span class="str nop">011</span><span class="str nop">0110</span></div>
+    </div>
+  </div>
+  <div class="def hl mt16 fragment fade-up" data-claim="termina01" data-re="(0+1)*01">
+    <div class="head"><i class="fa-solid fa-box"></i> En palabras</div>
+    <div class="body lead">\(L(M)\) es el conjunto de cadenas binarias que <b>terminan en 01</b>: \(L(M)=L\big((0+1)^*01\big)\).</div>
+  </div>
+  <aside class="notes">Compara con el AFD: allí la condición era δ*(q0,w) ∈ F; aquí, como δ* da un conjunto, pedimos que la intersección con F no sea vacía.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE IV · SIMULAR UN AFN
+     ===================================================================== -->
+
+<!-- 14 · SIMULACIÓN ACEPTADA -->
+<section data-transition="concave" id="sim-acepta">
+  <div class="kicker">IV · Simular · Cadena aceptada</div>
+  <div class="route" data-on="4"></div>
+  <h2>Simular con conjuntos: 0101</h2>
+  <p class="lead center mt8" style="font-size:21px">En lugar de seguir un camino, seguimos el <b>conjunto de estados activos</b> (todos los caminos vivos).</p>
+  <div class="sim" data-afn="termina01" data-w="0101">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-sets"></div>
+  </div>
+  <div class="hint center" data-claim="termina01" data-w="0101" data-sets="q0;q0,q1;q0,q2;q0,q1;q0,q2" data-acc="0101">Al final: \(\{q_0,q_2\}\cap F=\{q_2\}\neq\varnothing\): se acepta.</div>
+  <aside class="notes">Cada estado iluminado es un camino vivo. Las flechas iluminadas son todas las que se usaron en el último paso. La tabla de la definición dice lo mismo: el nuevo conjunto es la unión de las filas de los estados activos.</aside>
+</section>
+
+<!-- 15 · SIMULACIÓN RECHAZADA -->
+<section data-transition="slide" id="sim-rechaza">
+  <div class="kicker">IV · Simular · Cadena rechazada</div>
+  <div class="route" data-on="4"></div>
+  <h2>Simular con conjuntos: 0110</h2>
+  <div class="sim mt8" data-afn="termina01" data-w="0110">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-sets"></div>
+  </div>
+  <div class="note fragment fade-up" style="margin-top:8px" data-claim="termina01" data-w="0110" data-sets="q0;q0,q1;q0,q2;q0;q0,q1" data-rej="0110"><i class="fa-solid fa-circle-xmark" style="color:var(--red)"></i><span>Al leer el segundo 1, el camino que estaba en \(q_2\) muere. Al final \(\{q_0,q_1\}\cap F=\varnothing\): <b>ningún</b> camino termina en un final, así que se rechaza.</span></div>
+  <aside class="notes">Pasó por {q0,q2}, que contiene un final, después de "01"; pero no terminó ahí: hay que leer toda la cadena.</aside>
+</section>
+
+<!-- 16 · LABORATORIO -->
+<section data-transition="zoom" id="laboratorio">
+  <div class="kicker">IV · Simular · Laboratorio</div>
+  <div class="route" data-on="4"></div>
+  <h2>Laboratorio: simula cualquier cadena en un AFN</h2>
+  <div class="sim" data-afn="termina01" data-w="1001" data-edit data-select="termina01,penultimo1,ceros_unos,solo">
+    <div class="sim-elegir ctrl mt8"></div>
+    <div class="split" style="grid-template-columns:1fr 380px;margin-top:6px;align-items:center">
+      <div><div class="sim-diag"></div><div class="sim-cinta"></div></div>
+      <div class="sim-tabla"></div>
+    </div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-sets"></div>
+  </div>
+  <aside class="notes">Las casillas resaltadas de la tabla son las filas de los estados activos con el símbolo leído: el nuevo conjunto es su unión. Prueba los AFN con ε del bloque VI: la ε-clausura se aplica sola en cada paso.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE V · AFD FRENTE A AFN
+     ===================================================================== -->
+
+<!-- 17 · COMPARACIÓN -->
+<section data-transition="concave" id="comparacion">
+  <div class="kicker">V · AFD frente a AFN</div>
+  <div class="route" data-on="5"></div>
+  <h2>Diferencias entre AFD y AFN</h2>
+  <table class="tbl cmp mt24">
+    <thead><tr><th>Aspecto</th><th><i class="fa-solid fa-arrow-right"></i> AFD</th><th><i class="fa-solid fa-code-fork"></i> AFN</th></tr></thead>
+    <tbody>
+      <tr class="fragment fade-up"><td>Función δ</td><td>\(\delta:Q\times\Sigma\rightarrow Q\)</td><td>\(\delta:Q\times\Sigma\rightarrow\mathcal{P}(Q)\)</td></tr>
+      <tr class="fragment fade-up"><td>Flechas por símbolo</td><td>exactamente una</td><td>cero, una o varias</td></tr>
+      <tr class="fragment fade-up"><td>Estado en cada momento</td><td>uno solo</td><td>un conjunto (caminos vivos)</td></tr>
+      <tr class="fragment fade-up"><td>Aceptación</td><td>\(\delta^*(q_0,w)\in F\)</td><td>\(\delta^*(q_0,w)\cap F\neq\varnothing\)</td></tr>
+      <tr class="fragment fade-up"><td>Diseño</td><td>hay que prever todos los casos</td><td>suele ser más corto y natural</td></tr>
+      <tr class="fragment fade-up"><td>Lenguajes que reconoce</td><td colspan="2" class="center"><b>exactamente los mismos</b>: los lenguajes regulares</td></tr>
+    </tbody>
+  </table>
+  <aside class="notes">La última fila es la sorpresa: el no determinismo no da más poder, solo comodidad. Lo justificamos en las dos diapositivas siguientes.</aside>
+</section>
+
+<!-- 18 · TODO AFD ES AFN -->
+<section data-transition="slide" id="afd-es-afn">
+  <div class="kicker">V · AFD frente a AFN</div>
+  <div class="route" data-on="5"></div>
+  <h2>Todo AFD es también un AFN</h2>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:22px">
+    <div class="panel"><div class="diag" data-diagram="termina1"></div></div>
+    <div class="list" style="gap:14px">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-arrows-to-circle"></i> El truco</div>
+        <div class="body">Si \(\delta_D(q,a)=p\), definimos \(\delta_N(q,a)=\{p\}\): cada destino se convierte en un conjunto de <b>un</b> elemento.</div>
+      </div>
+      <div class="panel fragment fade-left" data-claim="termina1" data-delta="q0:0=q0;q0:1=q1;q1:0=q0;q1:1=q1"><h3>La misma tabla, como AFN</h3><div data-table="termina1" data-singleton></div></div>
+      <div class="hint fragment fade-up">Así, todo lenguaje que reconoce un AFD lo reconoce también un AFN.</div>
+    </div>
+  </div>
+  <aside class="notes">Esta es la dirección fácil. La difícil es la siguiente: ¿todo AFN tiene un AFD equivalente?</aside>
+</section>
+
+<!-- 19 · EQUIVALENCIA POR SUBCONJUNTOS -->
+<section data-transition="slide" id="subconjuntos">
+  <div class="kicker">V · AFD frente a AFN · Equivalencia</div>
+  <div class="route" data-on="5"></div>
+  <h2>Y todo AFN tiene un AFD equivalente</h2>
+  <div class="split" style="grid-template-columns:600px 1fr;margin-top:14px">
+    <div class="list" style="gap:10px">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-lightbulb"></i> La idea</div>
+        <div class="body small">Cada <b>conjunto de estados activos</b> del AFN se convierte en <b>un estado</b> del AFD. Es exactamente lo que hicimos al simular.</div>
+      </div>
+      <div class="panel fragment fade-up" data-fragment-index="1" data-claim="termina01afd" data-subconj data-equiv="termina01" data-tipo="AFD"><div class="diag" data-diagram="termina01afd" data-escala=".9"></div></div>
+    </div>
+    <div class="list" style="gap:10px">
+      <div class="panel fragment fade-left" data-fragment-index="2"><h3>Tabla del AFD</h3><div data-table="termina01afd"></div><div class="ttab-leyenda">A = {q₀} · B = {q₀, q₁} · C = {q₀, q₂}</div></div>
+      <div class="note fragment fade-up" data-fragment-index="3" style="margin-top:0" data-claim="penultimo1" data-nsub="4"><i class="fa-solid fa-circle-info"></i><span>Esta es la <b>construcción de subconjuntos</b> (Rabin y Scott, 1959). Un AFN de \(n\) estados puede necesitar hasta \(2^n\) estados en su AFD: el de «penúltimo es 1» pasa de 3 a 4.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Aquí solo mostramos el resultado y la idea; el método paso a paso se estudia en la presentación de conversiones. El motor verifica que este AFD es exactamente el que da la construcción de subconjuntos y que reconoce el mismo lenguaje que el AFN.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE VI · TRANSICIONES ε
+     ===================================================================== -->
+
+<!-- 20 · ¿QUÉ ES UNA TRANSICIÓN ε? -->
+<section data-transition="concave" id="epsilon">
+  <div class="kicker">VI · Transiciones <span class="lc">ε</span></div>
+  <div class="route" data-on="6"></div>
+  <h2>Transiciones ε: moverse sin leer</h2>
+  <div class="split" style="grid-template-columns:500px 1fr;margin-top:20px">
+    <div class="panel"><div class="diag" data-diagram="solo" data-escala=".95"></div></div>
+    <div class="list" style="gap:14px" data-claim="solo" data-tipo="AFN-ε" data-re="0*+1*" data-acc="ε,000,11" data-rej="01,10">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-person-running"></i> Transición <span class="lc">ε</span></div>
+        <div class="body">Una flecha con \(\varepsilon\) permite cambiar de estado <b>sin consumir</b> ningún símbolo de la entrada. Se dibuja punteada.</div>
+      </div>
+      <div class="pieza fragment fade-left"><span class="ic"><i class="fa-solid fa-burger"></i></span><div><div class="t">Como el ingrediente opcional</div><div class="v">pasas al siguiente paso sin agregar nada</div></div></div>
+      <div class="pieza fragment fade-left"><span class="ic">ε</span><div><div class="t">Desde \(q_0\): «solo ceros» o «solo unos»</div><div class="v">la máquina empieza en las dos ramas a la vez</div></div></div>
+      <div class="hint fragment fade-up">Este AFN-ε reconoce \(L(0^*+1^*)\): acepta \(\varepsilon\), 000 y 11; rechaza 01 y 10.</div>
+    </div>
+  </div>
+  <aside class="notes">Las transiciones ε son parte del temario estándar de AFN (también llamados AFN-ε o AFN-λ). Facilitan unir autómatas: aquí se unen "solo ceros" y "solo unos" con dos flechas ε.</aside>
+</section>
+
+<!-- 21 · ε-CLAUSURA -->
+<section data-transition="slide" id="clausura">
+  <div class="kicker">VI · Transiciones <span class="lc">ε</span> · <span class="lc">ε</span>-clausura</div>
+  <div class="route" data-on="6"></div>
+  <h2>La ε-clausura: a dónde llego sin leer nada</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-circle-nodes"></i> <span class="lc">ε</span>-clausura</div>
+    <div class="body lead">\(\mathrm{ECLOSE}(q)\) es el conjunto de estados alcanzables desde \(q\) usando <b>solo</b> flechas ε (cero o más), incluido el propio \(q\).</div>
+  </div>
+  <div class="two compacta" style="margin-top:20px;gap:20px;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)">
+    <div class="panel fragment fade-up" data-claim="solo" data-eclose="q0=q0,qa,qb;qa=qa;qb=qb"><h3>«Solo ceros o solo unos»</h3><div data-table="solo" data-clausura></div></div>
+    <div class="panel fragment fade-up" data-claim="ceros_unos" data-eclose="q0=q0,q1;q1=q1"><h3>«Ceros y después unos»</h3><div class="diag" data-diagram="ceros_unos" data-escala=".62"></div><div data-table="ceros_unos" data-clausura></div></div>
+  </div>
+  <aside class="notes">Se cuenta el propio estado porque usar cero flechas ε siempre es posible. Si hubiera cadenas de flechas ε (p → q → r), la clausura las sigue todas.</aside>
+</section>
+
+<!-- 22 · DEFINICIÓN AFN-ε -->
+<section data-transition="slide" id="def-eps">
+  <div class="kicker">VI · Transiciones <span class="lc">ε</span> · Definición formal</div>
+  <div class="route" data-on="6"></div>
+  <h2>AFN con transiciones ε: la definición</h2>
+  <div class="big mt8">\(\delta:Q\times(\Sigma\cup\{\varepsilon\})\rightarrow\mathcal{P}(Q)\)</div>
+  <div class="two" style="margin-top:16px;gap:26px">
+    <div class="list" style="gap:12px">
+      <div class="def hl"><div class="head">Regla 1</div><div class="body"><div class="formula" style="font-size:25px">\(\delta^*(q,\varepsilon)=\mathrm{ECLOSE}(q)\)</div></div></div>
+      <div class="def hl fragment fade-up" data-fragment-index="1"><div class="head">Regla 2</div><div class="body"><div class="formula" style="font-size:22px">\(\delta^*(q,wa)=\mathrm{ECLOSE}\Big(\displaystyle\bigcup_{p\,\in\,\delta^*(q,w)}\delta(p,a)\Big)\)</div><div class="hint center">paso con \(a\) y, después, todas las flechas <span class="lc">ε</span> posibles</div></div></div>
+      <div class="hint fragment fade-up" data-fragment-index="4">La aceptación no cambia: \(w\in L(M)\iff\delta^*(q_0,w)\cap F\neq\varnothing\).</div>
+    </div>
+    <div class="calc" data-claim="ceros_unos" data-ext="q0|ε=q0,q1;q0|0=q0,q1;q0|01=q1;q0|010=∅">
+      <div class="ln fragment fade-up" data-fragment-index="2"><span class="n">1</span><span>\(\delta^*(q_0,\varepsilon)=\{q_0,q_1\}\)<small>por eso \(\varepsilon\) se acepta: \(q_1\in F\)</small></span></div>
+      <div class="ln fragment fade-up" data-fragment-index="2"><span class="n">2</span><span>\(\delta^*(q_0,0)=\mathrm{ECLOSE}(\{q_0\})=\{q_0,q_1\}\)</span></div>
+      <div class="ln fragment fade-up" data-fragment-index="3"><span class="n">3</span><span>\(\delta^*(q_0,01)=\mathrm{ECLOSE}(\{q_1\})=\{q_1\}\)</span></div>
+      <div class="ln fin fragment fade-up" data-fragment-index="3"><span class="n">4</span><span>\(\delta^*(q_0,010)=\varnothing\)<small>tras un 1 ya no se aceptan ceros</small></span></div>
+    </div>
+  </div>
+  <aside class="notes">Ejemplo «ceros y después unos» (0*1*). En el paso 2: δ(q0,0) ∪ δ(q1,0) = {q0} ∪ ∅ = {q0} y su clausura es {q0, q1}.</aside>
+</section>
+
+<!-- 23 · SIMULACIÓN CON ε -->
+<section data-transition="convex" id="sim-eps">
+  <div class="kicker">VI · Transiciones <span class="lc">ε</span> · Simulación</div>
+  <div class="route" data-on="6"></div>
+  <h2>Simular un AFN-ε: ceros y después unos</h2>
+  <div class="sim" data-afn="ceros_unos" data-w="0011" data-ws="0011,010,ε,111">
+    <div class="sim-elegir-w elegir-w mt8"></div>
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-sets"></div>
+    <div class="sim-ecl pasos-ecl"></div>
+  </div>
+  <div class="hint center" data-claim="ceros_unos" data-acc="0011,ε,111" data-rej="010" data-re="0*1*">Reconoce \(L(0^*1^*)\). Fíjate: desde el inicio ya están activos \(q_0\) y \(q_1\) gracias a la flecha ε.</div>
+  <aside class="notes">La línea azul indica cuándo la ε-clausura añadió estados. Con 010, después del 1 solo queda q1, y el 0 final lo mata: conjunto vacío, se rechaza.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE VII · EJERCICIOS Y CIERRE
+     ===================================================================== -->
+
+<!-- 24 · DETECTIVES -->
+<section data-transition="concave" id="detectives">
+  <div class="kicker">VII · Ejercicios · Detectives</div>
+  <div class="route" data-on="7"></div>
+  <h2>¿Se acepta o se rechaza?</h2>
+  <div class="split" style="grid-template-columns:620px 1fr;margin-top:16px">
+    <div>
+      <div class="panel"><div class="diag" data-diagram="penultimo1"></div></div>
+      <div class="hint center mt8">Pista: ¿existe <b>algún</b> camino que llegue a \(q_2\) justo al terminar?</div>
+    </div>
+    <div>
+      <div class="strs" id="det" data-det="penultimo1" style="gap:12px;justify-content:center">
+        <button class="str q" data-w="10">10</button><button class="str q" data-w="01">01</button><button class="str q" data-w="0110">0110</button>
+        <button class="str q eps" data-w="">ε</button><button class="str q" data-w="111">111</button><button class="str q" data-w="1001">1001</button><button class="str q" data-w="0011">0011</button>
+      </div>
+      <div class="sets mt16" id="det-sets" aria-live="polite">Pulsa una tarjeta para ver sus conjuntos de estados.</div>
+      <div class="ctrl mt16"><button class="btn" id="det-todo"><i class="fa-solid fa-eye"></i> Revelar todas</button><button class="btn r" id="det-ocultar"><i class="fa-solid fa-eye-slash"></i> Ocultar</button></div>
+      <div class="def mt16 fragment fade-up" data-claim="penultimo1" data-re="(0+1)*1(0+1)">
+        <div class="head"><i class="fa-solid fa-magnifying-glass"></i> ¿Qué lenguaje es?</div>
+        <div class="body small">Cadenas cuyo <b>penúltimo</b> símbolo es 1. El AFN «adivina» cuál 1 es el penúltimo; un AFD tendría que recordar los dos últimos símbolos.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Las respuestas las calcula el motor al pulsar. Vota primero. 1001: el penúltimo es 0, se rechaza aunque contenga unos.</aside>
+</section>
+
+<!-- 25 · ¿AFD, AFN O AFN-ε? -->
+<section data-transition="slide" id="clasificar">
+  <div class="kicker">VII · Ejercicios · Clasificar</div>
+  <div class="route" data-on="7"></div>
+  <h2>¿AFD, AFN o AFN con ε?</h2>
+  <p class="lead center mt8" style="font-size:21px">Decide qué tipo es cada autómata y por qué; después revela la respuesta.</p>
+  <div class="clasif">
+    <div class="panel" data-clasif="termina1" data-claim="termina1" data-tipo="AFD"><div class="diag" data-diagram="termina1" data-escala=".7"></div><button class="btn" data-revelar>¿Qué es?</button><div class="razones" aria-live="polite"></div></div>
+    <div class="panel" data-clasif="termina01" data-claim="termina01" data-tipo="AFN"><div class="diag" data-diagram="termina01" data-escala=".6"></div><button class="btn" data-revelar>¿Qué es?</button><div class="razones" aria-live="polite"></div></div>
+    <div class="panel" data-clasif="solo" data-claim="solo" data-tipo="AFN-ε"><div class="diag" data-diagram="solo" data-escala=".6"></div><button class="btn" data-revelar>¿Qué es?</button><div class="razones" aria-live="polite"></div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-info"></i><span>Todo AFD es un AFN, y todo AFN es un AFN-ε (sin flechas ε). Clasificamos por la forma <b>más restrictiva</b> que cumple.</span></div>
+  <aside class="notes">Las razones las calcula el motor revisando cada pareja (estado, símbolo): varios destinos, ninguno o flechas ε.</aside>
+</section>
+
+<!-- 26 · RETO -->
+<section data-transition="zoom" id="reto">
+  <div class="kicker">VII · Ejercicios · Reto</div>
+  <div class="route" data-on="7"></div>
+  <h2>Reto: un AFN para las cadenas que contienen 101</h2>
+  <div class="split" style="grid-template-columns:440px minmax(0,1fr);margin-top:16px">
+    <div class="list tight">
+      <div class="pieza fragment fade-right"><span class="ic"><i class="fa-solid fa-1"></i></span><div><div class="t">Pista 1</div><div class="v">antes del 101 puede haber cualquier cosa: ¿qué lazo lo permite?</div></div></div>
+      <div class="pieza fragment fade-right"><span class="ic"><i class="fa-solid fa-2"></i></span><div><div class="t">Pista 2</div><div class="v">el AFN «adivina» dónde empieza el 101: tres flechas en fila</div></div></div>
+      <div class="pieza fragment fade-right"><span class="ic"><i class="fa-solid fa-3"></i></span><div><div class="t">Pista 3</div><div class="v">después del 101 puede venir cualquier cosa</div></div></div>
+      <div class="hint mt8">Entrega: definición formal, diagrama, tabla y 3 cadenas aceptadas y 3 rechazadas.</div>
+    </div>
+    <div>
+      <button class="ans-btn" aria-expanded="false" aria-controls="sol-reto" style="margin-top:0"><i class="fa-solid fa-eye"></i> Ver una solución</button>
+      <div class="ans" id="sol-reto" hidden data-claim="contiene101" data-tipo="AFN" data-q="q0,q1,q2,q3" data-q0="q0" data-f="q3" data-acc="101,0101,1011,11010" data-rej="ε,10,1001,0110" data-re="(0+1)*101(0+1)*">
+        <span class="lbl-ans">Una solución</span>
+        <div class="diag" data-diagram="contiene101" data-escala=".82"></div>
+        <div class="small">\(Q=\{q_0,q_1,q_2,q_3\},\ F=\{q_3\}\). Acepta 101, 0101, 1011, 11010 · Rechaza ε, 10, 1001, 0110.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Compárenlo con un AFD para el mismo lenguaje: necesita también cuatro estados, pero sus flechas de "regreso" son mucho más difíciles de diseñar. La solución se verifica automáticamente contra (0+1)*101(0+1)*.</aside>
+</section>
+
+<!-- 27 · ERRORES FRECUENTES -->
+<section data-transition="slide" id="errores">
+  <div class="kicker">VII · Errores frecuentes</div>
+  <div class="route" data-on="7"></div>
+  <h2>Errores que debemos evitar</h2>
+  <div class="two tight" style="gap:12px 22px;margin-top:16px">
+    <div class="list tight">
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="termina01" data-rej="010" data-w="010" data-sets="q0;q0,q1;q0,q2;q0,q1"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>«Basta pasar por un final.»</b> No: 010 pasa por \(\{q_0,q_2\}\), pero termina en \(\{q_0,q_1\}\): se rechaza.</span></div>
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="termina01" data-caminos="0101=3,1,1"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>«Si un camino muere, se rechaza.»</b> No: en 0101 un camino muere y otro acepta. Se acepta.</span></div>
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="termina01afd" data-equiv="termina01"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>«Un AFN reconoce más lenguajes que un AFD.»</b> No: por subconjuntos, todo AFN tiene un AFD equivalente.</span></div>
+    </div>
+    <div class="list tight">
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="termina01" data-delta="q1:0=∅"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>«δ(q, a) = ∅ es un error.»</b> En un AFN está permitido: ese camino simplemente termina.</span></div>
+      <div class="note fragment fade-up" style="margin-top:0"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>«ε es un símbolo que hay que leer.»</b> No: una flecha ε se toma <b>sin</b> leer nada; ε nunca aparece en la cinta.</span></div>
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="solo" data-acc="ε" data-eclose="q0=q0,qa,qb"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>Olvidar la ε-clausura del inicio.</b> En «solo ceros o solo unos», \(\varepsilon\) se acepta porque \(\mathrm{ECLOSE}(q_0)\) contiene finales.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Para cada error pide un contraejemplo antes de mostrarlo. Todos los contraejemplos de esta diapositiva están verificados por el motor.</aside>
+</section>
+
+<!-- 28 · RESUMEN -->
+<section data-transition="zoom" id="resumen">
+  <div class="kicker">Resumen</div>
+  <h2>Lo que aprendimos hoy</h2>
+  <div class="two tight" style="gap:10px 22px;margin-top:14px">
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-code-fork"></i></div><div><div class="t">Transiciones múltiples</div><div class="v">varias flechas con el mismo símbolo</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-ban"></i></div><div><div class="t">Transiciones que faltan</div><div class="v">δ(q, a) = ∅: ese camino muere</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-layer-group"></i></div><div><div class="t">\(\delta:Q\times\Sigma\rightarrow\mathcal{P}(Q)\)</div><div class="v">devuelve un conjunto de estados</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-circle-check"></i></div><div><div class="t">Al menos un camino</div><div class="v">\(\delta^*(q_0,w)\cap F\neq\varnothing\)</div></div></div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-diagram-project"></i></div><div><div class="t">Simulación por conjuntos</div><div class="v">todos los caminos vivos a la vez</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-equals"></i></div><div><div class="t">AFD ≡ AFN</div><div class="v">mismos lenguajes (subconjuntos)</div></div></div>
+      <div class="item"><div class="sq">ε</div><div><div class="t">Transiciones ε</div><div class="v">moverse sin leer</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-circle-nodes"></i></div><div><div class="t">ε-clausura</div><div class="v">lo alcanzable solo con ε</div></div></div>
+    </div>
+  </div>
+  <p class="quote fragment zoom-in"><i class="fa-solid fa-quote-left"></i>Un autómata no determinista no adivina: explora todos los caminos a la vez y acepta si alguno llega a la meta.</p>
+  <aside class="notes">Cierra regresando al laberinto: un explorador por cada camino, y basta con que uno encuentre la salida.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/math/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="afn.js"></script>
+<script src="motor-regex.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>

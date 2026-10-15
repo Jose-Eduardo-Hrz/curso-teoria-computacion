@@ -1,0 +1,123 @@
+/* =====================================================================
+   MÉTODO DE THOMPSON · Complemento propio de esta presentación
+   Orden de carga: tema-redes.css → mate.css → afd.css → afn.css → este.
+   afd.css y afn.css son copias SIN CAMBIOS de las presentaciones de AFD y
+   AFN (diagramas, tablas, cinta, simulador, conjuntos). Aquí solo se añade:
+   etapas apiladas de una construcción, resaltado de lo nuevo, flechas
+   «repite»/«salto» de la estrella, árbol sintáctico numerado, receta,
+   comparación de reglas, consumo de símbolos y lista de comprobación.
+   ===================================================================== */
+
+/* ---------- Etapas de una construcción (apiladas en el mismo sitio) ---------- */
+.etapas{display:grid; justify-items:center; align-items:start;}
+.etapas > .etapa{grid-area:1/1;}
+.etapas svg{display:block;}
+
+/* Lo creado en la etapa actual (el tema ya colorea .new en flechas y etiquetas) */
+.fa-svg .state.nuevo .st{stroke:var(--accent); stroke-width:3.5; fill:var(--accent-l);}
+.fa-svg .state.nuevo .st.in{fill:none;}
+.fa-svg .state.nuevo .sl{fill:var(--accent-d);}
+.fa-svg .ed.new{stroke-dasharray:none;}
+.fa-svg .ed.eps.new{stroke:var(--accent); stroke-dasharray:6 5; stroke-width:3;}
+
+/* Estrella: flecha de regreso (repetir) y de salto (cero veces) */
+.fa-svg .ed.repite{stroke:var(--amber); stroke-width:3;}
+.fa-svg .sh.repite{fill:var(--amber);}
+.fa-svg .el.repite{fill:var(--pend);}
+.fa-svg .ed.salto{stroke:var(--blue); stroke-width:3;}
+.fa-svg .sh.salto{fill:var(--blue);}
+.fa-svg .el.salto{fill:#14518f;}
+.leyenda .rp{color:var(--pend); font-weight:600;} .leyenda .sl2{color:#14518f; font-weight:600;}
+.leyenda i.l{width:26px; height:0; border-top:3px dashed; display:inline-block;}
+
+/* Subtítulos de etapa más compactos que los del tema */
+.captions.etc{height:74px; width:auto;}
+.captions.etc .cap{font-size:18px; padding:8px 16px;}
+.captions.etc .cap .n{font-size:20px; min-width:38px; height:38px;}
+.cap .mono{font-size:.95em;}
+.cap sub{font-size:.7em;}
+
+/* ---------- Árbol sintáctico numerado ---------- */
+svg.ast{display:block; overflow:visible; margin:0 auto;}
+.ast .e{stroke:var(--navy); stroke-width:2.5; fill:none;}
+.ast .nd circle{fill:#fff; stroke:var(--navy); stroke-width:2.5;}
+.ast .nd.op circle{fill:var(--accent-l); stroke:var(--accent-d);}
+.ast .nd.un circle{fill:var(--amber-l); stroke:var(--amber);}
+.ast .nd.st circle{fill:var(--blue-l); stroke:var(--blue);}
+.ast text{font-family:var(--mono); font-weight:600; font-size:19px; fill:var(--navy); text-anchor:middle; dominant-baseline:central;}
+.ast .num circle{fill:var(--navy); stroke:none;}
+.ast .num text{fill:#fff; font-size:12px;}
+
+/* ---------- Receta (flujo de pasos) ---------- */
+.flujo{display:flex; align-items:stretch; justify-content:center; gap:8px; margin-top:26px;}
+.flujo .pz{width:190px; background:var(--card); border:2.5px solid var(--navy); border-radius:14px; box-shadow:4px 4px 0 var(--navy); padding:12px 10px; text-align:center;}
+.flujo .pz .sq{width:52px; height:52px; margin:0 auto 8px; border-radius:12px; background:var(--accent-l); color:var(--accent-d); display:grid; place-items:center; font-size:24px; border:2px solid var(--accent-d);}
+.flujo .pz .t{font-weight:600; font-size:18px; color:var(--navy); line-height:1.25;}
+.flujo .pz .d{font-size:15px; color:var(--muted); margin-top:4px; line-height:1.3;}
+.flujo .fl{align-self:center; color:var(--accent); font-size:24px;}
+
+/* ---------- Piezas / reglas ---------- */
+.piezas{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:20px;}
+.piezas .panel{text-align:center;}
+.piezas .panel i.big-i{font-size:38px; color:var(--accent); margin:4px 0 6px;}
+.reglas3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:16px;}
+.reglas3 .panel{display:flex; flex-direction:column; align-items:center; gap:6px;}
+.reglas3 .panel h3 .tag{vertical-align:middle;}
+.reglas3 .frase{font-size:17px; text-align:center;}
+
+/* Tarjetas de recordatorio de expresiones */
+.rx4{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-top:22px;}
+.rx4 .panel{text-align:center;}
+.rx4 .expr{font-size:34px;}
+.rx4 .strs{justify-content:center; margin-top:8px;}
+
+/* ---------- Consumir o no consumir ---------- */
+.consumo{display:grid; grid-template-columns:1fr 1fr; gap:26px; margin-top:18px;}
+.consumo .panel{display:flex; flex-direction:column; align-items:center; gap:10px;}
+.consumo .cinta{padding-top:30px;}
+
+/* ---------- Tabla de pasos y lista de comprobación (reutilizan .tbl) ---------- */
+.tbl.pasos, .tbl.checks{font-family:var(--sans); font-size:17px;}
+.tbl.pasos td, .tbl.checks td{padding:5px 10px; vertical-align:middle;}
+.tbl.pasos td.mono, .tbl.checks td.mono{font-family:var(--mono); font-weight:600;}
+.tbl.pasos sub, .tbl.checks sub{font-size:.7em;}
+.tbl.checks td.si{color:var(--ok); font-weight:600; text-align:center;}
+.tbl.checks td.no{color:var(--red-t); font-weight:600; text-align:center;}
+.tbl.checks th{text-align:center;}
+
+/* Errores frecuentes */
+.errores{display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; margin-top:14px;}
+.errores .panel{padding:8px 12px;}
+.errores .panel h3{font-size:19px; text-align:left; color:var(--red-t);}
+.errores .panel h3 i{color:var(--red);}
+.errores .fx{font-size:16px; border-left:4px solid var(--accent); padding-left:10px; margin-top:4px;}
+.errores .falla{font-size:16px; color:var(--red-t); font-weight:600;}
+
+/* Laboratorio */
+.lab input{font:600 24px var(--mono); color:var(--navy); background:#fff; border:2.5px solid var(--navy); border-radius:10px; padding:5px 12px; box-shadow:3px 3px 0 var(--navy); width:240px;}
+.lab .msg{min-height:26px; font-size:18px;}
+.lab .msg.err{color:var(--red-t); font-weight:600;}
+.lab-diag{min-height:250px; display:flex; justify-content:center; align-items:center;}
+.lab-diag svg{max-width:100%; height:auto; max-height:300px;}
+.lab .btn.sym{min-width:42px; justify-content:center; font-size:19px; padding:4px 10px;}
+
+/* Tubería ER → AFD */
+.tuberia{display:flex; align-items:center; justify-content:center; gap:10px; margin-top:24px; flex-wrap:nowrap;}
+.tuberia .et{background:var(--card); border:2.5px solid var(--navy); border-radius:12px; box-shadow:4px 4px 0 var(--navy); padding:10px 14px; text-align:center; min-width:140px;}
+.tuberia .et .t{font-weight:600; color:var(--navy); font-size:19px;}
+.tuberia .et .d{font-size:14px; color:var(--muted);}
+.tuberia .et.hl{border-color:var(--accent-d); box-shadow:0 0 0 6px var(--accent-l), 4px 4px 0 var(--accent-d);}
+.tuberia .fl{color:var(--accent); font-size:22px; display:flex; flex-direction:column; align-items:center;}
+.tuberia .fl span{font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent-d);}
+
+.kicker .lc, .head .lc, .tbl th .lc{text-transform:none; letter-spacing:0;}
+
+/* Filas de comprobación en paneles estrechos: cadena y veredicto arriba, conjunto final debajo */
+.prueba.pt{grid-template-columns:minmax(0,1fr) auto; row-gap:2px; padding:4px 0;}
+.prueba.pt .fin-conj{grid-column:1 / -1; font-size:13px; color:var(--muted);}
+.prueba.pt .fin-conj .conj{font-size:13px; padding:0 8px; white-space:normal;}
+.prueba.pt .str{font-size:17px; padding:1px 9px; justify-self:start;}
+
+/* Resultado del laboratorio: conjuntos más compactos */
+#lab-res .conj{font-size:14px; padding:1px 8px;}
+#lab-res .ar b{font-size:12px;}

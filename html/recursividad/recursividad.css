@@ -1,0 +1,205 @@
+/* =====================================================================
+   RECURSIVIDAD · Complemento de tema-redes.css (+ mate.css)
+   Orden de carga: tema-redes.css → mate.css (copia de funciones-relaciones) → este.
+   mate.css ya aporta .def, .q, .steps, .reto, .ans, .panel, .verdict y los
+   modos ?verificar / ?mostrar; aquí solo se añaden piezas nuevas:
+   bloques de código con resaltado por línea, árbol de llamadas, pila de
+   llamadas, cajas anidadas, laboratorio interactivo y árbol de carpetas.
+   Reutiliza variables, tipografías, contornos y sombra dura del tema.
+   ===================================================================== */
+
+:root{
+  --pend:#8a5a00;            /* texto ámbar con contraste AA sobre --amber-l */
+  --code-bg:#14202b; --code-bar:#263544;
+}
+
+/* ---------- Bloque de código (oscuro, igual que .term) ----------
+   <div class="code"><div class="bar">…</div><div class="src"><pre>…</pre>
+   <div class="hl fragment …" style="--l:3;--n:2"></div></div></div>
+   --l = primera línea resaltada (desde 1) · --n = número de líneas        */
+.code{--lh:29px; --pt:12px; background:var(--code-bg); border-radius:12px; border:2.5px solid var(--navy); box-shadow:5px 5px 0 var(--navy); overflow:hidden;}
+.code .bar{background:var(--code-bar); padding:7px 14px; display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:13px; color:#a9b6c2;}
+.code .bar b{width:12px; height:12px; border-radius:50%; display:inline-block;}
+.code .bar b:nth-child(1){background:#ff5f57} .code .bar b:nth-child(2){background:#febc2e} .code .bar b:nth-child(3){background:var(--accent)}
+.code .src{position:relative;}
+.reveal .code pre{position:relative; z-index:1; margin:0; padding:var(--pt) 16px var(--pt) 36px; font-family:var(--mono); font-size:19px; line-height:var(--lh);
+  color:#d8e2ea; white-space:pre; box-shadow:none; width:auto; background:none; text-align:left; word-wrap:normal;}
+.reveal .code pre code{font-family:inherit; background:none; padding:0; max-height:none; overflow:visible;}
+.code.sm{--lh:25px; --pt:10px;} .reveal .code.sm pre{font-size:16.5px;}
+.code.xs{--lh:23px; --pt:8px;}  .reveal .code.xs pre{font-size:15.5px;}
+/* Colores de sintaxis (los aplica presentacion.js) */
+.code .k{color:#9dbcf2; font-weight:600;}   /* palabra clave */
+.code .f{color:#ffd479;}                    /* nombre de función */
+.code .n{color:#f6a77c;}                    /* número */
+.code .s{color:#a6e3a1;}                    /* texto entre comillas */
+.code .c{color:#8a9aa8; font-style:italic;} /* comentario */
+/* Barra de resaltado por línea: fondo + borde + flecha (no depende solo del color) */
+.code .hl{position:absolute; z-index:0; left:0; right:0; top:calc(var(--pt) + (var(--l) - 1) * var(--lh)); height:calc(var(--n,1) * var(--lh));
+  background:rgba(255,212,121,.17); border-left:5px solid #ffd479;}
+.code .hl:before{content:"▶"; position:absolute; left:9px; top:calc(var(--lh) / 2); transform:translateY(-50%); font-size:13px; color:#ffd479;}
+.code .hl.bad{background:rgba(229,72,77,.22); border-left-color:var(--red);}
+.code .hl.bad:before{content:"✗"; color:#ff8a8d; font-size:15px;}
+.code.bad{border-color:var(--red); border-style:dashed; box-shadow:5px 5px 0 var(--red);}
+
+/* ---------- Palabras clave del tema ---------- */
+.kw{font-family:var(--mono); font-weight:600; font-size:.9em; padding:1px 8px; border-radius:6px; border:2px solid; white-space:nowrap;}
+.kw.base{color:var(--accent-d); background:var(--accent-l); border-color:var(--accent-d);}
+.kw.rec{color:var(--pend); background:var(--amber-l); border-color:var(--amber);}
+.kw.llam{color:var(--navy); background:#fff; border-color:var(--navy);}
+.kw.ret{color:#14518f; background:var(--blue-l); border-color:var(--blue);}
+.big-idea{font-family:var(--serif); font-weight:600; font-size:31px; line-height:1.25; color:var(--navy); text-align:center;
+  background:var(--card); border:2.5px solid var(--accent-d); border-radius:14px; padding:14px 24px;
+  box-shadow:0 0 0 7px var(--accent-l), 5px 5px 0 var(--accent-d);}
+.big-idea i{color:var(--accent); margin-right:10px;}
+
+/* ---------- Árbol de llamadas (sangría por profundidad --d) ---------- */
+.calltree{display:flex; flex-direction:column; gap:9px;}
+.call{display:flex; align-items:center; gap:12px; margin-left:calc(var(--d,0) * 46px); background:var(--card); border:2px solid var(--navy);
+  border-radius:10px; padding:6px 12px; box-shadow:3px 3px 0 var(--navy); font-family:var(--mono); font-size:19px; color:var(--navy); width:max-content;}
+.call .fn{font-weight:600;}
+.call .act{font-size:16px; color:var(--muted);}
+.call.base{border-color:var(--accent-d); box-shadow:0 0 0 5px var(--accent-l), 3px 3px 0 var(--accent-d);}
+.call .done{font-size:15px; font-weight:600; color:#14518f; background:var(--blue-l); border:1.5px solid var(--blue); border-radius:999px; padding:1px 10px;}
+.call:before{content:"↳"; color:var(--muted); font-weight:600;}
+.call.root:before{content:"▶"; color:var(--accent);}
+
+/* ---------- Consola que imprime línea a línea ---------- */
+.console{background:var(--code-bg); border:2.5px solid var(--navy); border-radius:12px; box-shadow:5px 5px 0 var(--navy); overflow:hidden;}
+.console .bar{background:var(--code-bar); padding:7px 14px; font-family:var(--mono); font-size:13px; color:#a9b6c2;}
+.console .out{padding:10px 16px; font-family:var(--mono); font-size:20px; line-height:1.5; color:#d8e2ea; min-height:60px;}
+.console .out > *{display:block;}
+.console .out .err{color:#ff8a8d; font-weight:600;}
+.console .out .muted{color:#8a9aa8;}
+
+/* ---------- Bajada / regreso (factorial paso a paso) ---------- */
+.trace{display:grid; grid-template-columns:1fr 60px 1fr; row-gap:12px; align-items:center;}
+.trace .th{font-family:var(--mono); font-size:14px; letter-spacing:.16em; text-transform:uppercase; font-weight:600; text-align:center; padding-bottom:4px;}
+.trace .th.pend{color:var(--pend);} .trace .th.ret{color:#14518f;}
+.tc{display:flex; align-items:center; gap:12px; border:2.5px solid; border-radius:12px; padding:6px 14px; font-size:24px; min-height:44px; background:var(--card);}
+.tc .tag{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.06em; margin-left:auto; white-space:nowrap; display:inline-flex; gap:6px; align-items:center;}
+.tc.pend{border-color:var(--amber); border-style:dashed; background:var(--amber-l);} .tc.pend .tag{color:var(--pend);}
+.tc.ret{border-color:var(--blue); background:var(--blue-l);} .tc.ret .tag{color:#14518f;}
+.tc.base{border-color:var(--accent-d); background:var(--accent-l); box-shadow:3px 3px 0 var(--accent-d);} .tc.base .tag{color:var(--accent-d);}
+.trace .arw{text-align:center; font-size:24px; color:var(--blue);}
+
+/* ---------- Pila de llamadas (platos) ---------- */
+.stackbox{display:flex; flex-direction:column; align-items:center;}
+.stack{display:flex; flex-direction:column-reverse; gap:8px; width:360px; min-height:330px; padding:0 0 10px; border-bottom:5px solid var(--navy); justify-content:flex-start;}
+.frame{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--card); border:2.5px solid var(--navy); border-radius:10px;
+  padding:7px 14px; box-shadow:4px 4px 0 var(--navy); font-family:var(--mono); font-size:19px; color:var(--navy); min-height:30px;}
+.frame .nm{font-weight:600;}
+.frame .st{display:grid; justify-items:end; font-size:17px;} .frame .st > *{grid-area:1/1; white-space:nowrap;}
+.frame .wait{color:var(--pend);} .frame .val{color:#14518f; font-weight:600;}
+.frame.base{border-color:var(--accent-d); box-shadow:0 0 0 5px var(--accent-l), 4px 4px 0 var(--accent-d);}
+.frame.top{outline:3px solid var(--amber); outline-offset:3px;}
+.stack-lbl{font-family:var(--mono); font-size:14px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-top:8px;}
+.side-caps{position:relative; height:118px;}
+.side-caps .cap{font-size:19px;}
+
+/* ---------- Laboratorio interactivo ---------- */
+.lab-ctrl{display:flex; flex-wrap:wrap; align-items:center; gap:10px;}
+.btn{font:600 16px var(--mono); letter-spacing:.04em; color:var(--accent-d); background:var(--accent-l); border:2px solid var(--accent-d); border-radius:10px;
+  padding:7px 14px; cursor:pointer; box-shadow:3px 3px 0 var(--accent-d); display:inline-flex; gap:8px; align-items:center;}
+.btn:hover{background:#fff;}
+.btn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--accent-d);}
+.btn:focus-visible{outline:3px solid var(--blue); outline-offset:3px;}
+.btn:disabled{opacity:.45; cursor:default; transform:none;}
+.btn.r{color:var(--red-t); background:var(--red-l); border-color:var(--red); box-shadow:3px 3px 0 var(--red);}
+.nval{font-family:var(--mono); font-weight:600; font-size:26px; color:var(--navy); min-width:40px; text-align:center;}
+.lab-status{font-size:20px; min-height:58px; margin-top:12px; background:var(--card); border:2px solid var(--navy); border-radius:12px; padding:8px 14px; box-shadow:3px 3px 0 var(--navy);}
+.lab-log{max-height:250px; overflow:hidden;}
+.lab-log .out{font-size:17px; line-height:1.45;}
+.lab-log .push{color:#ffd479;} .lab-log .pop{color:#9dbcf2;}
+.depth{display:flex; align-items:center; gap:12px; margin-top:12px; font-family:var(--mono); font-size:16px; color:var(--navy);}
+.depth .meter{flex:1; height:22px; border:2px solid var(--navy); border-radius:999px; background:#fff; overflow:hidden;}
+.depth .meter span{display:block; height:100%; width:0; background:repeating-linear-gradient(45deg,var(--red) 0 10px,#f07a7e 10px 20px); transition:width .1s linear;}
+.lab .stack{min-height:300px;}
+.lab .frame{padding:4px 12px; font-size:17px; min-height:26px; box-shadow:3px 3px 0 var(--navy);}
+.lab .frame.base{box-shadow:0 0 0 4px var(--accent-l), 3px 3px 0 var(--accent-d);}
+.present .lab .frame.new{animation:popIn .3s both;}
+
+/* ---------- Cajas anidadas, muñecas, fotos (SVG) ---------- */
+svg.ill{display:block; overflow:visible; margin:0 auto; max-width:100%; height:auto;}
+.ill .ln{stroke:var(--navy); stroke-width:2.5; fill:none;}
+.ill .box{fill:#fff; stroke:var(--navy); stroke-width:2.5;}
+.ill .box.ac{fill:var(--accent-l); stroke:var(--accent-d);}
+.ill .box.am{fill:var(--amber-l); stroke:var(--amber);}
+.ill .rib{fill:var(--accent); stroke:var(--navy); stroke-width:2;}
+.ill .doll{stroke:var(--navy); stroke-width:2.5;}
+.ill .face{fill:#fff; stroke:var(--navy); stroke-width:2;}
+.ill .eye{fill:var(--navy);}
+.ill .txt{font-family:var(--mono); font-weight:600; font-size:15px; fill:var(--navy); text-anchor:middle; dominant-baseline:central;}
+.present .ill .bobg{animation:bob 1.6s ease-in-out infinite; transform-box:fill-box;}
+.boxrow{display:flex; align-items:flex-end; justify-content:center; gap:26px; margin-top:22px;}
+.boxrow .bx{display:flex; flex-direction:column; align-items:center; gap:8px;}
+.boxrow .arr{font-size:30px; color:var(--accent); align-self:center;}
+
+/* Escalera */
+.ill .stp{fill:#fff; stroke:var(--navy); stroke-width:2.5;}
+.ill .stp.base{fill:var(--accent-l); stroke:var(--accent-d); stroke-width:3;}
+.ill .slbl{font-family:var(--mono); font-weight:600; font-size:17px; fill:var(--navy); text-anchor:middle; dominant-baseline:central;}
+.ill .slbl.ac{fill:var(--accent-d);}
+
+/* ---------- Árbol de carpetas ---------- */
+.tree{font-family:var(--mono); font-size:19px; color:var(--navy);}
+.tree ul{list-style:none; margin:0; padding-left:30px; border-left:2px dashed #9aa5ae; margin-left:11px;}
+.tree > ul{padding-left:0; border-left:0; margin-left:0;}
+.tree li{margin:5px 0;}
+.tree .nd{display:inline-flex; align-items:center; gap:9px; padding:3px 10px; border:2px solid transparent; border-radius:8px; transition:background .25s, border-color .25s;}
+.tree .nd i{width:22px; text-align:center;}
+.tree .dir > .nd i{color:var(--amber);}
+.tree .file > .nd i{color:var(--accent);}
+.tree .nd.on{background:var(--amber-l); border-color:var(--amber);}
+.tree .nd.seen{border-color:#b9c2ca; background:#fff;}
+.tree .nd .cnt{font-size:14px; font-weight:600; color:#14518f; background:var(--blue-l); border:1.5px solid var(--blue); border-radius:999px; padding:0 8px; display:none;}
+.tree .nd.seen .cnt, .tree .nd.on .cnt{display:inline-block;}
+
+/* ---------- Bloques de la suma S(n) ---------- */
+.bars{display:flex; align-items:flex-end; gap:14px; justify-content:center; height:200px;}
+.bars .col{display:flex; flex-direction:column-reverse; gap:4px; align-items:center;}
+.bars .u{width:46px; height:34px; border:2px solid var(--navy); border-radius:6px; background:var(--accent-l);}
+.bars .col.base .u{display:none;}
+.bars .lab{font-family:var(--mono); font-weight:600; font-size:16px; color:var(--navy); margin-top:6px; order:-1;}
+.bars .col.base .lab{color:var(--accent-d);}
+
+/* ---------- Tarjetas de preguntas ---------- */
+.quiz{display:grid; grid-template-columns:1fr 1fr; gap:14px 24px; margin-top:16px;}
+.qz{background:var(--card); border:2px solid var(--navy); border-radius:12px; box-shadow:4px 4px 0 var(--navy); padding:9px 14px; font-size:19px;}
+.qz .n{font-family:var(--mono); font-weight:600; color:#fff; background:var(--navy); border-radius:7px; padding:1px 9px; margin-right:6px; font-size:16px;}
+.qz .qa{margin-top:7px; border-left:5px solid var(--accent); background:var(--accent-l); border-radius:0 8px 8px 0; padding:5px 10px; font-size:18px;}
+.qz .qa:before{content:"Respuesta: "; font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.1em; color:var(--accent-d); text-transform:uppercase;}
+.qz.wide{grid-column:1 / -1;}
+
+/* Lista de verificación del reto */
+.check{display:flex; flex-direction:column; gap:9px;}
+.check .ci{display:flex; align-items:center; gap:12px; background:var(--card); border:2px solid var(--navy); border-radius:10px; padding:7px 12px; box-shadow:3px 3px 0 var(--navy); font-size:19px;}
+.check .ci i{color:var(--accent-d); font-size:20px; width:24px; text-align:center;}
+
+/* Resumen */
+.sum{display:grid; grid-template-columns:1fr 1fr; gap:12px 24px; margin-top:18px;}
+.quote{font-family:var(--serif); font-style:italic; font-weight:600; font-size:28px; color:var(--navy); text-align:center; margin-top:30px;}
+.quote i{color:var(--accent); font-style:normal; margin-right:8px;}
+
+/* Tabla comparativa compacta (reutiliza .tbl del tema) */
+.tbl.cmp{font-family:var(--sans); font-size:17px;}
+.tbl.cmp td{padding:4px 12px; vertical-align:top;}
+.tbl.cmp th{padding:6px 12px;}
+.tbl.cmp td:first-child{font-family:var(--mono); font-weight:600; font-size:15px; color:var(--muted); white-space:nowrap;}
+
+.nowrap .formula{white-space:nowrap;}
+
+/* ---------- Secuencias (celdas del tema .cell) ---------- */
+.seq{display:flex; align-items:center; justify-content:center; gap:10px; margin-top:14px;}
+.seq .cell{margin-left:0; border-radius:10px;}
+.seq .cell.base{background:var(--accent-l); border-color:var(--accent-d); color:var(--accent-d);}
+.seq .sar{font-family:var(--mono); font-weight:600; font-size:22px; color:var(--accent); white-space:nowrap;}
+.seq:has(.col-c) .sar{margin-bottom:34px;}
+.seq .sl{font-size:20px; color:var(--muted);}
+
+/* Formas de ordenar 3 objetos */
+.orders{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.orders span{display:flex; justify-content:center; gap:14px; font-size:30px; padding:8px 0; border:2px solid var(--navy); border-radius:10px; background:#fff;}
+.orders .fa-apple-whole{color:var(--red);} .orders .fa-star{color:var(--amber);} .orders .fa-heart{color:var(--accent);}
+
+/* Desarrollo paso a paso */
+.derive{font-size:25px; display:flex; flex-direction:column; gap:4px; padding-left:12px; border-left:4px solid var(--accent-l);}

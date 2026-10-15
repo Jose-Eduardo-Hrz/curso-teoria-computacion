@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expresiones regulares</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="regex.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     BLOQUE I · DESCUBRIENDO LOS PATRONES
+     ===================================================================== -->
+
+<!-- 1 · PORTADA -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Teoría de la computación · Lenguajes formales</div>
+  <h1 class="center" style="font-size:66px;margin-top:22px;line-height:1.08">Expresiones regulares</h1>
+  <p class="center" style="font-family:var(--serif);font-size:36px;color:var(--navy);margin-top:6px">las reglas secretas de las cadenas</p>
+  <p class="sub" style="font-size:23px;margin-top:10px">Aprende a describir muchas palabras utilizando símbolos y reglas.</p>
+  <div class="flow mt24" style="margin-top:40px" data-re="(0+1)*0" data-in="0,10,110,1010" data-inf>
+    <div class="exprbox pop-in"><span class="cap2">la receta</span>\((0+1)^*0\)</div>
+    <div class="arr"><i class="fa-solid fa-arrow-right-long"></i><span>describe</span></div>
+    <div class="setbox" style="width:520px">
+      <span class="nm">las cadenas que cumplen</span>
+      <span class="palabra bob"><span class="ficha">0</span></span>
+      <span class="palabra bob" style="animation-delay:.2s"><span class="ficha">1</span><span class="ficha">0</span></span>
+      <span class="palabra bob" style="animation-delay:.4s"><span class="ficha">1</span><span class="ficha">1</span><span class="ficha">0</span></span>
+      <span class="palabra bob" style="animation-delay:.6s"><span class="ficha">1</span><span class="ficha">0</span><span class="ficha">1</span><span class="ficha">0</span></span>
+      <span class="mid muted">…</span>
+    </div>
+  </div>
+  <aside class="notes">Bienvenida. Hoy aprenderemos a escribir recetas cortitas que describen muchísimas cadenas, incluso infinitas. La receta de la portada describe todas las cadenas de ceros y unos que terminan en 0; al final de la clase podrán leerla solos.</aside>
+</section>
+
+<!-- 2 · PREGUNTA -->
+<section data-transition="convex" id="fichas">
+  <div class="kicker">I · Descubriendo los patrones</div>
+  <div class="route" data-on="1"></div>
+  <h2>Una caja de fichas</h2>
+  <div class="q"><i class="fa-solid fa-circle-question"></i><p>Tienes una caja de fichas con los números 0 y 1. ¿Cómo podrías construir todas las cadenas posibles con esas fichas?</p></div>
+  <div class="split" style="grid-template-columns:330px 1fr;margin-top:24px">
+    <div class="setbox vacia" style="min-height:190px">
+      <span class="nm"><i class="fa-solid fa-box-open"></i> caja de fichas</span>
+      <span class="ficha">0</span><span class="ficha">1</span><span class="ficha">0</span><span class="ficha">1</span>
+      <span class="ficha">1</span><span class="ficha">0</span><span class="ficha">0</span><span class="ficha">1</span>
+    </div>
+    <div>
+      <div class="fichas" style="justify-content:flex-start;gap:16px">
+        <span class="palabra fragment fade-up"><span class="ficha">0</span></span>
+        <span class="palabra fragment fade-up"><span class="ficha">1</span></span>
+        <span class="palabra fragment fade-up"><span class="ficha">0</span><span class="ficha">1</span></span>
+        <span class="palabra fragment fade-up"><span class="ficha">1</span><span class="ficha">0</span></span>
+        <span class="palabra fragment fade-up"><span class="ficha">0</span><span class="ficha">0</span></span>
+        <span class="palabra fragment fade-up"><span class="ficha">1</span><span class="ficha">1</span></span>
+        <span class="palabra fragment fade-up"><span class="ficha">0</span><span class="ficha">1</span><span class="ficha">0</span></span>
+        <span class="mid muted fragment fade-up">…</span>
+      </div>
+      <div class="two tight" style="margin-top:26px">
+        <div class="bubble fragment fade-up" style="position:static"><i class="fa-solid fa-eye ac"></i> ¿Observas algún patrón en cómo crecen?</div>
+        <div class="bubble fragment fade-up" style="position:static"><i class="fa-solid fa-hashtag ac"></i> ¿Cuántas cadenas hay de 2 fichas? ¿Y de 3?</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">No des definiciones todavía. Deja que propongan: "primero las de una ficha, luego las de dos..."; "con dos fichas hay 4, con tres hay 8: se duplica". ¿Se acaban alguna vez? No: siempre puedo poner una ficha más. Esa intuición de "infinitas" la usaremos con la estrella.</aside>
+</section>
+
+<!-- 3 · VIDA COTIDIANA -->
+<section data-transition="slide" id="cotidiana">
+  <div class="kicker">I · Descubriendo los patrones</div>
+  <div class="route" data-on="1"></div>
+  <h2>Todos los días reconocemos patrones</h2>
+  <div class="split" style="grid-template-columns:1fr 440px;margin-top:20px">
+    <div class="list tight">
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-envelope"></i></div><div><div class="t">Código postal</div><div class="v">exactamente 5 dígitos · 02200</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-car"></i></div><div><div class="t">Matrícula</div><div class="v">letras y números en orden · ABC-123-D</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-phone"></i></div><div><div class="t">Número telefónico</div><div class="v">10 dígitos · 55 1234 5678</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-key"></i></div><div><div class="t">Contraseña</div><div class="v">debe tener letras, números y un símbolo</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-font"></i></div><div><div class="t">Palabras que empiezan con «s»</div><div class="v">sol · sapo · sí</div></div></div>
+    </div>
+    <div>
+      <div class="def hl fragment fade-left">
+        <div class="head"><i class="fa-solid fa-lightbulb"></i> La idea</div>
+        <div class="body">Un <b>patrón</b> es una regla que dice qué está permitido y qué no. Con un patrón podemos decidir si algo <b>cumple</b> o <b>no cumple</b>.</div>
+      </div>
+      <div class="note fragment fade-up"><i class="fa-solid fa-triangle-exclamation"></i><span>En clase usaremos la notación de la <b>teoría de autómatas</b>. Las «regex» de JavaScript o Python se parecen, pero usan otros símbolos (por ejemplo <span class="mono">|</span> para elegir) y tienen capacidades extra.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Pregunta: ¿"0220" es un código postal válido? No: le falta un dígito. Así se decide si algo pertenece o no. Aclara desde ahora que la notación formal y la de los lenguajes de programación no son idénticas; volveremos a esto al final.</aside>
+</section>
+
+<!-- 4 · ALFABETO -->
+<section data-transition="convex" id="alfabeto">
+  <div class="kicker">I · Descubriendo los patrones</div>
+  <div class="route" data-on="1"></div>
+  <h2>¿Qué es un alfabeto?</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-shapes"></i> Alfabeto</div>
+    <div class="body lead">Un <b>alfabeto</b> es un conjunto de <b>símbolos permitidos</b>. Lo llamamos con la letra griega \(\Sigma\) («sigma»): \(\;\Sigma=\{0,1\}\)</div>
+  </div>
+  <div class="three" style="margin-top:28px">
+    <div class="panel fig fragment fade-up"><div class="mid">\(\Sigma=\{a,b\}\)</div><div class="fichas"><span class="ficha ac">a</span><span class="ficha ac">b</span></div><div class="figcap">dos símbolos</div></div>
+    <div class="panel fig fragment fade-up"><div class="mid">\(\Sigma=\{0,1\}\)</div><div class="fichas"><span class="ficha ac">0</span><span class="ficha ac">1</span></div><div class="figcap">el alfabeto <b>binario</b>: el de hoy</div></div>
+    <div class="panel fig fragment fade-up"><div class="mid">\(\Sigma=\{a,b,c\}\)</div><div class="fichas"><span class="ficha ac">a</span><span class="ficha ac">b</span><span class="ficha ac">c</span></div><div class="figcap">tres símbolos</div></div>
+  </div>
+  <div class="note fragment fade-up" style="align-items:center"><i class="fa-solid fa-hand"></i><span>Con \(\Sigma=\{0,1\}\) solo puedo usar estas fichas:</span>
+    <span class="ficha sm ac">0</span><span class="ficha sm ac">1</span><span style="margin-left:14px">La ficha</span><span class="ficha sm bad">2</span><span>no está en el alfabeto: no se puede usar.</span></div>
+  <aside class="notes">El alfabeto es como la caja de fichas: decide qué piezas existen. Siempre es un conjunto finito y no vacío de símbolos. Las llaves { } indican "conjunto".</aside>
+</section>
+
+<!-- 5 · CADENA -->
+<section data-transition="slide" id="cadena">
+  <div class="kicker">I · Descubriendo los patrones</div>
+  <div class="route" data-on="1"></div>
+  <h2>¿Qué es una cadena?</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-link"></i> Cadena</div>
+    <div class="body lead">Una <b>cadena</b> es una secuencia <b>finita</b> de símbolos de un alfabeto, colocados <b>en orden</b>. Con \(\Sigma=\{0,1\}\): &nbsp;
+      <span class="palabra sm"><span class="ficha">0</span></span> &nbsp;<span class="palabra sm"><span class="ficha">1</span></span> &nbsp;<span class="palabra sm"><span class="ficha">0</span><span class="ficha">1</span></span> &nbsp;<span class="palabra sm"><span class="ficha">1</span><span class="ficha">0</span><span class="ficha">1</span></span> &nbsp;<span class="palabra sm"><span class="ficha">1</span><span class="ficha">1</span><span class="ficha">0</span><span class="ficha">0</span></span></div>
+  </div>
+  <div class="split" style="grid-template-columns:1fr 430px;margin-top:22px">
+    <div class="panel lab" id="constructor">
+      <h3><i class="fa-solid fa-hammer ac"></i> Construye tu cadena</h3>
+      <div class="ctrl mt8" style="justify-content:center">
+        <button class="btn sym" data-add="0">0</button><button class="btn sym" data-add="1">1</button>
+        <button class="btn" id="cons-borrar"><i class="fa-solid fa-delete-left"></i> Quitar</button>
+        <button class="btn r" id="cons-vaciar"><i class="fa-solid fa-trash"></i> Vaciar</button>
+      </div>
+      <div class="fichas mt16" id="cons-cadena" style="min-height:56px" aria-live="polite"></div>
+      <div class="center mt8 mid" id="cons-long"></div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-square"></i></div><div><div class="t">Símbolo: <span class="ficha sm">0</span></div><div class="v">una sola ficha</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-grip-lines"></i></div><div><div class="t">Cadena: <span class="palabra sm"><span class="ficha">1</span><span class="ficha">0</span><span class="ficha">1</span></span></div><div class="v">fichas en orden</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-box"></i></div><div><div class="t">Alfabeto: \(\{0,1\}\)</div><div class="v">las fichas disponibles</div></div></div>
+      <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-ruler"></i></div><div><div class="t">Longitud: \(|101| = 3\)</div><div class="v">cuántos símbolos tiene</div></div></div>
+    </div>
+  </div>
+  <aside class="notes">Usa el constructor: pulsa fichas y observa la longitud. Pregunta qué pasa si quito todas las fichas: aparece una cadena muy especial, ε, la cadena vacía, que estudiaremos en el bloque II. Las barras |w| significan longitud de la cadena w.</aside>
+</section>
+
+<!-- 6 · LENGUAJE -->
+<section data-transition="slide" id="lenguaje">
+  <div class="kicker">I · Descubriendo los patrones</div>
+  <div class="route" data-on="1"></div>
+  <h2>¿Qué es un lenguaje?</h2>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:24px">
+    <div>
+      <div class="setbox" style="min-height:150px">
+        <span class="nm">\(L=\{0,\,01,\,11\}\)</span>
+        <span class="palabra ac"><span class="ficha">0</span></span>
+        <span class="palabra ac"><span class="ficha">0</span><span class="ficha">1</span></span>
+        <span class="palabra ac"><span class="ficha">1</span><span class="ficha">1</span></span>
+      </div>
+      <div class="outside fragment fade-up">
+        <span class="t">fuera de la caja: no pertenecen a L</span>
+        <span class="str nop">1</span><span class="str nop">10</span><span class="str nop">011</span>
+      </div>
+    </div>
+    <div class="list" style="gap:14px">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-box"></i> Lenguaje</div>
+        <div class="body">Un <b>lenguaje</b> es un <b>conjunto de cadenas</b>. Este \(L\) contiene <b>exactamente tres</b> cadenas: \(01\in L\), pero \(10\notin L\).</div>
+      </div>
+      <div class="def fragment fade-left" data-re="(0+1)*" data-upto="ε,0,1,00,01,10,11">
+        <div class="head"><i class="fa-solid fa-infinity"></i> Todas las cadenas posibles</div>
+        <div class="body">\(\Sigma^*\) es el conjunto de <b>todas</b> las cadenas finitas con símbolos de \(\Sigma\), incluida la vacía:
+          <div class="center mt8">\(\Sigma^*=\{\varepsilon,0,1,00,01,10,11,\ldots\}\)</div></div>
+      </div>
+      <div class="formula fragment fade-up">\(L\subseteq\Sigma^*\)<span class="hint" style="margin-left:14px">todo lenguaje es parte de \(\Sigma^*\)</span></div>
+    </div>
+  </div>
+  <aside class="notes">Distingue: una cadena es UNA fila de fichas; un lenguaje es una CAJA con varias cadenas (o ninguna). El símbolo ∈ se lee "pertenece a". Σ* aparece aquí por primera vez: lo construiremos más adelante con la estrella de Kleene.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE II · LOS DOS VACÍOS
+     ===================================================================== -->
+
+<!-- 7 · CONJUNTO VACÍO -->
+<section data-transition="concave" id="vacio">
+  <div class="kicker">II · Los dos vacíos</div>
+  <div class="route" data-on="2"></div>
+  <h2>El conjunto vacío: no hay ninguna cadena</h2>
+  <div class="split" style="grid-template-columns:440px 1fr;margin-top:34px">
+    <div class="setbox vacia" style="min-height:230px">
+      <span class="nm">\(L_1=\varnothing\)</span>
+      <span class="hueco">(la caja está vacía)</span>
+    </div>
+    <div class="list" style="gap:16px">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-circle-notch"></i> Conjunto vacío</div>
+        <div class="body lead">\(\varnothing\) es el lenguaje que <b>no contiene ninguna cadena</b>. Es una caja de fichas sin nada adentro.</div>
+      </div>
+      <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-hashtag"></i></div><div><div class="t">¿Cuántos elementos tiene? &nbsp;\(|\varnothing|=0\)</div><div class="v">ninguno</div></div></div>
+      <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-magnifying-glass"></i></div><div><div class="t">Ejemplo: cadenas sobre \(\{0,1\}\) que contienen el símbolo 2</div><div class="v">no hay ninguna: ese lenguaje es ∅</div></div></div>
+    </div>
+  </div>
+  <aside class="notes">∅ no es "nada escrito": es un conjunto, una caja, que está vacía. Prepara la siguiente diapositiva preguntando: ¿y si dentro de la caja hay una tarjeta en blanco?</aside>
+</section>
+
+<!-- 8 · CADENA VACÍA -->
+<section data-transition="slide" id="epsilon">
+  <div class="kicker">II · Los dos vacíos</div>
+  <div class="route" data-on="2"></div>
+  <h2>La cadena vacía: una cadena con cero símbolos</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-square"></i> Cadena vacía</div>
+    <div class="body lead">\(\varepsilon\) («épsilon») es una <b>cadena</b> que <b>no tiene ningún símbolo</b>: &nbsp;\(|\varepsilon|=0\). Es como una tarjeta en blanco.</div>
+  </div>
+  <div class="two" style="margin-top:30px;gap:60px">
+    <div class="fig">
+      <div class="setbox vacia" style="width:100%;min-height:130px"><span class="nm">\(\varnothing\)</span><span class="hueco">sin tarjetas</span></div>
+      <div class="figcap"><b>0 elementos.</b> La caja está vacía.</div>
+    </div>
+    <div class="fig fragment fade-left">
+      <div class="setbox" style="width:100%;min-height:130px"><span class="nm">\(\{\varepsilon\}\)</span><span class="ficha eps" style="min-width:90px">ε</span></div>
+      <div class="figcap"><b>1 elemento:</b> una tarjeta con la cadena de longitud cero.</div>
+    </div>
+  </div>
+  <div class="big-eq center fragment zoom-in mt16" style="font-size:34px">\(\{\varepsilon\}\neq\varnothing\)</div>
+  <div class="note fragment fade-up" style="margin-top:12px"><i class="fa-solid fa-lightbulb"></i><span>\(\varepsilon\) es una <b>cadena</b>; \(\varnothing\) y \(\{\varepsilon\}\) son <b>lenguajes</b> (conjuntos de cadenas). \(\{\varepsilon\}\) tiene un elemento y \(\varnothing\) ninguno: por eso son distintos.</span></div>
+  <aside class="notes">Esta es la diferencia más importante del día. Una caja vacía no es lo mismo que una caja con una tarjeta en blanco: en la segunda hay algo que contar. Pide que lo repitan con sus palabras.</aside>
+</section>
+
+<!-- 9 · ACTIVIDAD VACÍO -->
+<section data-transition="zoom" id="actividad-vacio">
+  <div class="kicker">II · Los dos vacíos · Actividad</div>
+  <div class="route" data-on="2"></div>
+  <h2>¿Vacío o no vacío? ¿Cuántos elementos?</h2>
+  <div class="two" style="margin-top:22px;gap:26px">
+    <div class="ex"><span class="n">1</span><span class="mid">\(L_1=\varnothing\)</span>
+      <div class="mt8 fragment"><span class="tag fin" style="font-size:16px"><i class="fa-solid fa-circle-notch"></i> vacío · 0 elementos</span></div></div>
+    <div class="ex"><span class="n">2</span><span class="mid">\(L_2=\{\varepsilon\}\)</span>
+      <div class="mt8 fragment"><span class="tag un" style="font-size:16px"><i class="fa-solid fa-box"></i> no vacío · 1 elemento: \(\varepsilon\)</span></div></div>
+    <div class="ex"><span class="n">3</span><span class="mid">\(L_3=\{0,\varepsilon\}\)</span>
+      <div class="mt8 fragment"><span class="tag un" style="font-size:16px"><i class="fa-solid fa-box"></i> no vacío · 2 elementos: \(0\) y \(\varepsilon\)</span></div></div>
+    <div class="ex"><span class="n">4</span><span class="mid">\(L_4=\{0,1\}\)</span>
+      <div class="mt8 fragment"><span class="tag un" style="font-size:16px"><i class="fa-solid fa-box"></i> no vacío · 2 elementos: \(0\) y \(1\)</span></div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-scale-balanced"></i><span>Solo \(\varnothing\) no tiene elementos. Los otros tres tienen <b>uno</b>, <b>dos</b> y <b>dos</b> elementos. ¡Cuidado con el 2 y el 3: \(\varepsilon\) cuenta como una cadena!</span></div>
+  <aside class="notes">Pide que levanten la mano: ¿quién cree que L2 está vacío? Es el error más frecuente. Las respuestas aparecen una por una al avanzar.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE III · LAS EXPRESIONES REGULARES Y SUS REGLAS
+     ===================================================================== -->
+
+<!-- 10 · ¿QUÉ ES UNA ER? -->
+<section data-transition="concave" id="que-es">
+  <div class="kicker">III · Expresiones y reglas</div>
+  <div class="route" data-on="3"></div>
+  <h2>¿Qué es una expresión regular?</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-scroll"></i> Idea</div>
+    <div class="body lead">Una <b>expresión regular</b> \(r\) es una <b>receta</b> escrita con símbolos y operaciones. La receta describe un lenguaje, que escribimos \(L(r)\).</div>
+  </div>
+  <div class="flow" style="margin-top:34px" data-re="0+1" data-exact="0,1">
+    <div class="exprbox"><span class="cap2">expresión r</span>\(0+1\)</div>
+    <div class="arr"><i class="fa-solid fa-arrow-right-long"></i><span>L( )</span></div>
+    <div class="setbox" style="width:300px"><span class="nm">\(L(0+1)=\{0,1\}\)</span><span class="palabra ac"><span class="ficha">0</span></span><span class="palabra ac"><span class="ficha">1</span></span></div>
+  </div>
+  <div class="pills fragment fade-up" style="margin-top:34px">
+    <span class="tag un" style="font-size:17px">\(+\) &nbsp;unión: elegir</span>
+    <span class="tag ct" style="font-size:17px">\(rs\) &nbsp;concatenación: uno detrás de otro</span>
+    <span class="tag st" style="font-size:17px">\(r^*\) &nbsp;estrella: repetir</span>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-info"></i><span>El significado de los símbolos depende de la notación. <b>En esta clase</b>: \(+\) es unión, escribir juntas dos cosas es concatenación y \(^*\) es la estrella de Kleene. La receta \(r\) <b>no es</b> el conjunto \(L(r)\).</span></div>
+  <aside class="notes">Analogía: la receta de un pastel no es el pastel. La expresión regular es texto; el lenguaje es el conjunto de cadenas que obtenemos al "cocinarla". Por eso escribimos L(0+1) y no simplemente 0+1 = {0,1}.</aside>
+</section>
+
+<!-- 11 · REGLA DEL SÍMBOLO -->
+<section data-transition="slide" id="simbolo">
+  <div class="kicker">III · Expresiones y reglas · Primera regla</div>
+  <div class="route" data-on="3"></div>
+  <h2>Un símbolo representa una cadena</h2>
+  <p class="lead center mt16">Si \(\Sigma=\{0,1\}\), la expresión más sencilla es un solo símbolo.</p>
+  <div class="two" style="margin-top:30px">
+    <div class="flow" data-re="0" data-exact="0">
+      <div class="exprbox"><span class="cap2">expresión</span>\(0\)</div>
+      <div class="arr"><i class="fa-solid fa-arrow-right-long"></i><span>L( )</span></div>
+      <div class="setbox" style="width:210px"><span class="nm">\(L(0)=\{0\}\)</span><span class="palabra ac"><span class="ficha">0</span></span></div>
+    </div>
+    <div class="flow fragment fade-left" data-re="1" data-exact="1">
+      <div class="exprbox"><span class="cap2">expresión</span>\(1\)</div>
+      <div class="arr"><i class="fa-solid fa-arrow-right-long"></i><span>L( )</span></div>
+      <div class="setbox" style="width:210px"><span class="nm">\(L(1)=\{1\}\)</span><span class="palabra ac"><span class="ficha">1</span></span></div>
+    </div>
+  </div>
+  <div class="list tight" style="margin-top:34px">
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-ruler"></i></div><div><div class="t">Cada símbolo describe <b>una cadena de longitud 1</b></div><div class="v">L(0) tiene un solo elemento: la cadena 0</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-not-equal"></i></div><div><div class="t">La expresión \(0\) y el lenguaje \(\{0\}\) son cosas distintas</div><div class="v">la receta (texto oscuro) frente a la caja (conjunto)</div></div></div>
+  </div>
+  <aside class="notes">Parece trivial, pero es el ladrillo con el que construimos todo. Compara colores y formas: la expresión vive en el recuadro oscuro, el lenguaje en la caja azul.</aside>
+</section>
+
+<!-- 12 · UNIÓN -->
+<section data-transition="slide" id="union">
+  <div class="kicker">III · Expresiones y reglas · Segunda regla</div>
+  <div class="route" data-on="3"></div>
+  <h2>Unión: elegir una opción</h2>
+  <div class="split" style="grid-template-columns:420px 1fr;margin-top:24px">
+    <div class="panel fig">
+      <h3>De postre, ¿qué quieres?</h3>
+      <div class="flow" style="gap:18px">
+        <i class="fa-solid fa-apple-whole" style="font-size:72px;color:var(--red)" aria-hidden="true"></i>
+        <span class="or">o</span>
+        <svg viewBox="0 0 60 80" width="58" height="78" role="img" aria-label="Pera"><path d="M30 14 C22 14 21 28 22 32 C8 42 8 74 30 76 C52 74 52 42 38 32 C39 28 38 14 30 14Z" style="fill:#c9d65a;stroke:var(--navy);stroke-width:2.5"/><path d="M30 14 L33 4" style="stroke:var(--navy);stroke-width:3"/></svg>
+      </div>
+      <div class="figcap">Puedes elegir <b>una</b> de las dos: manzana <b>o</b> pera.</div>
+    </div>
+    <div class="list" style="gap:14px">
+      <div class="fichas fragment fade-left" style="justify-content:flex-start"><span class="mid">\(0+1\)</span><span class="hint">se lee</span><span class="ficha ac">0</span><span class="or">o</span><span class="ficha ac">1</span></div>
+      <div class="def hl fragment fade-left" data-re="0+1" data-exact="0,1">
+        <div class="head"><i class="fa-solid fa-code-branch"></i> Formalmente</div>
+        <div class="body"><div class="formula">\(L(0+1)=L(0)\cup L(1)=\{0\}\cup\{1\}=\{0,1\}\)</div>
+          <div class="hint center">\(\cup\) es la unión de conjuntos: junta las cadenas de ambos lados.</div></div>
+      </div>
+      <div class="note fragment fade-up" style="margin-top:0"><i class="fa-solid fa-triangle-exclamation"></i><span>El \(+\) significa «<b>o</b>», no una suma: \(L(0+1)\) no es \(\{1\}\). Aceptamos la cadena 0 <b>o</b> la cadena 1.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Pregunta trampa: ¿cuánto es 0+1? En aritmética, 1; aquí no es un número sino una receta con dos alternativas. Para el siguiente tema: en JavaScript esta misma idea se escribe 0|1.</aside>
+</section>
+
+<!-- 13 · CONCATENACIÓN -->
+<section data-transition="slide" id="concatenacion">
+  <div class="kicker">III · Expresiones y reglas · Tercera regla</div>
+  <div class="route" data-on="3"></div>
+  <h2>Concatenación: poner una cosa después de otra</h2>
+  <div class="split" style="grid-template-columns:480px 1fr;margin-top:24px">
+    <div class="panel fig">
+      <h3>Piezas en fila</h3>
+      <div class="fichas" style="gap:14px">
+        <span class="ficha">0</span><i class="fa-solid fa-plus" style="color:var(--muted)" aria-hidden="true"></i><span class="ficha">1</span>
+        <i class="fa-solid fa-arrow-right-long" style="color:var(--accent);font-size:28px" aria-hidden="true"></i>
+        <span class="palabra ac"><span class="ficha">0</span><span class="ficha">1</span></span>
+      </div>
+      <div class="figcap">Pegamos la ficha <b>1</b> detrás de la ficha <b>0</b>, como vagones de un tren.</div>
+      <div class="fichas mt16 fragment fade-up" style="gap:14px">
+        <span class="palabra"><span class="ficha">0</span><span class="ficha">1</span></span><span class="mid">\(\neq\)</span><span class="palabra"><span class="ficha">1</span><span class="ficha">0</span></span>
+      </div>
+      <div class="figcap fragment fade-up"><b>El orden importa:</b> mismas fichas, otra cadena.</div>
+    </div>
+    <div class="list" style="gap:14px">
+      <div class="def hl fragment fade-left" data-re="01" data-exact="01">
+        <div class="head"><i class="fa-solid fa-link"></i> Formalmente</div>
+        <div class="body"><div class="formula">\(L(01)=L(0)\,L(1)=\{01\}\)</div>
+          <div class="hint center">Escribir dos expresiones juntas, sin ningún signo, significa concatenar.</div></div>
+      </div>
+      <div class="def fragment fade-left" data-re="10" data-exact="10">
+        <div class="head"><i class="fa-solid fa-arrow-right-arrow-left"></i> Cambiando el orden</div>
+        <div class="body"><div class="formula">\(L(10)=\{10\}\neq L(01)\)</div></div>
+      </div>
+      <div class="note fragment fade-up" style="margin-top:0"><i class="fa-solid fa-circle-info"></i><span>Las cadenas no tienen que significar nada: \(01\) no es «uno»; es la ficha 0 seguida de la ficha 1.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Pide a dos alumnos que se formen: "0" y "1". Si cambian de lugar, la fila es distinta. La concatenación no conmuta: rs y sr pueden describir lenguajes diferentes.</aside>
+</section>
+
+<!-- 14 · UNIÓN FRENTE A CONCATENACIÓN -->
+<section data-transition="convex" id="union-vs-concat">
+  <div class="kicker">III · Expresiones y reglas · Comparación</div>
+  <div class="route" data-on="3"></div>
+  <h2>Unión frente a concatenación</h2>
+  <div class="two" style="margin-top:22px">
+    <div class="panel" data-re="0+1" data-exact="0,1">
+      <h3><span class="tag un">unión</span> &nbsp;\(0+1\)</h3>
+      <div class="hint center">Elijo <b>una</b> ficha</div>
+      <div class="setbox mt16" style="min-height:96px"><span class="nm">\(L(0+1)=\{0,1\}\)</span><span class="palabra ac"><span class="ficha">0</span></span><span class="or">o</span><span class="palabra ac"><span class="ficha">1</span></span></div>
+      <div class="hint center mt8">dos cadenas de longitud 1</div>
+    </div>
+    <div class="panel" data-re="01" data-exact="01">
+      <h3><span class="tag ct">concatenación</span> &nbsp;\(01\)</h3>
+      <div class="hint center">Pongo una ficha <b>detrás</b> de otra</div>
+      <div class="setbox mt16" style="min-height:96px"><span class="nm">\(L(01)=\{01\}\)</span><span class="palabra ac"><span class="ficha">0</span><span class="ficha">1</span></span></div>
+      <div class="hint center mt8">una cadena de longitud 2</div>
+    </div>
+  </div>
+  <div class="reto" style="margin-top:26px" data-re="0+1" data-out="01">
+    <div class="head"><i class="fa-solid fa-circle-question"></i> Piensa</div>
+    <div class="qtext">¿Cuál de las dos expresiones genera la cadena <span class="palabra sm"><span class="ficha">0</span><span class="ficha">1</span></span>?</div>
+    <button class="ans-btn" aria-expanded="false" aria-controls="r-01"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+    <div class="ans" id="r-01" hidden><span class="lbl-ans">Respuesta</span>Solo \(01\). Las cadenas de \(L(0+1)\) tienen <b>un</b> símbolo; la cadena \(01\) tiene dos.</div>
+  </div>
+  <aside class="notes">Da unos segundos antes de abrir la respuesta. Variante: ¿cuál genera la cadena 1? Solo 0+1.</aside>
+</section>
+
+<!-- 15 · ESTRELLA DE KLEENE -->
+<section data-transition="slide" id="estrella">
+  <div class="kicker">III · Expresiones y reglas · Cuarta regla</div>
+  <div class="route" data-on="3"></div>
+  <h2>La estrella de Kleene: repetir cero o más veces</h2>
+  <p class="lead center mt16">\(0^*\) significa: pon la ficha \(0\) <b>cero, una, dos, tres… veces</b>.</p>
+  <div class="lenbox mt16" style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:end">
+    <div class="col-c"><span class="ficha eps" style="min-width:60px">ε</span><span class="hint">0 veces</span></div>
+    <div class="col-c fragment fade-up"><span class="palabra"><span class="ficha">0</span></span><span class="hint">1 vez</span></div>
+    <div class="col-c fragment fade-up"><span class="palabra"><span class="ficha">0</span><span class="ficha">0</span></span><span class="hint">2 veces</span></div>
+    <div class="col-c fragment fade-up"><span class="palabra"><span class="ficha">0</span><span class="ficha">0</span><span class="ficha">0</span></span><span class="hint">3 veces</span></div>
+    <div class="col-c fragment fade-up"><span class="mid muted">…</span><span class="hint">sin fin</span></div>
+  </div>
+  <div class="def hl fragment fade-up" style="margin-top:22px" data-re="0*" data-upto="ε,0,00,000,0000" data-inf>
+    <div class="head"><i class="fa-solid fa-star-of-life"></i> Formalmente</div>
+    <div class="body"><div class="formula">\(L(0^*)=\{\varepsilon,\,0,\,00,\,000,\,0000,\,\ldots\}\)</div></div>
+  </div>
+  <div class="two tight">
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-infinity"></i></div><div><div class="t">El lenguaje es <b>infinito</b></div><div class="v">los «…» indican: siempre una ficha 0 más</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-square"></i></div><div><div class="t">\(\varepsilon\in L(0^*)\)</div><div class="v">cero repeticiones también se permiten</div></div></div>
+  </div>
+  <aside class="notes">El nombre viene de Stephen Kleene. Insiste en el "cero": el primer elemento es la cadena vacía. Cada cadena del lenguaje es finita, pero hay infinitas cadenas.</aside>
+</section>
+
+<!-- 16 · (0+1)* -->
+<section data-transition="slide" id="todas">
+  <div class="kicker">III · Expresiones y reglas · Estrella + unión</div>
+  <div class="route" data-on="3"></div>
+  <h2>¿Qué pasa con \((0+1)^*\)?</h2>
+  <p class="lead center mt8">En <b>cada</b> repetición eliges un \(0\) o un \(1\). Puedes repetir cualquier cantidad finita de veces.</p>
+  <div class="split" style="grid-template-columns:1fr 400px;margin-top:18px">
+    <div class="panel" data-re="(0+1)*" data-upto="ε,0,1,00,01,10,11,000,001,010,011,100,101,110,111" data-inf>
+      <div class="lenrow"><span class="k">0 repeticiones</span><span class="strs"><span class="str eps">ε</span></span><span class="c">1 cadena</span></div>
+      <div class="lenrow fragment fade-up"><span class="k">1 repetición</span><span class="strs"><span class="str">0</span><span class="str">1</span></span><span class="c">2 cadenas</span></div>
+      <div class="lenrow fragment fade-up"><span class="k">2 repeticiones</span><span class="strs"><span class="str">00</span><span class="str">01</span><span class="str">10</span><span class="str">11</span></span><span class="c">4 cadenas</span></div>
+      <div class="lenrow fragment fade-up"><span class="k">3 repeticiones</span><span class="strs"><span class="str">000</span><span class="str">001</span><span class="str">010</span><span class="str">011</span><span class="str">100</span><span class="str">101</span><span class="str">110</span><span class="str">111</span></span><span class="c">8 cadenas</span></div>
+      <div class="lenrow fragment fade-up"><span class="k">n repeticiones</span><span class="strs"><span class="hint">todas las de longitud n</span></span><span class="c">\(2^n\)</span></div>
+    </div>
+    <div class="list" style="gap:14px">
+      <div class="def hl fragment fade-left">
+        <div class="head"><i class="fa-solid fa-infinity"></i> El lenguaje</div>
+        <div class="body"><div class="center">\(L((0+1)^*)=\)<br>\(\{\varepsilon,0,1,00,01,10,11,000,\ldots\}\)</div>
+          <div class="hint mt8">Hay <b>infinitas</b> cadenas: no intentamos escribirlas todas.</div></div>
+      </div>
+      <div class="def fragment fade-left">
+        <div class="head"><i class="fa-solid fa-equals"></i> ¡Son todas!</div>
+        <div class="body">Si \(\Sigma=\{0,1\}\): <div class="formula">\(L((0+1)^*)=\Sigma^*\)</div></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Conecta con la pregunta inicial de la caja de fichas: esta receta describe TODAS las cadenas que se pueden construir, incluida la vacía. La tabla muestra por qué crecen al doble: cada repetición añade dos opciones.</aside>
+</section>
+
+<!-- 17 · PARÉNTESIS -->
+<section data-transition="convex" id="parentesis">
+  <div class="kicker">III · Expresiones y reglas · Quinta regla</div>
+  <div class="route" data-on="3"></div>
+  <h2>Paréntesis: agrupar como una unidad</h2>
+  <div class="two" style="margin-top:20px;gap:36px">
+    <div>
+      <div class="big">\(0+10\)</div>
+      <div class="calc mt8" data-re="0+10" data-exact="0,10" data-paren="0+(10)">
+        <div class="ln fragment fade-up"><span class="n">1</span><span>Sin paréntesis, primero se concatena: \(0+(10)\)<small>la concatenación «pega» más fuerte que la unión</small></span></div>
+        <div class="ln fragment fade-up"><span class="n">2</span><span>Opciones: la cadena \(0\) <b>o</b> la cadena \(10\)</span></div>
+        <div class="ln fin fragment fade-up"><span class="n">=</span><span>\(L(0+10)=\{0,\,10\}\)</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="big">\((0+1)0\)</div>
+      <div class="calc mt8" data-re="(0+1)0" data-exact="00,10">
+        <div class="ln fragment fade-up"><span class="n">1</span><span>Primero lo de adentro: \(L(0+1)=\{0,1\}\)<small>el paréntesis es una sola pieza</small></span></div>
+        <div class="ln fragment fade-up"><span class="n">2</span><span>A cada opción le pegamos un \(0\): \(0\cdot 0\), \(1\cdot 0\)</span></div>
+        <div class="ln fin fragment fade-up"><span class="n">=</span><span>\(L((0+1)0)=\{00,\,10\}\)</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-lightbulb"></i><span>Mismos símbolos, distinto lenguaje: la cadena \(0\) está solo en el primero y \(00\) solo en el segundo. Los paréntesis dicen <b>qué se hace primero</b>.</span></div>
+  <aside class="notes">Analogía con la aritmética: 2+3·4 no es (2+3)·4. Aquí la concatenación hace el papel de la multiplicación y la unión el de la suma.</aside>
+</section>
+
+<!-- 18 · REGLAS FORMALES -->
+<section data-transition="slide" id="reglas">
+  <div class="kicker">III · Expresiones y reglas · Definición formal</div>
+  <div class="route" data-on="3"></div>
+  <h2>Las reglas para construir expresiones regulares</h2>
+  <p class="lead center mt8">Sobre un alfabeto \(\Sigma\):</p>
+  <div class="rules mt16">
+    <div class="rl base"><div class="hd"><span class="no">1</span> \(\varnothing\) es una expresión</div><div class="ej">describe la caja vacía</div></div>
+    <div class="rl base"><div class="hd"><span class="no">2</span> \(\varepsilon\) es una expresión</div><div class="ej">describe la tarjeta en blanco</div></div>
+    <div class="rl base"><div class="hd"><span class="no">3</span> cada \(a\in\Sigma\) es una expresión</div><div class="ej">ejemplos: \(0\), \(1\)</div></div>
+    <div class="rl rec fragment fade-up" data-fragment-index="1"><div class="hd"><span class="no">4</span> \((r+s)\) &nbsp;<span class="tag un">unión</span></div><div class="ej">si \(r=0\), \(s=1\): \((0+1)\)</div></div>
+    <div class="rl rec fragment fade-up" data-fragment-index="1"><div class="hd"><span class="no">5</span> \((rs)\) &nbsp;<span class="tag ct">concatenación</span></div><div class="ej">si \(r=0\), \(s=1\): \((01)\)</div></div>
+    <div class="rl rec fragment fade-up" data-fragment-index="1"><div class="hd"><span class="no">6</span> \((r^*)\) &nbsp;<span class="tag st">estrella</span></div><div class="ej">si \(r=0\): \((0^*)\)</div></div>
+  </div>
+  <div class="hint center mt8 fragment fade-up" data-fragment-index="1">Las reglas 4 a 6 valen para <b>cualesquiera</b> expresiones \(r\) y \(s\) ya construidas.</div>
+  <div class="panel mt16 fragment fade-up" data-fragment-index="2">
+    <h3>Construyendo \(((0+1)^*)0\) pieza por pieza</h3>
+    <div class="fichas" style="gap:12px">
+      <span class="str">0</span><span class="str">1</span><span class="hint">reglas 3</span><i class="fa-solid fa-arrow-right" style="color:var(--accent)"></i>
+      <span class="str">(0+1)</span><span class="hint">regla 4</span><i class="fa-solid fa-arrow-right" style="color:var(--accent)"></i>
+      <span class="str">((0+1)*)</span><span class="hint">regla 6</span><i class="fa-solid fa-arrow-right" style="color:var(--accent)"></i>
+      <span class="str" style="border-color:var(--accent-d);background:var(--accent-l)">(((0+1)*)0)</span><span class="hint">regla 5</span>
+    </div>
+  </div>
+  <aside class="notes">Es una definición recursiva: tres casos base (cajas de ladrillos) y tres formas de combinar expresiones ya hechas. Los paréntesis completos de la definición se omiten en la práctica gracias a las reglas de precedencia que veremos enseguida.</aside>
+</section>
+
+<!-- 19 · SEMÁNTICA L(r) -->
+<section data-transition="slide" id="semantica">
+  <div class="kicker">III · Expresiones y reglas · Qué lenguaje representa</div>
+  <div class="route" data-on="3"></div>
+  <h2>¿Qué lenguaje representa cada expresión?</h2>
+  <div class="split" style="grid-template-columns:540px 1fr;margin-top:18px">
+    <div class="list" style="gap:14px">
+      <div class="def" data-re="(0+1)(1+10)" data-exact="01,010,11,110">
+        <div class="head"><i class="fa-solid fa-link"></i> Concatenar lenguajes: un ejemplo</div>
+        <div class="body">Si \(A=\{0,1\}\) y \(B=\{1,10\}\), tomamos <b>cada</b> \(x\) de \(A\) y le pegamos <b>cada</b> \(y\) de \(B\):
+          <div class="formula" style="font-size:24px">\(AB=\{01,\,010,\,11,\,110\}\)</div>
+          <div class="center mid">\(AB=\{xy\mid x\in A,\ y\in B\}\)</div></div>
+      </div>
+      <div class="def fragment fade-up" data-fragment-index="1" data-re="(01)*" data-upto="ε,01,0101,010101" data-inf>
+        <div class="head"><i class="fa-solid fa-star-of-life"></i> Estrella de un lenguaje: un ejemplo</div>
+        <div class="body">\(\{01\}^*\): pegar <b>cero o más</b> cadenas del lenguaje:
+          <div class="formula" style="font-size:24px">\(\{01\}^*=\{\varepsilon,\,01,\,0101,\,010101,\,\ldots\}\)</div></div>
+      </div>
+    </div>
+    <div class="def hl fragment fade-left" data-fragment-index="2">
+      <div class="head"><i class="fa-solid fa-book"></i> Reglas del significado \(L(r)\)</div>
+      <div class="body" style="font-size:25px;line-height:1.75">
+        \(L(\varnothing)=\varnothing\)<br>
+        \(L(\varepsilon)=\{\varepsilon\}\)<br>
+        \(L(a)=\{a\}\) &nbsp;para \(a\in\Sigma\)<br>
+        \(L(r+s)=L(r)\cup L(s)\)<br>
+        \(L(rs)=L(r)\,L(s)\)<br>
+        \(L(r^*)=\big(L(r)\big)^*\)
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Primero los ejemplos concretos (izquierda) y solo después las fórmulas. La barra vertical de AB se lee "tal que". En la estrella de un lenguaje se pueden mezclar cadenas distintas del lenguaje en cada repetición; aquí solo hay una (01), por eso se repite siempre la misma.</aside>
+</section>
+
+<!-- 20 · PRECEDENCIA -->
+<section data-transition="convex" id="precedencia">
+  <div class="kicker">III · Expresiones y reglas · Precedencia</div>
+  <div class="route" data-on="3"></div>
+  <h2>¿Qué operación se hace primero?</h2>
+  <div class="split" style="grid-template-columns:330px 1fr;margin-top:18px">
+    <div class="list" style="gap:12px">
+      <div class="steps small">
+        <div class="step"><b>Estrella</b> \(^*\) &nbsp;<span class="hint">la más fuerte</span></div>
+        <div class="step"><b>Concatenación</b></div>
+        <div class="step"><b>Unión</b> \(+\) &nbsp;<span class="hint">la más débil</span></div>
+      </div>
+      <div class="note" style="margin-top:6px"><i class="fa-solid fa-hand-point-right"></i><span>Los paréntesis cambian el orden. Escribirlos de más es una <b>buena práctica</b>.</span></div>
+      <div class="reto fragment fade-up" data-fragment-index="1">
+        <div class="head"><i class="fa-solid fa-circle-question"></i> Piensa</div>
+        <div class="qtext" style="font-size:19px">En \(0+10^*\), ¿qué se hace primero?</div>
+        <div class="ans fragment" data-fragment-index="2" style="font-size:17px">La estrella sobre el último 0; luego \(1\) con \(0^*\); al final la unión.</div>
+      </div>
+    </div>
+    <div class="two" style="margin-top:0;gap:20px">
+      <div class="panel astbox" data-re="0+10*" data-paren="0+(1(0*))" data-upto="0,1,10,100">
+        <div class="mid">\(0+10^*\)</div>
+        <div class="hint">se lee \(0+(1(0^*))\)</div>
+        <div data-ast="0+10*"></div>
+        <div class="hint">\(\{0,1,10,100,\ldots\}\)</div>
+      </div>
+      <div class="panel astbox fragment fade-left" data-fragment-index="3" data-re="(0+1)0*" data-upto="0,1,00,10,000,100">
+        <div class="mid">\((0+1)0^*\)</div>
+        <div class="hint">otra agrupación</div>
+        <div data-ast="(0+1)0*"></div>
+        <div class="hint">\(\{0,1,00,10,000,100,\ldots\}\)</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Los árboles los dibuja el mismo motor que verifica la presentación: la operación de arriba es la última que se aplica. Compara: 00 está en L((0+1)0*) pero no en L(0+10*).</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE IV · CÓMO CALCULAR EL LENGUAJE
+     ===================================================================== -->
+
+<!-- 21 · (0+1)1 -->
+<section data-transition="concave" id="ej-1">
+  <div class="kicker">IV · Calcular el lenguaje · Ejemplo 1</div>
+  <div class="route" data-on="4"></div>
+  <h2>Ejemplo resuelto: \((0+1)1\)</h2>
+  <div class="split" style="grid-template-columns:1fr 440px;margin-top:22px">
+    <div class="calc" data-re="(0+1)1" data-exact="01,11" data-out="0,1,10" data-fin>
+      <div class="ln fragment fade-up"><span class="n">1</span><span>Lo de adentro del paréntesis: \(L(0+1)=\{0,1\}\)</span></div>
+      <div class="ln fragment fade-up"><span class="n">2</span><span>A <b>cada</b> opción le pegamos un \(1\) al final</span></div>
+      <div class="ln fin fragment fade-up"><span class="n">=</span><span>\(L((0+1)1)=\{01,\,11\}\)<small>lenguaje finito: dos cadenas</small></span></div>
+    </div>
+    <div>
+      <div class="panel fragment fade-left">
+        <h3>Construimos con tarjetas</h3>
+        <div class="fichas" style="gap:10px"><span class="ficha ac">0</span><span class="hint">+</span><span class="ficha">1</span><i class="fa-solid fa-arrow-right" style="color:var(--accent)"></i><span class="palabra ac"><span class="ficha">0</span><span class="ficha">1</span></span></div>
+        <div class="fichas mt8" style="gap:10px"><span class="ficha ac">1</span><span class="hint">+</span><span class="ficha">1</span><i class="fa-solid fa-arrow-right" style="color:var(--accent)"></i><span class="palabra ac"><span class="ficha">1</span><span class="ficha">1</span></span></div>
+      </div>
+      <div class="panel mt16 fragment fade-left">
+        <h3>¿Por qué no están?</h3>
+        <div class="strs" style="justify-content:center"><span class="str nop">0</span><span class="str nop">1</span><span class="str nop">10</span></div>
+        <div class="hint center mt8">Toda cadena tiene <b>dos</b> símbolos y <b>termina en 1</b>: \(0\) y \(1\) son cortas; \(10\) termina en 0.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Método general: resolver de adentro hacia afuera, respetando la precedencia. Pide a los alumnos que digan las cadenas antes de mostrarlas.</aside>
+</section>
+
+<!-- 22 · 0+10* -->
+<section data-transition="slide" id="ej-2">
+  <div class="kicker">IV · Calcular el lenguaje · Ejemplo 2</div>
+  <div class="route" data-on="4"></div>
+  <h2>Ejemplo resuelto: \(0+10^*\)</h2>
+  <div class="calc" style="margin-top:22px" data-re="0+10*" data-upto="0,1,10,100,1000" data-inf>
+    <div class="ln fragment fade-up"><span class="n">1</span><span>Primera opción de la unión: \(L(0)=\{0\}\)</span></div>
+    <div class="ln fragment fade-up" data-re="0*" data-upto="ε,0,00,000"><span class="n">2</span><span>La estrella va primero: \(L(0^*)=\{\varepsilon,0,00,000,\ldots\}\)</span></div>
+    <div class="ln fragment fade-up" data-re="10*" data-upto="1,10,100,1000"><span class="n">3</span><span>Pegamos el \(1\) delante: \(L(10^*)=\{1,10,100,1000,\ldots\}\)<small>con \(\varepsilon\) obtenemos solo «1»: un 1 seguido de cero ceros</small></span></div>
+    <div class="ln fin fragment fade-up"><span class="n">=</span><span>\(L(0+10^*)=\{0\}\cup\{1,10,100,\ldots\}=\{0,\,1,\,10,\,100,\,1000,\,\ldots\}\)</span></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-comment"></i><span><b>En palabras:</b> la cadena \(0\) sola, <b>o</b> un \(1\) seguido de cero o más ceros. Es un lenguaje <b>infinito</b>.</span></div>
+  <aside class="notes">Error típico: pensar que es (0+1)0*. Recuerda la precedencia: la unión es la última operación. Pregunta: ¿está 00? No. ¿Está 1000? Sí.</aside>
+</section>
+
+<!-- 23 · 0*1 vs 10* -->
+<section data-transition="slide" id="ej-3">
+  <div class="kicker">IV · Calcular el lenguaje · Ejemplo 3</div>
+  <div class="route" data-on="4"></div>
+  <h2>El orden cambia todo: \(0^*1\) frente a \(10^*\)</h2>
+  <div class="two" style="margin-top:16px">
+    <div class="panel" data-re="0*1" data-upto="1,01,001,0001" data-inf>
+      <h3>\(0^*1\)</h3>
+      <div class="hint center">cero o más ceros, <b>y al final un 1</b></div>
+      <div class="list mt8" style="gap:7px;align-items:flex-start">
+        <span class="palabra"><span class="ficha ac">1</span></span>
+        <span class="palabra"><span class="ficha">0</span><span class="ficha ac">1</span></span>
+        <span class="palabra"><span class="ficha">0</span><span class="ficha">0</span><span class="ficha ac">1</span></span>
+        <span class="palabra"><span class="ficha">0</span><span class="ficha">0</span><span class="ficha">0</span><span class="ficha ac">1</span></span>
+      </div>
+      <div class="formula mt8">\(L(0^*1)=\{1,01,001,0001,\ldots\}\)</div>
+    </div>
+    <div class="panel fragment fade-left" data-re="10*" data-upto="1,10,100,1000" data-inf>
+      <h3>\(10^*\)</h3>
+      <div class="hint center"><b>un 1 al principio</b>, y luego cero o más ceros</div>
+      <div class="list mt8" style="gap:7px;align-items:flex-start">
+        <span class="palabra"><span class="ficha ac">1</span></span>
+        <span class="palabra"><span class="ficha ac">1</span><span class="ficha">0</span></span>
+        <span class="palabra"><span class="ficha ac">1</span><span class="ficha">0</span><span class="ficha">0</span></span>
+        <span class="palabra"><span class="ficha ac">1</span><span class="ficha">0</span><span class="ficha">0</span><span class="ficha">0</span></span>
+      </div>
+      <div class="formula mt8">\(L(10^*)=\{1,10,100,1000,\ldots\}\)</div>
+    </div>
+  </div>
+  <div class="note fragment fade-up" data-re="0*1" data-in="01" data-out="10"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>La única cadena en ambos es \(1\). La cadena \(01\) está en el primero pero no en el segundo: <b>el orden de la concatenación cambia el lenguaje</b>.</span></div>
+  <aside class="notes">El 1 resaltado muestra dónde está la parte fija. Pregunta: ¿qué cadenas tienen en común? Solo "1", cuando la estrella aporta ε.</aside>
+</section>
+
+<!-- 24 · (0+1)10* -->
+<section data-transition="slide" id="ej-4">
+  <div class="kicker">IV · Calcular el lenguaje · Dificultad intermedia</div>
+  <div class="route" data-on="4"></div>
+  <h2>Paso a paso: \((0+1)10^*\)</h2>
+  <div class="calc" style="margin-top:20px" data-re="(0+1)10*" data-upto="01,11,010,110,0100,1100" data-inf>
+    <div class="ln fragment fade-up"><span class="n">1</span><span>\(L(0+1)=\{0,1\}\)</span></div>
+    <div class="ln fragment fade-up" data-re="(0+1)1" data-exact="01,11"><span class="n">2</span><span>Pegamos el \(1\): \(L((0+1)1)=\{01,\,11\}\)</span></div>
+    <div class="ln fragment fade-up"><span class="n">3</span><span>Después, cero o más ceros: \(0^*\) aporta \(\varepsilon,0,00,\ldots\)</span></div>
+    <div class="ln fin fragment fade-up"><span class="n">=</span><span>\(L((0+1)10^*)=\{01,\,010,\,0100,\,\ldots,\ 11,\,110,\,1100,\,\ldots\}\)</span></div>
+  </div>
+  <div class="two tight">
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-list"></i></div><div><div class="t">Ejemplos iniciales</div><div class="v">01, 11, 010, 110, 0100, 1100</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-comment"></i></div><div><div class="t">Descripción completa</div><div class="v">empieza con 01 o con 11, y después solo ceros (o ninguno)</div></div></div>
+  </div>
+  <aside class="notes">Diferencia entre listar algunos elementos y describir el lenguaje entero: la lista nunca termina, la descripción en palabras sí lo captura todo. Ambas son correctas si se usan los "…" con una regla clara.</aside>
+</section>
+
+<!-- 25 · LABORATORIO -->
+<section data-transition="zoom" id="laboratorio">
+  <div class="kicker">IV · Calcular el lenguaje · Laboratorio</div>
+  <div class="route" data-on="4"></div>
+  <h2>Laboratorio: prueba tus propias expresiones</h2>
+  <div class="split lab" style="grid-template-columns:560px 1fr;margin-top:16px">
+    <div>
+      <label for="lab-re">Expresión regular</label>
+      <input id="lab-re" type="text" value="(0+1)*0" autocomplete="off" spellcheck="false" aria-describedby="lab-msg">
+      <div class="ctrl mt8">
+        <button class="btn sym" data-ins="+">+</button><button class="btn sym" data-ins="*">*</button><button class="btn sym" data-ins="(">(</button><button class="btn sym" data-ins=")">)</button>
+        <button class="btn sym" data-ins="ε">ε</button><button class="btn sym" data-ins="∅">∅</button>
+      </div>
+      <div class="msg" id="lab-msg" aria-live="polite"></div>
+      <label for="lab-w" class="mt8">Cadena a comprobar <span style="text-transform:none;letter-spacing:0">(vacía = ε)</span></label>
+      <input id="lab-w" type="text" value="110" autocomplete="off" spellcheck="false">
+      <div class="res mt16" id="lab-res" aria-live="polite"></div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3>Primeras cadenas de \(L(r)\)</h3>
+        <div class="strs" id="lab-lista" style="justify-content:center;min-height:80px"></div>
+        <div class="center mt8" id="lab-tipo"></div>
+      </div>
+      <div class="panel mt16 astbox">
+        <h3>Cómo se agrupa</h3>
+        <div class="mono" id="lab-paren" style="font-size:20px"></div>
+        <div id="lab-arbol"></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Escribe las expresiones de los ejemplos (0+10*, (0+1)10*, 0*10*) y pide predicciones antes de mirar. Admite los símbolos 0-9 y a-d; ε y ∅ se insertan con los botones. El motor sigue las mismas reglas de la clase: + es unión y la precedencia es *, concatenación, +.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE V · CONSTRUIR EXPRESIONES REGULARES
+     ===================================================================== -->
+
+<!-- 26 · TERMINAN EN 0 -->
+<section data-transition="concave" id="termina-0">
+  <div class="kicker">V · Construir expresiones · Problema 1</div>
+  <div class="route" data-on="5"></div>
+  <h2>Cadenas binarias que terminan en 0</h2>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:20px">
+    <div>
+      <div class="big">\((0+1)^*\,0\)</div>
+      <div class="two tight" style="gap:14px">
+        <div class="item"><div class="sq wide">\((0+1)^*\)</div><div><div class="v" style="font-family:var(--sans);font-size:17px;color:var(--ink)">cualquier cadena, incluso \(\varepsilon\)</div></div></div>
+        <div class="item"><div class="sq">0</div><div><div class="v" style="font-family:var(--sans);font-size:17px;color:var(--ink)">y al final, <b>siempre</b> un 0</div></div></div>
+      </div>
+      <div class="note"><i class="fa-solid fa-magnifying-glass"></i><span>Para comprobar una cadena: ¿su <b>último</b> símbolo es 0? Lo de antes puede ser cualquier cosa.</span></div>
+    </div>
+    <div data-re="(0+1)*0" data-in="0,10,110,1010" data-out="ε,1,101" data-inf>
+      <div class="panel">
+        <h3 class="yes-t"><i class="fa-solid fa-circle-check"></i> Aceptadas</h3>
+        <div class="fichas" style="gap:12px">
+          <span class="palabra fragment fade-up"><span class="ficha ac">0</span></span>
+          <span class="palabra fragment fade-up"><span class="ficha">1</span><span class="ficha ac">0</span></span>
+          <span class="palabra fragment fade-up"><span class="ficha">1</span><span class="ficha">1</span><span class="ficha ac">0</span></span>
+          <span class="palabra fragment fade-up"><span class="ficha">1</span><span class="ficha">0</span><span class="ficha">1</span><span class="ficha ac">0</span></span>
+        </div>
+      </div>
+      <div class="panel mt16">
+        <h3 class="no-t"><i class="fa-solid fa-circle-xmark"></i> Rechazadas</h3>
+        <div class="list tight">
+          <div class="fragment fade-up"><span class="str nop eps">ε</span> <span class="hint">no tiene ningún símbolo, así que no termina en 0</span></div>
+          <div class="fragment fade-up"><span class="str nop">1</span> <span class="hint">su último símbolo es 1</span></div>
+          <div class="fragment fade-up"><span class="str nop">101</span> <span class="hint">termina en 1</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Estrategia de construcción: separa la cadena en partes ("lo que sea" + "un 0 final") y escribe una expresión para cada parte. La ficha resaltada es la que aporta el 0 obligatorio.</aside>
+</section>
+
+<!-- 27 · 1* y 11* -->
+<section data-transition="slide" id="unos">
+  <div class="kicker">V · Construir expresiones · Problema 2</div>
+  <div class="route" data-on="5"></div>
+  <h2>Cadenas formadas solo por unos</h2>
+  <div class="two" style="margin-top:20px">
+    <div class="panel" data-re="1*" data-upto="ε,1,11,111,1111" data-inf>
+      <h3>Incluyendo la vacía: \(1^*\)</h3>
+      <div class="formula">\(L(1^*)=\{\varepsilon,1,11,111,1111,\ldots\}\)</div>
+      <div class="hint center">cero o más unos</div>
+    </div>
+    <div class="panel fragment fade-left" data-re="11*" data-upto="1,11,111,1111" data-inf data-out="ε">
+      <h3>Al menos un 1: \(11^*\)</h3>
+      <div class="formula">\(L(11^*)=\{1,11,111,1111,\ldots\}\)</div>
+      <div class="hint center">un 1 obligatorio, y después cero o más</div>
+    </div>
+  </div>
+  <div class="def mt24 fragment fade-up">
+    <div class="head"><i class="fa-solid fa-code"></i> ¿Y \(1^+\)?</div>
+    <div class="body">Muchas herramientas escriben \(1^+\) para «<b>uno o más</b> unos» (en JavaScript: <span class="cmd" style="font-size:16px;padding:2px 10px">/^1+$/</span>). Con las operaciones básicas de la clase, esa idea se escribe \(11^*\).</div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-triangle-exclamation"></i><span><b>Dos significados del signo +:</b> en la notación formal, \(r+s\) es <b>unión</b> (va entre dos expresiones); en JavaScript, <span class="mono">1+</span> es <b>repetición</b> (va detrás de un símbolo). ¡No los mezcles!</span></div>
+  <aside class="notes">En la teoría formal, r+ se define como rr*. Pregunta: ¿ε está en L(11*)? No: el primer 1 es obligatorio.</aside>
+</section>
+
+<!-- 28 · EXACTAMENTE UN 1 -->
+<section data-transition="slide" id="un-uno">
+  <div class="kicker">V · Construir expresiones · Problema 3</div>
+  <div class="route" data-on="5"></div>
+  <h2>Cadenas con exactamente un 1</h2>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:18px">
+    <div>
+      <div class="big">\(0^*\;1\;0^*\)</div>
+      <div class="list tight mt8">
+        <div class="item"><div class="sq wide">\(0^*\)</div><div><div class="t" style="font-size:18px">cero o más ceros al principio</div></div></div>
+        <div class="item"><div class="sq">1</div><div><div class="t" style="font-size:18px">exactamente un uno</div></div></div>
+        <div class="item"><div class="sq wide">\(0^*\)</div><div><div class="t" style="font-size:18px">cero o más ceros al final</div></div></div>
+      </div>
+      <div class="def mt16 fragment fade-up" data-fragment-index="3">
+        <div class="head"><i class="fa-solid fa-scale-balanced"></i> ¿Por qué es correcta?</div>
+        <div class="body small"><b>No sobra nada:</b> la expresión tiene un solo 1 y las partes \(0^*\) solo aportan ceros.<br><b>No falta nada:</b> toda cadena con un solo 1 se parte en (ceros) 1 (ceros).</div>
+      </div>
+    </div>
+    <div data-re="0*10*" data-in="1,01,10,00100" data-out="ε,00,11,101" data-inf>
+      <div class="panel fragment fade-left" data-fragment-index="1">
+        <h3 class="yes-t"><i class="fa-solid fa-circle-check"></i> Aceptadas</h3>
+        <div class="fichas" style="gap:12px">
+          <span class="palabra"><span class="ficha ac">1</span></span>
+          <span class="palabra"><span class="ficha">0</span><span class="ficha ac">1</span></span>
+          <span class="palabra"><span class="ficha ac">1</span><span class="ficha">0</span></span>
+          <span class="palabra"><span class="ficha">0</span><span class="ficha">0</span><span class="ficha ac">1</span><span class="ficha">0</span><span class="ficha">0</span></span>
+        </div>
+      </div>
+      <div class="panel mt16 fragment fade-left" data-fragment-index="2">
+        <h3 class="no-t"><i class="fa-solid fa-circle-xmark"></i> Rechazadas</h3>
+        <div class="strs"><span class="str nop eps">ε</span><span class="str nop">00</span><span class="hint">ningún 1</span></div>
+        <div class="strs mt8"><span class="str nop">11</span><span class="str nop">101</span><span class="hint">dos unos</span></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Una expresión es correcta si (1) todo lo que genera cumple la condición y (2) todo lo que cumple la condición se puede generar. Esa doble comprobación es la idea de una demostración.</aside>
+</section>
+
+<!-- 29 · RETO -->
+<section data-transition="zoom" id="reto">
+  <div class="kicker">V · Construir expresiones · Reto</div>
+  <div class="route" data-on="5"></div>
+  <h2>Reto: empieza con 1 y termina con 0</h2>
+  <div class="q" style="margin-top:12px"><i class="fa-solid fa-puzzle-piece"></i><p style="font-size:26px">Construye una expresión regular para todas las cadenas binarias que <b>empiezan con 1</b> y <b>terminan con 0</b>.</p></div>
+  <div class="split" style="grid-template-columns:480px 1fr;margin-top:20px">
+    <div class="panel fragment fade-right">
+      <h3><i class="fa-solid fa-lightbulb a"></i> Pista</h3>
+      <div class="fichas" style="gap:10px"><span class="ficha ac">1</span><span class="ficha eps" style="min-width:150px;font-size:18px">lo que sea</span><span class="ficha ac">0</span></div>
+      <div class="hint center mt8">¿Qué expresión describe «lo que sea», incluso nada?</div>
+    </div>
+    <div>
+      <button class="ans-btn" aria-expanded="false" aria-controls="r-reto" style="margin-top:0"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+      <div class="ans" id="r-reto" hidden data-re="1(0+1)*0" data-in="10,100,110,1010" data-out="0,1,11,010" data-inf>
+        <span class="lbl-ans">Una solución</span>
+        <div class="formula" style="font-size:30px">\(1\,(0+1)^*\,0\)</div>
+        <div>Toda cadena tiene <b>al menos dos</b> símbolos: el 1 inicial y el 0 final.</div>
+        <div class="strs mt8"><span class="str si">10</span><span class="str si">100</span><span class="str si">110</span><span class="str si">1010</span></div>
+        <div class="strs mt8"><span class="str nop">0</span><span class="str nop">1</span><span class="str nop">11</span><span class="str nop">010</span></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Dales unos minutos. Errores frecuentes: escribir 1(0+1)0 (solo cadenas de longitud 3) o 10* (no permite unos en medio). ¿Está la cadena "10"? Sí: el medio es ε.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE VI · EJERCICIOS Y CIERRE
+     ===================================================================== -->
+
+<!-- 30 · DETECTIVES -->
+<section data-transition="concave" id="detectives">
+  <div class="kicker">VI · Ejercicios · Actividad</div>
+  <div class="route" data-on="6"></div>
+  <h2>Detectives de cadenas</h2>
+  <p class="lead center mt8" style="font-size:21px">¿La cadena pertenece al lenguaje? Decide en voz alta y después <b>pulsa la tarjeta</b> para comprobarlo.</p>
+  <div class="det mt16" id="det">
+    <div class="ex">\(0^*\)</div><div class="strs" data-det="0*"><button class="str q" data-w="000">000</button><button class="str q" data-w="01">01</button><button class="str q eps" data-w="">ε</button><button class="str q" data-w="1">1</button></div>
+    <div class="ex">\((0+1)1\)</div><div class="strs" data-det="(0+1)1"><button class="str q" data-w="1">1</button><button class="str q" data-w="01">01</button><button class="str q" data-w="10">10</button><button class="str q" data-w="11">11</button></div>
+    <div class="ex">\(0^*1\)</div><div class="strs" data-det="0*1"><button class="str q" data-w="00">00</button><button class="str q" data-w="1">1</button><button class="str q" data-w="0001">0001</button><button class="str q" data-w="10">10</button></div>
+    <div class="ex">\(0+10^*\)</div><div class="strs" data-det="0+10*"><button class="str q" data-w="01">01</button><button class="str q" data-w="0">0</button><button class="str q" data-w="100">100</button><button class="str q" data-w="00">00</button></div>
+    <div class="ex">\((0+1)^*0\)</div><div class="strs" data-det="(0+1)*0"><button class="str q eps" data-w="">ε</button><button class="str q" data-w="110">110</button><button class="str q" data-w="01">01</button><button class="str q" data-w="0">0</button></div>
+  </div>
+  <div class="ctrl mt16" style="justify-content:center">
+    <button class="btn" id="det-todo"><i class="fa-solid fa-eye"></i> Revelar todas</button>
+    <button class="btn r" id="det-ocultar"><i class="fa-solid fa-eye-slash"></i> Ocultar respuestas</button>
+  </div>
+  <aside class="notes">Cada tarjeta se comprueba con el motor de expresiones regulares (no con respuestas escritas a mano). Pide que justifiquen: por ejemplo, 01 no está en L(0+10*) porque no es "0" ni empieza con 1.</aside>
+</section>
+
+<!-- 31 · ERRORES (1/2) -->
+<section data-transition="slide" id="errores-1">
+  <div class="kicker">VI · Errores frecuentes · 1 de 2</div>
+  <div class="route" data-on="6"></div>
+  <h2>Errores que debemos evitar (I)</h2>
+  <div class="bugs">
+    <div class="bug fragment fade-up"><div class="hd"><i class="fa-solid fa-bug"></i> Confundir \(\varnothing\) con \(\varepsilon\)</div>
+      <div class="fx">\(\varnothing\) es una caja sin cadenas; \(\varepsilon\) es una cadena. Contraejemplo: \(|\varnothing|=0\), pero \(|\{\varepsilon\}|=1\).</div></div>
+    <div class="bug fragment fade-up" data-re="0*" data-in="ε"><div class="hd"><i class="fa-solid fa-bug"></i> Creer que \(0^*\) es «uno o más ceros»</div>
+      <div class="fx">\(\varepsilon\in L(0^*)\): cero repeticiones cuentan. «Uno o más» se escribe \(00^*\).</div></div>
+    <div class="bug fragment fade-up" data-re="0+1" data-out="01"><div class="hd"><i class="fa-solid fa-bug"></i> Confundir unión con concatenación</div>
+      <div class="fx">\(L(0+1)=\{0,1\}\) pero \(L(01)=\{01\}\). La cadena \(01\) no está en \(L(0+1)\).</div></div>
+    <div class="bug fragment fade-up" data-re="(01)*" data-in="0101,010101"><div class="hd"><i class="fa-solid fa-bug"></i> Pensar que la estrella repite solo una vez</div>
+      <div class="fx">\(0101\) y \(010101\) están en \(L((01)^*)\): se repite <b>cualquier</b> número de veces.</div></div>
+  </div>
+  <aside class="notes">Para cada error, pide un contraejemplo antes de mostrarlo. Los contraejemplos de esta diapositiva también están verificados por el motor.</aside>
+</section>
+
+<!-- 32 · ERRORES (2/2) -->
+<section data-transition="slide" id="errores-2">
+  <div class="kicker">VI · Errores frecuentes · 2 de 2</div>
+  <div class="route" data-on="6"></div>
+  <h2>Errores que debemos evitar (II)</h2>
+  <div class="bugs">
+    <div class="bug fragment fade-up" data-re="0+10" data-exact="0,10"><div class="hd"><i class="fa-solid fa-bug"></i> Ignorar la precedencia</div>
+      <div class="fx">\(0+10\) se lee \(0+(10)\): da \(\{0,10\}\), no \(\{00,10\}\) como \((0+1)0\).</div></div>
+    <div class="bug fragment fade-up" data-re="0+1" data-fin><div class="hd"><i class="fa-solid fa-bug"></i> Pensar que el lenguaje siempre es finito</div>
+      <div class="fx">\(L(0+1)\) es finito, pero \(L(0^*)\) es infinito. Y \(L(\varnothing)\) no tiene ninguna cadena.</div></div>
+    <div class="bug fragment fade-up" data-re="10*" data-out="01"><div class="hd"><i class="fa-solid fa-bug"></i> Olvidar que el orden importa</div>
+      <div class="fx">\(01\in L(0^*1)\), pero \(01\notin L(10^*)\).</div></div>
+    <div class="bug fragment fade-up"><div class="hd"><i class="fa-solid fa-bug"></i> Mezclar la notación formal con la de programación</div>
+      <div class="fx">En JavaScript la unión es <span class="mono">0|1</span> y <span class="mono">1+</span> significa «uno o más». En la clase, \(0+1\) es una unión.</div></div>
+  </div>
+  <div class="note fragment fade-up" data-re="0*" data-inf><i class="fa-solid fa-shield-halved"></i><span><b>Truco para no fallar:</b> escribe primero algunas cadenas que deberían estar y otras que no, y compruébalas contra tu expresión.</span></div>
+  <aside class="notes">El último error es muy común al pasar a programación: el mismo signo significa cosas distintas según la notación.</aside>
+</section>
+
+<!-- 33 · AUTÓMATA -->
+<section data-transition="convex" id="automata">
+  <div class="kicker">VI · Hacia el siguiente tema</div>
+  <div class="route" data-on="6"></div>
+  <h2>Expresiones regulares y autómatas finitos</h2>
+  <div class="split" style="grid-template-columns:600px 1fr;margin-top:14px">
+    <div>
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-robot"></i> La conexión</div>
+        <div class="body small">Una <b>expresión regular describe</b> un lenguaje. Un <b>autómata finito reconoce</b> sus cadenas: lee los símbolos uno por uno y, al final, dice <b>acepto</b> o <b>rechazo</b>.</div>
+      </div>
+      <svg class="fa-svg mt16" viewBox="0 0 560 200" width="560" role="img" aria-label="Autómata para 0*1: estado q0 inicial con un ciclo de 0, una flecha 1 hacia q1, que es de aceptación y no tiene flechas de salida">
+        <line class="ed" x1="58" y1="122" x2="128" y2="122"/><polygon class="sh" points="136,122 124,115 124,129"/>
+        <path class="ed" id="aut-loop" d="M150 94 C 118 22, 222 22, 190 94"/><polygon class="sh" points="190,96 182,84 197,86"/>
+        <text class="el" x="170" y="34">0</text>
+        <line class="ed" id="aut-e01" x1="206" y1="122" x2="378" y2="122"/><polygon class="sh" points="386,122 374,115 374,129"/>
+        <text class="el" x="296" y="104">1</text>
+        <circle class="st" id="aut-q0" cx="170" cy="122" r="34"/><text class="sl" x="170" y="122">q0</text>
+        <circle class="st" id="aut-q1" cx="420" cy="122" r="34"/><circle class="st in" cx="420" cy="122" r="27"/><text class="sl" x="420" y="122">q1</text>
+        <text class="el" x="170" y="178" style="font-size:14px">inicio</text>
+        <text class="el" x="420" y="178" style="font-size:14px">acepta</text>
+      </svg>
+      <div class="hint center">Reconoce \(L(0^*1)\): ceros (ciclo en q0), un 1 (pasa a q1) y fin.</div>
+    </div>
+    <div>
+      <div class="panel">
+        <h3>Prueba una cadena</h3>
+        <div class="strs" style="justify-content:center" id="aut-cadenas">
+          <button class="btn" data-aut="1">1</button><button class="btn" data-aut="001">001</button><button class="btn" data-aut="000">000</button>
+          <button class="btn" data-aut="0010">0010</button><button class="btn" data-aut="10">10</button>
+        </div>
+        <div class="trace mt16" id="aut-traza" aria-live="polite">Elige una cadena para ver al autómata leerla.</div>
+      </div>
+      <div class="note"><i class="fa-solid fa-circle-info"></i><span>De q1 no sale ninguna flecha: si después del 1 llega otro símbolo, la cadena se <b>rechaza</b>. Por eso \(0010\notin L(0^*1)\).</span></div>
+    </div>
+  </div>
+  <aside class="notes">Solo una introducción visual: en el próximo tema veremos cómo construir un autómata a partir de cualquier expresión regular, y al revés (teorema de Kleene). El simulador usa el mismo diagrama; las pruebas automáticas comparan sus respuestas con el motor de expresiones regulares.</aside>
+</section>
+
+<!-- 34 · RESUMEN -->
+<section data-transition="zoom" id="resumen">
+  <div class="kicker">Resumen</div>
+  <h2>Lo que aprendimos hoy</h2>
+  <div class="two tight" style="gap:10px 22px;margin-top:16px">
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-shapes"></i></div><div><div class="t">Alfabeto \(\Sigma\)</div><div class="v">conjunto de símbolos disponibles</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-link"></i></div><div><div class="t">Cadena</div><div class="v">secuencia finita de símbolos</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-box"></i></div><div><div class="t">Lenguaje</div><div class="v">conjunto de cadenas</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-scroll"></i></div><div><div class="t">Expresión regular \(r\)</div><div class="v">descripción formal de un lenguaje L(r)</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-code-branch"></i></div><div><div class="t">Unión \(r+s\)</div><div class="v">elegir entre alternativas</div></div></div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-grip-lines"></i></div><div><div class="t">Concatenación \(rs\)</div><div class="v">una cadena después de otra</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-star-of-life"></i></div><div><div class="t">Estrella \(r^*\)</div><div class="v">cero o más repeticiones</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-object-group"></i></div><div><div class="t">Paréntesis</div><div class="v">agrupar operaciones</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-circle-notch"></i></div><div><div class="t">\(\varnothing\)</div><div class="v">lenguaje sin cadenas</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-square"></i></div><div><div class="t">\(\varepsilon\)</div><div class="v">cadena de longitud cero</div></div></div>
+    </div>
+  </div>
+  <p class="quote fragment zoom-in" style="font-family:var(--serif);font-style:italic;font-weight:600;font-size:26px;color:var(--navy);text-align:center;margin-top:20px"><i class="fa-solid fa-quote-left ac" style="font-style:normal;margin-right:8px"></i>Una expresión regular es una receta de símbolos que nos dice qué cadenas podemos construir y cuáles no.</p>
+  <aside class="notes">Cierra regresando a la portada: ahora pueden leer (0+1)*0 como "cualquier cadena binaria que termina en 0".</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/math/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="motor.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>

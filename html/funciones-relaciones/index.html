@@ -1,0 +1,1346 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Funciones y relaciones matemáticas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     PORTADA
+     ===================================================================== -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Matemáticas discretas · Teoría de conjuntos</div>
+  <h1 class="center" style="font-size:82px;margin-top:34px;line-height:1.05">Funciones y relaciones<br>matemáticas</h1>
+  <p class="sub" style="font-size:26px;margin-top:16px">Descubriendo las reglas que conectan elementos</p>
+  <div class="col-c mt24">
+    <div class="mapdiag" data-a="1,2,3" data-b="a,b,c" data-map="1>b,2>c,3>a" data-anim="flow" data-w="440"
+         data-label="Ilustración decorativa: una función que conecta tres elementos con otros tres" data-expect="fun,biy"></div>
+  </div>
+  <aside class="notes">Bienvenida. Hoy vamos a descubrir dos ideas que aparecen en toda la matemática y la computación: las funciones (reglas que a cada entrada le dan exactamente una salida) y las relaciones (listas de parejas conectadas). Cada concepto seguirá la misma ruta: pregunta, analogía, dibujo, intuición, definición formal, ejemplo, contraejemplo, reto y respuesta.</aside>
+</section>
+
+<!-- =====================================================================
+     ÍNDICE
+     ===================================================================== -->
+<section data-transition="convex" id="indice">
+  <div class="kicker">Ruta de la clase</div>
+  <h2>¿Qué vamos a descubrir?</h2>
+  <div class="two toc">
+    <div class="list">
+      <a class="item plain" href="#/funcion"><div class="sq"><i class="fa-solid fa-gears"></i></div><div><div class="t">A · ¿Qué es una función?</div><div class="v">dominio · codominio · imagen</div></div></a>
+      <a class="item plain" href="#/inyectiva"><div class="sq"><i class="fa-solid fa-medal"></i></div><div><div class="t">B · Tipos de funciones</div><div class="v">inyectiva · sobreyectiva · biyectiva</div></div></a>
+      <a class="item plain" href="#/relacion"><div class="sq"><i class="fa-solid fa-diagram-project"></i></div><div><div class="t">C · Relaciones</div><div class="v">reflexiva · simétrica · transitiva</div></div></a>
+      <a class="item plain" href="#/ejercicios"><div class="sq"><i class="fa-solid fa-pencil"></i></div><div><div class="t">D · Ejercicios y reto final</div><div class="v">fácil · intermedio · avanzado</div></div></a>
+    </div>
+    <div>
+      <div class="def">
+        <div class="head"><i class="fa-solid fa-route"></i> Cada concepto sigue 9 pasos</div>
+        <div class="body small">
+          <div class="route" data-on="" style="flex-wrap:wrap;justify-content:flex-start;margin:0 0 10px"></div>
+          Primero la <b>idea intuitiva</b> (con objetos cotidianos), después la <b>definición formal</b> y, al final, <b>tú</b> lo compruebas con un reto.
+        </div>
+      </div>
+      <div class="note"><i class="fa-solid fa-keyboard"></i><span><b>Navegación:</b> <span class="mono">→</span> siguiente tema, <span class="mono">↓</span> siguiente paso del tema, <span class="mono">Esc</span> vista general, <span class="mono">S</span> notas del docente.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Las secciones se navegan hacia la derecha; los pasos de cada tema hacia abajo. La barra espaciadora recorre todo en orden. Pulsa Esc para ver el mapa completo de diapositivas.</aside>
+</section>
+
+<!-- =====================================================================
+     SECCIÓN A · FUNCIONES
+     ===================================================================== -->
+<section>
+
+  <section data-transition="convex" id="funcion">
+    <div class="kicker">A · Funciones · Pregunta</div>
+    <div class="route" data-on="1,2"></div>
+    <h2>¿Dónde encontramos funciones?</h2>
+    <div class="q"><i class="fa-solid fa-circle-question"></i><p>¿Cuántas fechas de cumpleaños tienes? ¿Y cuántas tiene tu mejor amigo?</p></div>
+    <div class="three">
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-cake-candles"></i></div><div><div class="t">Persona → fecha de nacimiento</div><div class="v">cada persona tiene una sola</div></div></div>
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-tag"></i></div><div><div class="t">Producto → precio</div><div class="v">en la tienda, un precio por producto</div></div></div>
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-calculator"></i></div><div><div class="t">Número → su doble</div><div class="v">entra 4, sale 8</div></div></div>
+    </div>
+    <div class="def hl mt24 fragment fade-up">
+      <div class="head"><i class="fa-solid fa-lightbulb"></i> La idea</div>
+      <div class="body lead">Una <b>función</b> es una regla que a <b>cada entrada</b> le asigna <b>exactamente una salida</b>.<br>
+      <span class="muted small">Dos personas pueden cumplir años el mismo día; lo que no puede pasar es que una persona tenga dos fechas de nacimiento.</span></div>
+    </div>
+    <aside class="notes">Pide a los alumnos ejemplos: alumno → número de lista, país → capital, casa → dirección. Contraejemplo para después: persona → hermano (alguien puede tener varios o ninguno). La aclaración final anticipa algo clave: varias entradas sí pueden compartir salida.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">A · Funciones · Analogía</div>
+    <div class="route" data-on="2,3,4"></div>
+    <h2>La máquina de funciones</h2>
+    <div class="stage" style="height:270px">
+      <svg class="wires" viewBox="0 0 1168 270"><line class="flow" x1="250" y1="120" x2="455" y2="120"/><line class="flow" x1="713" y1="120" x2="918" y2="120"/></svg>
+      <div class="dev" style="left:200px;top:120px">
+        <div class="numbox">
+          <span class="fragment fade-out" data-fragment-index="1">?</span>
+          <span class="fragment fade-out" data-fragment-index="2"><span class="fragment" data-fragment-index="1">3</span></span>
+          <span class="fragment fade-out" data-fragment-index="3"><span class="fragment" data-fragment-index="2">5</span></span>
+          <span class="fragment" data-fragment-index="3">−1</span>
+        </div>
+        <span class="lbl nt">Entrada · x</span>
+      </div>
+      <div class="dev" style="left:584px;top:120px">
+        <div class="machine"><i class="fa-solid fa-gear" aria-hidden="true"></i><span class="rule">× 2</span></div>
+        <span class="lbl nt">Regla · f</span>
+      </div>
+      <div class="dev" style="left:968px;top:120px">
+        <div class="numbox out">
+          <span class="fragment fade-out" data-fragment-index="1">?</span>
+          <span class="fragment fade-out" data-fragment-index="2"><span class="later-in fragment custom" data-fragment-index="1" style="--delay:2.3s">6</span></span>
+          <span class="fragment fade-out" data-fragment-index="3"><span class="later-in fragment custom" data-fragment-index="2" style="--delay:2.3s">10</span></span>
+          <span class="later-in fragment custom" data-fragment-index="3" style="--delay:2.3s">−2</span>
+        </div>
+        <span class="lbl nt">Salida · f(x)</span>
+      </div>
+      <div class="pkt fragment custom" data-fragment-index="1" style="--x1:262px;--y1:120px;--x2:440px;--y2:120px;--dur:1.2s"><i class="fa-solid fa-cube"></i><span class="tag">3</span></div>
+      <div class="pkt resp fragment custom" data-fragment-index="1" style="--x1:728px;--y1:120px;--x2:906px;--y2:120px;--dur:1.2s;--delay:1.2s"><i class="fa-solid fa-cube"></i><span class="tag">6</span></div>
+      <div class="pkt fragment custom" data-fragment-index="2" style="--x1:262px;--y1:120px;--x2:440px;--y2:120px;--dur:1.2s"><i class="fa-solid fa-cube"></i><span class="tag">5</span></div>
+      <div class="pkt resp fragment custom" data-fragment-index="2" style="--x1:728px;--y1:120px;--x2:906px;--y2:120px;--dur:1.2s;--delay:1.2s"><i class="fa-solid fa-cube"></i><span class="tag">10</span></div>
+      <div class="pkt fragment custom" data-fragment-index="3" style="--x1:262px;--y1:120px;--x2:440px;--y2:120px;--dur:1.2s"><i class="fa-solid fa-cube"></i><span class="tag">−1</span></div>
+      <div class="pkt resp fragment custom" data-fragment-index="3" style="--x1:728px;--y1:120px;--x2:906px;--y2:120px;--dur:1.2s;--delay:1.2s"><i class="fa-solid fa-cube"></i><span class="tag">−2</span></div>
+    </div>
+    <div class="captions">
+      <div class="cap fragment fade-out" data-fragment-index="1"><span class="n">0</span><span>Una máquina: <b>entra</b> un número, la <b>regla</b> lo transforma y <b>sale</b> otro número.</span></div>
+      <div class="cap fragment fade-in-then-out" data-fragment-index="1"><span class="n">1</span><span>Entra 3 y sale 6. Lo escribimos \(f(3)=6\) y se lee «f de 3 es 6».</span></div>
+      <div class="cap fragment fade-in-then-out" data-fragment-index="2"><span class="n">2</span><span>Entra 5 y sale 10: \(f(5)=10\). Si vuelve a entrar 3, saldrá <b>otra vez</b> 6.</span></div>
+      <div class="cap done fragment fade-in" data-fragment-index="3"><span class="n">3</span><span>La regla completa es \(f(x)=2x\). <b class="ac">Cada entrada produce exactamente una salida.</b></span></div>
+    </div>
+    <aside class="notes">Para niños: la máquina nunca "duda": si le das el mismo número, siempre devuelve lo mismo. Una máquina que con el 3 a veces diera 6 y a veces 7 no sería una función. Introduce la notación f(x): f es el nombre de la máquina, x lo que entra y f(x) lo que sale.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">A · Funciones · Visual</div>
+    <div class="route" data-on="3,4"></div>
+    <h2>Dominio, codominio e imagen</h2>
+    <div class="split" style="grid-template-columns:470px 1fr">
+      <div class="fig">
+        <div class="mapdiag" data-a="1,2,3" data-b="2,4,6,8" data-map="1>2,2>4,3>6" data-ca="dominio" data-cb="codominio" data-ok-b="2,4,6"
+             data-label="Función f(x)=2x de A={1,2,3} en B={2,4,6,8}; los elementos 2, 4 y 6 forman la imagen" data-expect="fun,iny,!sob"></div>
+        <div class="figcap">\(f:A\to B,\ f(x)=2x\). Resaltados con borde grueso: los elementos de la <b>imagen</b>. El 8 no recibe flecha.</div>
+      </div>
+      <div class="list tight">
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-right-to-bracket"></i></div><div><div class="t">Dominio: \(A=\{1,2,3\}\)</div><div class="v">todas las entradas</div></div></div>
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-box-open"></i></div><div><div class="t">Codominio: \(B=\{2,4,6,8\}\)</div><div class="v">las salidas permitidas (se declara)</div></div></div>
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-bullseye"></i></div><div><div class="t">Imagen: \(\operatorname{Im}(f)=\{2,4,6\}\)</div><div class="v">las salidas que realmente salen</div></div></div>
+        <div class="note fragment mt8"><i class="fa-solid fa-film"></i><span><b>Cine:</b> el codominio son <b>todos los asientos</b>; la imagen, los <b>asientos ocupados</b>. Siempre \(\operatorname{Im}(f)\subseteq B\), pero no tienen que ser iguales.</span></div>
+      </div>
+    </div>
+    <aside class="notes">Error muy común: confundir codominio con imagen. El codominio lo DECLARAMOS al escribir f: A → B; la imagen la CALCULAMOS: Im(f) = {f(x) : x ∈ A}. Sobre "rango": muchos libros lo usan como sinónimo de imagen (así lo usamos aquí), pero algunos lo usan para el codominio; conviene preguntar siempre qué significa en cada texto.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">A · Funciones · Definición</div>
+    <div class="route" data-on="5"></div>
+    <h2>Definición formal de función</h2>
+    <div class="def hl mt16">
+      <div class="head"><i class="fa-solid fa-book"></i> Definición</div>
+      <div class="body">Sean \(A\) y \(B\) conjuntos. Una <b>función</b> \(f:A\to B\) asigna a cada \(x\in A\) <b>un único</b> elemento \(f(x)\in B\):
+        <div class="formula">\[\forall x\in A\ \ \exists!\,y\in B:\ f(x)=y\]</div>
+        <span class="small muted">\(\exists!\) se lee «existe uno y solo uno». \(A\) es el <b>dominio</b>, \(B\) el <b>codominio</b> e \(\operatorname{Im}(f)=\{f(x):x\in A\}\subseteq B\) la <b>imagen</b>.</span>
+      </div>
+    </div>
+    <div class="two tight">
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-arrow-right"></i></div><div><div class="t">1 · Existencia</div><div class="v" style="font-family:var(--sans);font-size:18px">Ningún elemento de \(A\) se queda <b>sin flecha</b>.</div></div></div>
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-1"></i></div><div><div class="t">2 · Unicidad</div><div class="v" style="font-family:var(--sans);font-size:18px">Ningún elemento de \(A\) tiene <b>dos flechas</b>.</div></div></div>
+    </div>
+    <div class="note fragment"><i class="fa-solid fa-triangle-exclamation"></i><span>En \(B\) <b>no se exige nada</b>: un elemento del codominio puede recibir varias flechas o ninguna, y \(f\) sigue siendo función.</span></div>
+    <aside class="notes">Las dos condiciones se leen mirando las flechas que SALEN de cada elemento de A: exactamente una. Las flechas que LLEGAN a B no importan para decidir si es función; importarán después para inyectiva y sobreyectiva.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">A · Funciones · Ejemplo y contraejemplos</div>
+    <div class="route" data-on="6,7"></div>
+    <h2>¿Función o no función?</h2>
+    <div class="three">
+      <div class="panel hl fig">
+        <h3>Diagrama 1</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c" data-map="1>a,2>a,3>b" data-hl="1>a,2>a" data-expect="fun"></div>
+        <span class="verdict yes fragment" data-fragment-index="1"><i class="fa-solid fa-check"></i> Sí es función</span>
+        <div class="figcap fragment" data-fragment-index="1">Cada número tiene <b>una</b> flecha. Que 1 y 2 compartan la salida \(a\) <b>está permitido</b>.</div>
+      </div>
+      <div class="panel bad fig">
+        <h3>Diagrama 2</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c" data-map="1>a,1>b,2>b,3>c" data-bad="1>a,1>b" data-mark-a="1" data-expect="!fun"></div>
+        <span class="verdict no fragment" data-fragment-index="2"><i class="fa-solid fa-xmark"></i> No es función</span>
+        <div class="figcap fragment" data-fragment-index="2">El <b>1 tiene dos salidas</b> (\(a\) y \(b\)): falla la unicidad. ¿Cuál sería \(f(1)\)?</div>
+      </div>
+      <div class="panel bad fig">
+        <h3>Diagrama 3</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c" data-map="1>a,2>b" data-mark-a="3" data-expect="!fun"></div>
+        <span class="verdict no fragment" data-fragment-index="3"><i class="fa-solid fa-xmark"></i> No es función</span>
+        <div class="figcap fragment" data-fragment-index="3">El <b>3 no tiene flecha</b>: falla la existencia. \(f(3)\) no está definido.</div>
+      </div>
+    </div>
+    <aside class="notes">Antes de cada clic, pregunta al grupo: ¿es función? ¿por qué? Señala que en el diagrama 1 el elemento c del codominio no recibe flecha y no pasa nada. Los elementos marcados con cruz y borde punteado son los que causan el fallo.</aside>
+  </section>
+
+  <section data-transition="zoom">
+    <div class="kicker">A · Funciones · Reto</div>
+    <div class="route" data-on="8,9"></div>
+    <h2>Tu turno</h2>
+    <div class="two tight">
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto 1</div>
+        <div class="mapdiag" data-a="Ana,Luis,Sofía" data-b="perro,gato,pez" data-map="Ana>perro,Luis>perro,Sofía>pez" data-la="Niños" data-lb="Mascotas" data-w="440" data-expect="fun,!iny,!sob"></div>
+        <div class="qtext">«Mascota favorita». ¿Es función? ¿Cuál es su imagen?</div>
+        <button class="ans-btn" aria-controls="ans-a1" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-a1" hidden><span class="lbl-ans">Respuesta</span><b>Sí es función</b>: cada niño tiene exactamente una flecha. La imagen es \(\{\text{perro},\text{pez}\}\); «gato» está en el codominio pero no en la imagen.</div>
+      </div>
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto 2</div>
+        <div class="qtext">Regla sobre los reales: «a cada \(x\in\mathbb{R}\) le asigno un número cuyo cuadrado es \(x\)». ¿Define una función \(\mathbb{R}\to\mathbb{R}\)?</div>
+        <div class="small muted mt8">Pista: prueba con \(x=4\) y con \(x=-1\).</div>
+        <button class="ans-btn" aria-controls="ans-a2" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-a2" hidden><span class="lbl-ans">Respuesta</span><b>No.</b> Para \(x=4\) hay <b>dos</b> candidatos, \(2\) y \(-2\) (falla la unicidad), y para \(x=-1\) <b>ninguno</b>, porque ningún real al cuadrado da \(-1\) (falla la existencia).<br><span class="small">En cambio, \(g:[0,\infty)\to\mathbb{R},\ g(x)=\sqrt{x}\) sí es función: \(\sqrt{x}\) es <b>la</b> raíz no negativa.</span></div>
+      </div>
+    </div>
+    <aside class="notes">Deja 1–2 minutos antes de revelar. En el reto 2 se ven a la vez los dos fallos posibles: una entrada con dos salidas y una entrada sin salida.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN B · INYECTIVA
+     ===================================================================== -->
+<section>
+
+  <section data-transition="concave" id="inyectiva">
+    <div class="kicker">B · Función inyectiva · Pregunta y analogía</div>
+    <div class="route" data-on="1,2,3,4"></div>
+    <h2>La regla de no repetir salidas</h2>
+    <div class="q" style="margin-top:14px"><i class="fa-solid fa-medal"></i><p>Hay una sola medalla de cada tipo. ¿Pueden dos niños quedarse con la misma?</p></div>
+    <div class="two tight" style="align-items:center">
+      <div class="fig">
+        <div class="mapdiag" data-a="Ana,Luis,Sofía" data-b="oro,plata,bronce,estrella" data-map="Ana>oro,Luis>plata,Sofía>bronce" data-la="Niños" data-lb="Medallas"
+             data-frag="seq" data-expect="fun,iny,!sob"></div>
+      </div>
+      <div>
+        <p class="lead fragment">Cada niño recibe <b>su propia</b> medalla: <b>ningún par de niños comparte medalla</b>.</p>
+        <p class="lead mt16 fragment">Sobró la medalla «estrella»… <b>y no importa</b>: la inyectividad solo prohíbe que dos entradas <b>compartan</b> una salida.</p>
+        <div class="note fragment"><i class="fa-solid fa-eye"></i><span><b>Prueba visual:</b> a cada elemento del codominio le llega <b>como máximo una</b> flecha.</span></div>
+      </div>
+    </div>
+    <aside class="notes">Las flechas aparecen una por clic: pregunta antes de cada una «¿qué medalla puede recibir?». Recalca que inyectiva NO significa que todas las medallas se repartan; eso será sobreyectiva.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función inyectiva · Visual</div>
+    <div class="route" data-on="3,6,7"></div>
+    <h2>¿Inyectiva o no?</h2>
+    <div class="two">
+      <div class="panel hl fig">
+        <h3>Inyectiva</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c,d" data-map="1>a,2>b,3>c" data-hl="1>a,2>b,3>c" data-expect="fun,iny"></div>
+        <span class="verdict yes"><i class="fa-solid fa-check"></i> Salidas distintas</span>
+        <div class="figcap">\(f(1)=a,\ f(2)=b,\ f(3)=c\): todas diferentes.</div>
+      </div>
+      <div class="panel bad fig">
+        <h3>No inyectiva</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c,d" data-map="1>a,2>b,3>b" data-bad="2>b,3>b" data-mark-b="b" data-expect="fun,!iny"></div>
+        <span class="verdict no"><i class="fa-solid fa-xmark"></i> Salida repetida</span>
+        <div class="figcap fragment">\(f(2)=f(3)=b\) con \(2\neq3\): dos entradas distintas <b>comparten</b> la salida \(b\).</div>
+      </div>
+    </div>
+    <aside class="notes">Ambos diagramas son funciones (cada elemento de A tiene exactamente una flecha). Solo cambia lo que ocurre en el codominio. En los dos, d se queda sin flecha: eso no afecta la inyectividad.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función inyectiva · Definición</div>
+    <div class="route" data-on="5"></div>
+    <h2>Definición formal de inyectividad</h2>
+    <div class="def hl mt16">
+      <div class="head"><i class="fa-solid fa-book"></i> Definición</div>
+      <div class="body">Una función \(f:A\to B\) es <b>inyectiva</b> si elementos distintos del dominio tienen imágenes distintas:
+        <div class="formula">\[\forall x_1,x_2\in A:\quad f(x_1)=f(x_2)\ \Rightarrow\ x_1=x_2\]</div>
+      </div>
+    </div>
+    <div class="two tight">
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-arrows-left-right"></i> Forma equivalente</div>
+        <div class="body">\[x_1\neq x_2\ \Rightarrow\ f(x_1)\neq f(x_2)\]
+          <span class="small">Es la <b>contrapositiva</b>: «\(P\Rightarrow Q\)» equivale a «\(\neg Q\Rightarrow\neg P\)».</span></div>
+      </div>
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-child"></i> En palabras</div>
+        <div class="body">«Si dos entradas dan la <b>misma salida</b>, es porque eran <b>la misma entrada</b>.»<br><span class="small muted">La primera forma es la más cómoda para <b>demostrar</b>: partimos de \(f(x_1)=f(x_2)\) y despejamos.</span></div>
+      </div>
+    </div>
+    <div class="note fragment"><i class="fa-solid fa-triangle-exclamation"></i><span>Inyectiva <b>no</b> significa «todos los elementos del codominio reciben flecha». Eso es otra propiedad: <b>sobreyectiva</b>.</span></div>
+    <aside class="notes">Lee la fórmula en voz alta: "para todo x1 y x2 en A, si f(x1) es igual a f(x2), entonces x1 es igual a x2". Para refutar la inyectividad basta UN par x1 ≠ x2 con f(x1) = f(x2).</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función inyectiva · Ejemplo resuelto</div>
+    <div class="route" data-on="6"></div>
+    <h2>\(f:\mathbb{R}\to\mathbb{R},\ f(x)=2x\) es inyectiva</h2>
+    <div class="split" style="grid-template-columns:420px 1fr">
+      <div>
+        <div class="def">
+          <div class="head"><i class="fa-solid fa-flask"></i> Primero, probamos números</div>
+          <div class="body">\(f(1)=2,\ f(3)=6,\ f(-3)=-6\)<br><span class="small muted">Salidas distintas… pero probar algunos números <b>no demuestra</b> nada para <b>todos</b> los reales.</span></div>
+        </div>
+        <div class="note"><i class="fa-solid fa-lightbulb"></i><span>Una demostración debe funcionar para <b>cualquier</b> par \(x_1,x_2\).</span></div>
+      </div>
+      <div class="steps">
+        <div class="step fragment">Supongamos \(f(x_1)=f(x_2)\) para dos reales cualesquiera.</div>
+        <div class="step fragment">Sustituimos la regla: \(2x_1=2x_2\).</div>
+        <div class="step fragment">Dividimos entre \(2\) (se puede, porque \(2\neq0\)): \(x_1=x_2\).</div>
+        <div class="step concl fragment">Igual salida ⇒ igual entrada: \(f\) es <b>inyectiva</b>.</div>
+      </div>
+    </div>
+    <aside class="notes">Señala el papel de cada paso: suponer la hipótesis, usar la regla y llegar a la conclusión. Pregunta: ¿funcionaría igual con f(x) = 0·x? No: ahí no se puede dividir entre 0 y, de hecho, f(1) = f(2) = 0.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función inyectiva · Contraejemplo</div>
+    <div class="route" data-on="7"></div>
+    <h2>\(x^2\): misma regla, distinto dominio</h2>
+    <div class="two tight">
+      <div class="panel bad">
+        <h3>\(g:\mathbb{R}\to\mathbb{R},\ g(x)=x^2\)</h3>
+        <div class="fig">
+          <div class="mapdiag" data-a="−2,2" data-b="4" data-map="−2>4,2>4" data-bad="−2>4,2>4" data-mark-b="4" data-la="trozo de ℝ" data-lb="trozo de ℝ" data-w="380" data-gap="52" data-expect="fun,!iny"></div>
+        </div>
+        <div class="steps mt8">
+          <div class="step">\(g(2)=4\) y \(g(-2)=4\), pero \(2\neq-2\).</div>
+          <div class="step fail">Un solo par basta: <b>no es inyectiva</b>.</div>
+        </div>
+      </div>
+      <div class="panel hl fragment">
+        <h3>\(h:[0,\infty)\to\mathbb{R},\ h(x)=x^2\)</h3>
+        <div class="steps mt8">
+          <div class="step">Si \(x_1^2=x_2^2\), entonces \((x_1-x_2)(x_1+x_2)=0\).</div>
+          <div class="step">Luego \(x_1=x_2\) o \(x_1=-x_2\).</div>
+          <div class="step">Si \(x_1=-x_2\) con ambos \(\ge0\), los dos son \(0\); así que \(x_1=x_2\).</div>
+          <div class="step concl"><b>Sí es inyectiva</b> en los reales no negativos.</div>
+        </div>
+      </div>
+    </div>
+    <div class="note fragment"><i class="fa-solid fa-key"></i><span>La inyectividad depende del <b>dominio declarado</b>: al quitar los negativos ya no hay «gemelos» \(x\) y \(-x\).</span></div>
+    <aside class="notes">El diagrama de la izquierda solo muestra un trozo de ℝ (los elementos −2, 2 y 4), suficiente para exhibir el contraejemplo. Haz que los alumnos encuentren otro par: g(3) = g(−3) = 9.</aside>
+  </section>
+
+  <section data-transition="zoom">
+    <div class="kicker">B · Función inyectiva · Reto</div>
+    <div class="route" data-on="8,9"></div>
+    <h2>¿Es inyectiva?</h2>
+    <div class="two tight">
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto 1</div>
+        <div class="mapdiag" data-a="1,2,3,4" data-b="a,b,c,d" data-map="1>c,2>a,3>d,4>a" data-w="400" data-expect="fun,!iny,!sob"></div>
+        <button class="ans-btn" aria-controls="ans-i1" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-i1" hidden><span class="lbl-ans">Respuesta</span><b>No.</b> \(f(2)=f(4)=a\) y \(2\neq4\): dos entradas comparten salida.</div>
+      </div>
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto 2</div>
+        <div class="qtext">a) \(f:\mathbb{Z}\to\mathbb{Z},\ f(n)=n+5\)<br>b) \(f:\mathbb{R}\to\mathbb{R},\ f(x)=|x|\)<br><span class="small muted">Justifica: demostración si es inyectiva; contraejemplo si no.</span></div>
+        <button class="ans-btn" aria-controls="ans-i2" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-i2" hidden><span class="lbl-ans">Respuesta</span>a) <b>Sí:</b> \(n_1+5=n_2+5\Rightarrow n_1=n_2\).<br>b) <b>No:</b> \(|{-1}|=|1|=1\) pero \(-1\neq1\).</div>
+      </div>
+    </div>
+    <aside class="notes">En el reto 1 los alumnos deben mirar el codominio: a recibe dos flechas. En el reto 2 se practica el estilo formal: demostración general o un contraejemplo concreto.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN B · SOBREYECTIVA
+     ===================================================================== -->
+<section>
+
+  <section data-transition="concave" id="sobreyectiva">
+    <div class="kicker">B · Función sobreyectiva · Pregunta y analogía</div>
+    <div class="route" data-on="1,2,3,4"></div>
+    <h2>Nadie se queda sin recibir</h2>
+    <div class="q" style="margin-top:14px"><i class="fa-solid fa-box-open"></i><p>Repartimos pelotas en cajas. ¿Quedó alguna caja vacía?</p></div>
+    <div class="two tight" style="align-items:center">
+      <div class="fig">
+        <div class="mapdiag" data-a="p1,p2,p3,p4" data-b="roja,azul,verde" data-map="p1>roja,p2>azul,p3>verde,p4>verde" data-la="Pelotas" data-lb="Cajas"
+             data-frag="seq" data-expect="fun,sob,!iny"></div>
+      </div>
+      <div>
+        <p class="lead fragment">Cada pelota va a <b>una</b> caja (es una función) y <b>todas las cajas</b> reciben al menos una pelota.</p>
+        <p class="lead mt16 fragment">La caja verde recibió dos pelotas… <b>y no importa</b>: aquí solo pedimos que <b>ninguna caja quede vacía</b>.</p>
+        <div class="note fragment"><i class="fa-solid fa-eye"></i><span><b>Prueba visual:</b> a cada elemento del codominio le llega <b>al menos una</b> flecha.</span></div>
+      </div>
+    </div>
+    <aside class="notes">Las pelotas son el dominio y las cajas el codominio. Sobreyectiva mira el codominio completo: no puede sobrar ninguna caja. Otra analogía: en una fiesta, todos los regalos tienen dueño.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función sobreyectiva · Visual</div>
+    <div class="route" data-on="3,6,7"></div>
+    <h2>¿Sobreyectiva o no?</h2>
+    <div class="two">
+      <div class="panel hl fig">
+        <h3>Sobreyectiva</h3>
+        <div class="mapdiag" data-a="1,2,3,4" data-b="a,b,c" data-map="1>a,2>b,3>c,4>c" data-ok-b="a,b,c" data-expect="fun,sob"></div>
+        <span class="verdict yes"><i class="fa-solid fa-check"></i> Todos reciben</span>
+        <div class="figcap">\(\operatorname{Im}(f)=\{a,b,c\}=B\).</div>
+      </div>
+      <div class="panel bad fig">
+        <h3>No sobreyectiva</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c,d" data-map="1>a,2>b,3>c" data-mark-b="d" data-expect="fun,!sob"></div>
+        <span class="verdict no"><i class="fa-solid fa-xmark"></i> Alguien se queda sin flecha</span>
+        <div class="figcap fragment">\(d\in B\) no es imagen de nadie: \(\operatorname{Im}(f)=\{a,b,c\}\neq B\).</div>
+      </div>
+    </div>
+    <aside class="notes">Observa que el diagrama de la derecha sí es inyectivo; solo falla la sobreyectividad. Así se ve que son propiedades independientes.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función sobreyectiva · Definición</div>
+    <div class="route" data-on="5"></div>
+    <h2>Definición formal de sobreyectividad</h2>
+    <div class="def hl mt16">
+      <div class="head"><i class="fa-solid fa-book"></i> Definición</div>
+      <div class="body">Una función \(f:A\to B\) es <b>sobreyectiva</b> (o suprayectiva) si cada elemento del codominio es imagen de al menos un elemento del dominio:
+        <div class="formula">\[\forall y\in B,\ \exists x\in A:\ f(x)=y\qquad\Longleftrightarrow\qquad \operatorname{Im}(f)=B\]</div>
+      </div>
+    </div>
+    <div class="def mt24 fragment">
+      <div class="head"><i class="fa-solid fa-list-check"></i> Cómo se comprueba</div>
+      <div class="body">
+        <div class="steps">
+          <div class="step">Toma un \(y\) <b>cualquiera</b> del codominio \(B\) (¡todos cuentan!).</div>
+          <div class="step">Resuelve \(f(x)=y\) para encontrar un candidato \(x\).</div>
+          <div class="step">Verifica que ese \(x\) pertenece al <b>dominio</b> \(A\) y que \(f(x)=y\).</div>
+        </div>
+      </div>
+    </div>
+    <aside class="notes">El orden de los cuantificadores importa: primero se elige y (cualquiera) y después se busca x, que puede depender de y. Para refutar basta un y del codominio sin preimagen.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función sobreyectiva · Ejemplo resuelto</div>
+    <div class="route" data-on="6"></div>
+    <h2>\(f:\mathbb{R}\to\mathbb{R},\ f(x)=x^3\) es sobreyectiva</h2>
+    <div class="split" style="grid-template-columns:450px 1fr">
+      <div>
+        <div class="def">
+          <div class="head"><i class="fa-solid fa-flask"></i> Probamos algunos \(y\)</div>
+          <div class="body">\(y=8\): \(\ x=2\), pues \(2^3=8\).<br>\(y=-8\): \(\ x=-2\), pues \((-2)^3=-8\).<br>\(y=5\): \(\ x=\sqrt[3]{5}\approx1.71\).</div>
+        </div>
+        <div class="note"><i class="fa-solid fa-lightbulb"></i><span>Todo real (también los negativos) tiene <b>raíz cúbica real</b>.</span></div>
+      </div>
+      <div class="steps">
+        <div class="step fragment">Sea \(y\in\mathbb{R}\) cualquiera.</div>
+        <div class="step fragment">Buscamos \(x\) con \(x^3=y\): proponemos \(x=\sqrt[3]{y}\).</div>
+        <div class="step fragment">\(\sqrt[3]{y}\in\mathbb{R}\), es decir, está en el dominio.</div>
+        <div class="step fragment">Comprobamos: \(f(\sqrt[3]{y})=(\sqrt[3]{y})^3=y\).</div>
+        <div class="step concl fragment">Todo \(y\) del codominio se alcanza: \(f\) es <b>sobreyectiva</b>.</div>
+      </div>
+    </div>
+    <aside class="notes">Ejemplo finito equivalente: el diagrama de pelotas y cajas. Aquí el codominio es infinito, así que no podemos revisar elemento por elemento: necesitamos un argumento para un y arbitrario.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función sobreyectiva · Contraejemplo</div>
+    <div class="route" data-on="7"></div>
+    <h2>\(x^2\): misma regla, distinto codominio</h2>
+    <div class="two tight">
+      <div class="panel bad">
+        <h3>\(g:\mathbb{R}\to\mathbb{R},\ g(x)=x^2\)</h3>
+        <div class="steps mt8">
+          <div class="step">Elegimos \(y=-1\), que <b>sí</b> está en el codominio \(\mathbb{R}\).</div>
+          <div class="step">¿Hay \(x\in\mathbb{R}\) con \(x^2=-1\)? No: \(x^2\ge0\) para todo real.</div>
+          <div class="step fail"><b>No es sobreyectiva</b>: \(\operatorname{Im}(g)=[0,\infty)\neq\mathbb{R}\).</div>
+        </div>
+      </div>
+      <div class="panel hl fragment">
+        <h3>\(g:\mathbb{R}\to[0,\infty),\ g(x)=x^2\)</h3>
+        <div class="steps mt8">
+          <div class="step">Ahora el codominio es \([0,\infty)\). Sea \(y\ge0\).</div>
+          <div class="step">Tomamos \(x=\sqrt{y}\in\mathbb{R}\).</div>
+          <div class="step">\(g(\sqrt{y})=(\sqrt{y})^2=y\).</div>
+          <div class="step concl"><b>Sí es sobreyectiva</b>.</div>
+        </div>
+      </div>
+    </div>
+    <div class="note fragment"><i class="fa-solid fa-key"></i><span>La sobreyectividad depende del <b>codominio declarado</b>. La regla \(x^2\) es la misma; lo que cambió es el conjunto de llegada.</span></div>
+    <aside class="notes">Por eso al clasificar siempre hay que escribir f: A → B completo. «x² es sobreyectiva» es una frase incompleta: ¿de dónde a dónde?</aside>
+  </section>
+
+  <section data-transition="zoom">
+    <div class="kicker">B · Función sobreyectiva · Reto</div>
+    <div class="route" data-on="8,9"></div>
+    <h2>¿Es sobreyectiva?</h2>
+    <div class="two tight">
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto 1</div>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b" data-map="1>a,2>a,3>b" data-w="380" data-expect="fun,sob,!iny"></div>
+        <button class="ans-btn" aria-controls="ans-s1" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-s1" hidden><span class="lbl-ans">Respuesta</span><b>Sí.</b> Revisamos <b>todo</b> \(B\): \(a=f(1)\) y \(b=f(3)\). (No es inyectiva: \(f(1)=f(2)\).)</div>
+      </div>
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto 2</div>
+        <div class="qtext">a) \(f:\mathbb{Z}\to\mathbb{Z},\ f(n)=2n\)<br>b) \(f:\mathbb{R}\to\mathbb{R},\ f(x)=2x\)</div>
+        <button class="ans-btn" aria-controls="ans-s2" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-s2" hidden><span class="lbl-ans">Respuesta</span>a) <b>No:</b> para \(y=3\) haría falta \(n=\tfrac32\notin\mathbb{Z}\). Solo salen los pares.<br>b) <b>Sí:</b> dado \(y\in\mathbb{R}\), \(x=\tfrac{y}{2}\in\mathbb{R}\) y \(f(\tfrac y2)=y\).</div>
+      </div>
+    </div>
+    <aside class="notes">El reto 2 muestra que también el DOMINIO influye: misma regla 2x, pero con enteros el candidato y/2 puede no ser entero.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN B · BIYECTIVA
+     ===================================================================== -->
+<section>
+
+  <section data-transition="concave" id="biyectiva">
+    <div class="kicker">B · Función biyectiva · Pregunta y analogía</div>
+    <div class="route" data-on="1,2,3,4"></div>
+    <h2>Una pareja perfecta</h2>
+    <div class="q" style="margin-top:14px"><i class="fa-solid fa-people-arrows"></i><p>En el baile, ¿todos tienen pareja y nadie comparte la suya?</p></div>
+    <div class="two tight" style="align-items:center">
+      <div class="fig">
+        <div class="mapdiag" data-a="Ana,Luis,Sofía" data-b="Beto,Carla,Dani" data-map="Ana>Dani,Luis>Carla,Sofía>Beto" data-la="Grupo 1" data-lb="Grupo 2"
+             data-frag="seq" data-expect="fun,biy"></div>
+      </div>
+      <div class="list tight">
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-user-check"></i></div><div><div class="t">Nadie comparte pareja</div><div class="v">inyectiva</div></div></div>
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-users"></i></div><div><div class="t">Nadie se queda sin bailar</div><div class="v">sobreyectiva</div></div></div>
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-handshake"></i></div><div><div class="t">¡Las dos cosas a la vez!</div><div class="v">biyectiva · «uno a uno»</div></div></div>
+      </div>
+    </div>
+    <aside class="notes">Una biyección es un emparejamiento perfecto entre dos grupos: cada integrante del grupo 2 recibe exactamente una flecha.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función biyectiva · Definición</div>
+    <div class="route" data-on="5"></div>
+    <h2>Definición formal de biyectividad</h2>
+    <div class="def hl mt16">
+      <div class="head"><i class="fa-solid fa-book"></i> Definición</div>
+      <div class="body">Una función \(f:A\to B\) es <b>biyectiva</b> si es <b>inyectiva y sobreyectiva</b>:
+        <div class="formula">\[f\text{ es biyectiva}\iff f\text{ es inyectiva}\ \land\ f\text{ es sobreyectiva}\]</div>
+        <span class="small">Equivale a: \(\forall y\in B\ \exists!\,x\in A:\ f(x)=y\). A cada elemento de \(B\) le llega <b>exactamente una</b> flecha.</span>
+      </div>
+    </div>
+    <div class="two tight">
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-list-check"></i> Para verificarla</div>
+        <div class="body small">Hay que comprobar <b>las dos</b> propiedades por separado. Si falla una, no es biyectiva.</div>
+      </div>
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-hashtag"></i> Conjuntos finitos</div>
+        <div class="body small">Si \(f:A\to B\) es biyectiva y \(A,B\) son finitos, entonces \(|A|=|B|\): tienen la misma cantidad de elementos.</div>
+      </div>
+    </div>
+    <aside class="notes">El recíproco de la propiedad finita no es cierto en general: que |A| = |B| no garantiza que una función concreta sea biyectiva (por ejemplo, una función constante). Lo que sí es cierto: si |A| = |B| es finito, f es inyectiva si y solo si es sobreyectiva.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función biyectiva · Ejemplo y función inversa</div>
+    <div class="route" data-on="6"></div>
+    <h2>Si es biyectiva, se puede «dar marcha atrás»</h2>
+    <div class="two tight">
+      <div class="panel hl fig">
+        <h3>\(f:\{1,2,3\}\to\{a,b,c\}\)</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c" data-map="1>b,2>c,3>a" data-badges="iny,sob,biy" data-badges-frag data-expect="fun,biy"></div>
+        <div class="figcap">Inyectiva: \(b,c,a\) son distintas. Sobreyectiva: \(a,b,c\) reciben flecha.</div>
+      </div>
+      <div class="panel fig fragment">
+        <h3>Inversa \(f^{-1}:\{a,b,c\}\to\{1,2,3\}\)</h3>
+        <div class="mapdiag" data-a="a,b,c" data-b="1,2,3" data-map="a>3,b>1,c>2" data-la="B" data-lb="A" data-hl="a>3,b>1,c>2" data-expect="fun,biy"></div>
+        <div class="figcap">Se invierten las flechas: \(f^{-1}(y)=x\iff f(x)=y\).</div>
+      </div>
+    </div>
+    <div class="note fragment"><i class="fa-solid fa-rotate-left"></i><span>Una función tiene <b>inversa</b> si y solo si es <b>biyectiva</b>. Sin inyectividad, algún \(y\) tendría dos «regresos»; sin sobreyectividad, algún \(y\) no tendría ninguno.</span></div>
+    <aside class="notes">Pregunta: si invertimos las flechas de una función NO inyectiva, ¿qué falla? Un elemento tendría dos flechas de salida: el resultado no es función. Y si no es sobreyectiva, un elemento quedaría sin flecha.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">B · Función biyectiva · Ejemplo resuelto</div>
+    <div class="route" data-on="6"></div>
+    <h2>\(f:\mathbb{R}\to\mathbb{R},\ f(x)=x+3\) es biyectiva</h2>
+    <div class="three">
+      <div class="panel">
+        <h3>1 · Inyectiva</h3>
+        <div class="steps small">
+          <div class="step fragment">Si \(x_1+3=x_2+3\)…</div>
+          <div class="step fragment">…restando 3: \(x_1=x_2\).</div>
+          <div class="step concl fragment">Inyectiva.</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>2 · Sobreyectiva</h3>
+        <div class="steps small">
+          <div class="step fragment">Sea \(y\in\mathbb{R}\). Tomamos \(x=y-3\in\mathbb{R}\).</div>
+          <div class="step fragment">\(f(y-3)=(y-3)+3=y\).</div>
+          <div class="step concl fragment">Sobreyectiva.</div>
+        </div>
+      </div>
+      <div class="panel hl">
+        <h3>3 · Inversa</h3>
+        <div class="steps small">
+          <div class="step concl fragment"><b>Biyectiva</b> (1 y 2).</div>
+          <div class="step fragment">\(f^{-1}(y)=y-3\).</div>
+          <div class="step fragment">Comprobación: \(f^{-1}(f(x))=(x+3)-3=x\).</div>
+        </div>
+      </div>
+    </div>
+    <div class="note fragment"><i class="fa-solid fa-child"></i><span>Para niños: la máquina «suma 3» se deshace con la máquina «resta 3».</span></div>
+    <aside class="notes">Observa que el paso 2 de la sobreyectividad ya nos dio la fórmula de la inversa: al despejar x de f(x) = y obtenemos x = y − 3.</aside>
+  </section>
+
+  <section data-transition="zoom">
+    <div class="kicker">B · Función biyectiva · Reto</div>
+    <div class="route" data-on="8,9"></div>
+    <h2>¿Es biyectiva? Justifica</h2>
+    <div class="two tight">
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto 1</div>
+        <div class="qtext">a) \(f:\mathbb{R}\to\mathbb{R},\ f(x)=x^2\)<br>b) \(f:[0,\infty)\to[0,\infty),\ f(x)=x^2\)</div>
+        <button class="ans-btn" aria-controls="ans-b1" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-b1" hidden><span class="lbl-ans">Respuesta</span>a) <b>No:</b> no es inyectiva, pues \(f(2)=f(-2)\); ni sobreyectiva, pues \(-1\) no se alcanza.<br>b) <b>Sí:</b> inyectiva (lo probamos con dominio \(\ge0\)) y sobreyectiva (\(x=\sqrt{y}\)). Inversa: \(f^{-1}(y)=\sqrt{y}\).</div>
+      </div>
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto 2</div>
+        <div class="qtext">\(f:\mathbb{R}\to\mathbb{R},\ f(x)=5-2x\). ¿Es biyectiva? Si lo es, encuentra su inversa.</div>
+        <button class="ans-btn" aria-controls="ans-b2" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-b2" hidden><span class="lbl-ans">Respuesta</span><b>Sí.</b> Inyectiva: \(5-2x_1=5-2x_2\Rightarrow x_1=x_2\). Sobreyectiva: dado \(y\), \(x=\tfrac{5-y}{2}\) cumple \(f(x)=5-(5-y)=y\). Inversa: \(f^{-1}(y)=\tfrac{5-y}{2}\).</div>
+      </div>
+    </div>
+    <aside class="notes">En el reto 1 se combinan los dos «ajustes»: restringir el dominio arregla la inyectividad y restringir el codominio arregla la sobreyectividad.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN B · COMPARACIÓN
+     ===================================================================== -->
+<section data-transition="convex" id="comparacion">
+  <div class="kicker">B · Comparación</div>
+  <h2>Cuatro funciones, cuatro casos</h2>
+  <div class="four">
+    <div class="panel fig">
+      <h3>Solo inyectiva</h3>
+      <div class="mapdiag" data-w="300" data-a="1,2" data-b="a,b,c" data-map="1>a,2>b" data-mark-b="c" data-badges="iny,sob" data-expect="fun,iny,!sob"></div>
+    </div>
+    <div class="panel fig">
+      <h3>Solo sobreyectiva</h3>
+      <div class="mapdiag" data-w="300" data-a="1,2,3" data-b="a,b" data-map="1>a,2>b,3>b" data-bad="2>b,3>b" data-badges="iny,sob" data-expect="fun,!iny,sob"></div>
+    </div>
+    <div class="panel hl fig">
+      <h3>Biyectiva</h3>
+      <div class="mapdiag" data-w="300" data-a="1,2,3" data-b="a,b,c" data-map="1>b,2>a,3>c" data-hl="1>b,2>a,3>c" data-badges="iny,sob" data-expect="fun,biy"></div>
+    </div>
+    <div class="panel fig">
+      <h3>Ninguna</h3>
+      <div class="mapdiag" data-w="300" data-a="1,2,3" data-b="a,b,c" data-map="1>a,2>a,3>b" data-bad="1>a,2>a" data-mark-b="c" data-badges="iny,sob" data-expect="fun,!iny,!sob"></div>
+    </div>
+  </div>
+  <table class="tbl props mt16 fragment">
+    <tr><th>Si \(f\) ya es función…</th><th class="c">Inyectiva</th><th class="c">Sobreyectiva</th><th class="c">Biyectiva</th></tr>
+    <tr><td>Flechas que llegan a cada \(y\in B\)</td><td class="c">como máximo 1</td><td class="c">al menos 1</td><td class="c">exactamente 1</td></tr>
+  </table>
+  <aside class="notes">Las insignias de cada diagrama se calculan automáticamente a partir de las flechas, de modo que coinciden siempre con el dibujo. Las flechas punteadas con cruz señalan la salida repetida; el borde punteado con cruz, el elemento que se queda sin flecha.</aside>
+</section>
+
+<!-- =====================================================================
+     SECCIÓN C · RELACIONES
+     ===================================================================== -->
+<section>
+
+  <section data-transition="convex" id="relacion">
+    <div class="kicker">C · Relaciones · Pregunta y analogía</div>
+    <div class="route" data-on="1,2,4"></div>
+    <h2>¿Qué es una relación?</h2>
+    <div class="q" style="margin-top:14px"><i class="fa-solid fa-circle-question"></i><p>¿Cómo anotamos quién está conectado con quién?</p></div>
+    <div class="four">
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-cake-candles"></i></div><div><div class="t">misma edad</div><div class="v">Ana y Luis</div></div></div>
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-equals"></i></div><div><div class="t">es igual a</div><div class="v">3 = 3</div></div></div>
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-people-roof"></i></div><div><div class="t">es hermana de</div><div class="v">Marta y Pedro</div></div></div>
+      <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-less-than"></i></div><div><div class="t">es menor que</div><div class="v">2 &lt; 5</div></div></div>
+    </div>
+    <div class="def hl mt24 fragment">
+      <div class="head"><i class="fa-solid fa-lightbulb"></i> La idea</div>
+      <div class="body lead">Una <b>relación</b> es una regla que dice <b>qué parejas</b> de elementos están conectadas. Es como una lista de parejas: si una pareja está en la lista, están relacionados.</div>
+    </div>
+    <aside class="notes">A diferencia de las funciones, aquí no se exige nada: un elemento puede estar conectado con muchos, con uno o con ninguno.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Relaciones · Definición</div>
+    <div class="route" data-on="3,5"></div>
+    <h2>Pares ordenados y relación binaria</h2>
+    <div class="split" style="grid-template-columns:1fr 400px">
+      <div>
+        <div class="def">
+          <div class="head"><i class="fa-solid fa-arrow-right-arrow-left"></i> Par ordenado</div>
+          <div class="body small">\((a,b)\): primero \(a\), después \(b\). <b>El orden importa</b>: \((1,2)\neq(2,1)\).<br>Producto cartesiano: \(A\times B=\{(a,b):a\in A,\ b\in B\}\).</div>
+        </div>
+        <div class="def hl mt16 fragment">
+          <div class="head"><i class="fa-solid fa-book"></i> Definición</div>
+          <div class="body">Una <b>relación binaria</b> de \(A\) en \(B\) es un subconjunto del producto cartesiano:
+            <div class="formula">\[R\subseteq A\times B\]</div>
+            <span class="small">Si \((a,b)\in R\) escribimos \(a\,R\,b\): «\(a\) está relacionado con \(b\)».</span></div>
+        </div>
+      </div>
+      <div class="fig fragment">
+        <div class="mapdiag" data-a="1,2" data-b="x,y,z" data-map="1>x,1>z" data-w="360" data-expect="!fun"></div>
+        <div class="figcap">\(A=\{1,2\},\ B=\{x,y,z\}\). \(A\times B\) tiene \(2\cdot3=6\) pares; elegimos \(R=\{(1,x),(1,z)\}\).<br>El 1 se conecta con <b>dos</b> elementos y el 2 con <b>ninguno</b>: en una relación eso está permitido.</div>
+      </div>
+    </div>
+    <aside class="notes">Ejemplo de por qué importa el orden: en «es madre de», (Rosa, Ana) puede pertenecer a la relación y (Ana, Rosa) no. En el diagrama, cada flecha a → b representa el par (a, b).</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Relaciones · Visual</div>
+    <div class="route" data-on="3,4"></div>
+    <h2>Relaciones sobre un conjunto</h2>
+    <div class="split" style="grid-template-columns:360px 1fr">
+      <div class="fig">
+        <div class="reldiag" data-set="1,2,3" data-rel="1>2,1>3,2>3" data-name="«<»" data-w="320" data-h="270" data-expect="!R,!S,T"></div>
+        <div class="figcap">\(A=\{1,2,3\}\) y \(R=\{(1,2),(1,3),(2,3)\}\): la relación «es menor que».</div>
+      </div>
+      <div>
+        <p class="lead">Cuando \(B=A\) decimos que \(R\subseteq A\times A\) es una relación <b>sobre</b> \(A\). Basta un solo grupo de puntos.</p>
+        <div class="list tight mt16">
+          <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-arrow-right-long"></i></div><div><div class="t">Flecha \(a\to b\)</div><div class="v">significa \((a,b)\in R\)</div></div></div>
+          <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-rotate-right"></i></div><div><div class="t">Bucle en \(a\)</div><div class="v">significa \((a,a)\in R\)</div></div></div>
+          <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-arrows-left-right"></i></div><div><div class="t">Flechas de ida y vuelta</div><div class="v">\((a,b)\) y \((b,a)\) están en \(R\)</div></div></div>
+        </div>
+        <div class="note fragment"><i class="fa-solid fa-circle-info"></i><span>Las propiedades <b>reflexiva, simétrica y transitiva</b> se definen para relaciones <b>sobre un conjunto</b> \(A\).</span></div>
+      </div>
+    </div>
+    <aside class="notes">Este tipo de dibujo se llama grafo dirigido (o digrafo). Es la herramienta que usaremos para ver las tres propiedades. Pero ojo: al final siempre verificaremos con los pares, no "a ojo".</aside>
+  </section>
+
+  <section data-transition="slide" id="funcion-vs-relacion">
+    <div class="kicker">C · Función frente a relación</div>
+    <div class="route" data-on="6,7"></div>
+    <h2>Toda función es una relación… pero no al revés</h2>
+    <div class="two tight">
+      <div class="panel fig">
+        <h3>Relación (no función)</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c" data-map="1>a,1>b,2>c" data-bad="1>a,1>b" data-mark-a="3" data-gap="46" data-expect="!fun"></div>
+        <div class="figcap">\(R=\{(1,a),(1,b),(2,c)\}\subseteq A\times B\). El 1 tiene <b>dos</b> parejas y el 3 <b>ninguna</b>: es relación, no función.</div>
+      </div>
+      <div class="panel hl fig">
+        <h3>Relación que sí es función</h3>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c" data-map="1>a,2>c,3>c" data-gap="46" data-expect="fun"></div>
+        <div class="figcap">\(f=\{(1,a),(2,c),(3,c)\}\). Cada elemento de \(A\) aparece como primera componente <b>exactamente una vez</b>.</div>
+      </div>
+    </div>
+    <div class="def mt16 fragment">
+      <div class="head"><i class="fa-solid fa-book"></i> Una función es un tipo especial de relación</div>
+      <div class="body">\(f\subseteq A\times B\) es función de \(A\) en \(B\) si \(\ \forall a\in A\ \exists!\,b\in B:\ (a,b)\in f\). <span class="small muted">«Es hermana de» es relación pero no función (alguien puede tener varios hermanos o ninguno).</span></div>
+    </div>
+    <aside class="notes">Diagrama de Euler mental: el conjunto de las funciones de A en B está DENTRO del conjunto de las relaciones de A en B. Evitar la frase «toda relación es una función».</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN C · REFLEXIVA
+     ===================================================================== -->
+<section>
+
+  <section data-transition="concave" id="reflexiva">
+    <div class="kicker">C · Propiedad reflexiva · Pregunta y analogía</div>
+    <div class="route" data-on="1,2,3,4"></div>
+    <h2>Cada elemento se relaciona consigo mismo</h2>
+    <div class="q" style="margin-top:14px"><i class="fa-solid fa-circle-question"></i><p>¿Tienes la misma edad que… tú mismo?</p></div>
+    <div class="two tight" style="align-items:center">
+      <div class="fig">
+        <div class="reldiag" data-set="Ana,Luis,Sofía" data-rel="Ana>Ana,Luis>Luis,Sofía>Sofía,Ana>Luis,Luis>Ana" data-hl="Ana>Ana,Luis>Luis,Sofía>Sofía"
+             data-name="misma edad" data-w="360" data-h="290" data-expect="R,S,T"></div>
+        <div class="figcap">Ana y Luis tienen 7 años; Sofía, 6.</div>
+      </div>
+      <div>
+        <p class="lead fragment">¡Claro que sí! <b>Todos</b> tienen la misma edad que ellos mismos. En el dibujo eso es un <b>bucle</b> (flecha que sale y regresa al mismo punto).</p>
+        <p class="lead mt16 fragment">Igual que \(3=3\): <b>cada número es igual a sí mismo</b>.</p>
+        <div class="note fragment"><i class="fa-solid fa-eye"></i><span><b>Prueba visual:</b> <b>todos</b> los elementos del conjunto tienen bucle.</span></div>
+      </div>
+    </div>
+    <aside class="notes">Los bucles resaltados son los que hacen reflexiva a la relación. Las flechas Ana↔Luis existen porque comparten edad, pero no influyen en la reflexividad.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Propiedad reflexiva · Definición</div>
+    <div class="route" data-on="5"></div>
+    <h2>Definición formal de reflexividad</h2>
+    <div class="def hl mt16">
+      <div class="head"><i class="fa-solid fa-book"></i> Definición</div>
+      <div class="body">Una relación \(R\) sobre un conjunto \(A\) es <b>reflexiva</b> si
+        <div class="formula">\[\forall a\in A,\ (a,a)\in R\]</div></div>
+    </div>
+    <div class="two tight">
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-list-check"></i> Cómo verificarla con pares</div>
+        <div class="body small">Recorre <b>cada</b> \(a\in A\) y busca el par \((a,a)\) en \(R\). Si falta uno solo, <b>no</b> es reflexiva.<br>
+          <span class="mono">A = {1,2,3}: ¿(1,1)? ¿(2,2)? ¿(3,3)?</span></div>
+      </div>
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-triangle-exclamation"></i> Depende del conjunto \(A\)</div>
+        <div class="body small">\(R=\{(1,1),(2,2)\}\) es reflexiva sobre \(\{1,2\}\), pero <b>no</b> sobre \(\{1,2,3\}\): falta \((3,3)\).</div>
+      </div>
+    </div>
+    <aside class="notes">Igual que con las funciones, la propiedad depende del conjunto declarado. Por eso siempre se dice «R es reflexiva SOBRE A».</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Propiedad reflexiva · Ejemplo y contraejemplo</div>
+    <div class="route" data-on="6,7"></div>
+    <h2>¿Están todos los bucles?</h2>
+    <div class="two tight">
+      <div class="panel hl fig">
+        <h3>\(R_1\) sobre \(\{1,2,3\}\)</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>1,2>2,3>3,1>2" data-hl="1>1,2>2,3>3" data-w="340" data-h="290" data-badges="R" data-expect="R"></div>
+        <div class="figcap">\(\{(1,1),(2,2),(3,3),(1,2)\}\): están los <b>tres</b> bucles.</div>
+      </div>
+      <div class="panel bad fig">
+        <h3>\(R_2\) sobre \(\{1,2,3\}\)</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>1,3>3,1>2,2>3" data-mark="2" data-w="340" data-h="290" data-badges="R" data-expect="!R"></div>
+        <div class="figcap">\(\{(1,1),(3,3),(1,2),(2,3)\}\): <b>falta \((2,2)\)</b>; el 2 no tiene bucle.</div>
+      </div>
+    </div>
+    <aside class="notes">En R2 el elemento 2 tiene flechas que entran y salen, pero ninguna regresa a él mismo. Eso no cuenta como bucle.</aside>
+  </section>
+
+  <section data-transition="zoom">
+    <div class="kicker">C · Propiedad reflexiva · Ejercicio y reto</div>
+    <div class="route" data-on="6,8,9"></div>
+    <h2>Verificamos paso a paso</h2>
+    <div class="two tight">
+      <div class="panel">
+        <h3>Resuelto: \(A=\{a,b,c\}\)</h3>
+        <p class="small center">\(R=\{(a,a),(a,b),(b,b),(c,a),(c,c)\}\)</p>
+        <div class="steps small mt8">
+          <div class="step fragment">\(a\in A\): ¿\((a,a)\in R\)? <span class="yes-t">Sí ✓</span></div>
+          <div class="step fragment">\(b\in A\): ¿\((b,b)\in R\)? <span class="yes-t">Sí ✓</span></div>
+          <div class="step fragment">\(c\in A\): ¿\((c,c)\in R\)? <span class="yes-t">Sí ✓</span></div>
+          <div class="step concl fragment">Todos los bucles están: <b>reflexiva</b>.</div>
+        </div>
+      </div>
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto</div>
+        <div class="qtext">Sobre los números naturales \(\mathbb{N}\):<br>a) ¿Es reflexiva «\(\le\)»?<br>b) ¿Es reflexiva «\(&lt;\)»?</div>
+        <button class="ans-btn" aria-controls="ans-r1" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-r1" hidden><span class="lbl-ans">Respuesta</span>a) <b>Sí:</b> \(n\le n\) para todo \(n\).<br>b) <b>No:</b> por ejemplo \(1&lt;1\) es falso; de hecho, ningún \(n\) cumple \(n&lt;n\).</div>
+      </div>
+    </div>
+    <aside class="notes">El ejercicio resuelto modela el procedimiento: una comprobación por cada elemento del conjunto, no por cada par de la relación.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN C · SIMÉTRICA
+     ===================================================================== -->
+<section>
+
+  <section data-transition="concave" id="simetrica">
+    <div class="kicker">C · Propiedad simétrica · Pregunta y analogía</div>
+    <div class="route" data-on="1,2,3,4"></div>
+    <h2>Si uno se relaciona con otro, el otro también</h2>
+    <div class="q" style="margin-top:14px"><i class="fa-solid fa-circle-question"></i><p>Si Ana tiene la misma edad que Luis, ¿Luis tiene la misma edad que Ana?</p></div>
+    <div class="two tight" style="align-items:center">
+      <div class="fig">
+        <div class="reldiag" data-set="Ana,Luis" data-rel="Ana>Luis,Luis>Ana" data-hl="Ana>Luis,Luis>Ana" data-layout="line" data-name="misma edad" data-w="380" data-h="170" data-expect="S"></div>
+      </div>
+      <div>
+        <p class="lead fragment">¡Sí! La relación «funciona en los dos sentidos»: cada flecha tiene su <b>flecha de regreso</b>.</p>
+        <p class="lead mt16 fragment">En cambio, «es más alta que» <b>no</b>: si Ana es más alta que Luis, Luis <b>no</b> es más alto que Ana.</p>
+        <div class="note fragment"><i class="fa-solid fa-eye"></i><span><b>Prueba visual:</b> toda flecha entre dos puntos distintos va acompañada de la flecha <b>contraria</b>.</span></div>
+      </div>
+    </div>
+    <aside class="notes">El diagrama solo muestra los pares entre Ana y Luis (sin bucles), para centrar la atención en la ida y vuelta.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Propiedad simétrica · Definición</div>
+    <div class="route" data-on="5"></div>
+    <h2>Definición formal de simetría</h2>
+    <div class="def hl mt16">
+      <div class="head"><i class="fa-solid fa-book"></i> Definición</div>
+      <div class="body">Una relación \(R\) sobre \(A\) es <b>simétrica</b> si
+        <div class="formula">\[\forall a,b\in A,\quad (a,b)\in R\ \Rightarrow\ (b,a)\in R\]</div></div>
+    </div>
+    <div class="three">
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-list-check"></i> Cómo verificarla</div>
+        <div class="body small">Para <b>cada par</b> \((a,b)\in R\), busca su «gemelo» \((b,a)\).</div>
+      </div>
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-rotate-right"></i> Bucles</div>
+        <div class="body small">Un bucle \((a,a)\) es su propio gemelo: nunca rompe la simetría.</div>
+      </div>
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-triangle-exclamation"></i> No exige conectar a todos</div>
+        <div class="body small">Solo pide el regreso de las flechas que <b>ya existen</b>. Incluso \(R=\varnothing\) es simétrica.</div>
+      </div>
+    </div>
+    <aside class="notes">La relación vacía es simétrica «por vacuidad»: no hay ningún par (a,b) que obligue a nada. La implicación con hipótesis falsa es verdadera.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Propiedad simétrica · Ejemplo y contraejemplo</div>
+    <div class="route" data-on="6,7"></div>
+    <h2>¿Toda flecha tiene regreso?</h2>
+    <div class="two tight">
+      <div class="panel hl fig">
+        <h3>\(R\) sobre \(\{1,2,3\}\)</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>2,2>1,3>3" data-hl="1>2,2>1" data-w="340" data-h="290" data-badges="S" data-expect="S,!R"></div>
+        <div class="figcap">\(\{(1,2),(2,1),(3,3)\}\). El 3 no se conecta con 1 ni 2, y aun así es simétrica.</div>
+      </div>
+      <div class="panel bad fig">
+        <h3>\(S\) sobre \(\{1,2,3\}\)</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>2,2>1,2>3" data-bad="2>3" data-missing="3>2" data-w="340" data-h="290" data-badges="S" data-expect="!S"></div>
+        <div class="figcap">\((2,3)\in S\) pero <b>falta \((3,2)\)</b> (flecha punteada «falta»).</div>
+      </div>
+    </div>
+    <aside class="notes">Nota que R es simétrica pero no reflexiva (faltan (1,1) y (2,2)): las propiedades son independientes.</aside>
+  </section>
+
+  <section data-transition="zoom">
+    <div class="kicker">C · Propiedad simétrica · Ejercicio y reto</div>
+    <div class="route" data-on="6,8,9"></div>
+    <h2>Buscando gemelos</h2>
+    <div class="two tight">
+      <div class="panel">
+        <h3>Resuelto: \(A=\{1,2,3,4\}\)</h3>
+        <p class="small center">\(R=\{(1,3),(3,1),(2,2),(2,4),(4,2),(4,4)\}\)</p>
+        <table class="tbl props mt8" style="font-size:17px">
+          <tr><th>Par</th><th>Gemelo</th><th class="c">¿Está?</th></tr>
+          <tr class="fragment"><td>(1,3)</td><td>(3,1)</td><td class="c y">✓ sí</td></tr>
+          <tr class="fragment"><td>(3,1)</td><td>(1,3)</td><td class="c y">✓ sí</td></tr>
+          <tr class="fragment"><td>(2,2) · (4,4)</td><td>ellos mismos</td><td class="c y">✓ sí</td></tr>
+          <tr class="fragment"><td>(2,4) · (4,2)</td><td>(4,2) · (2,4)</td><td class="c y">✓ sí</td></tr>
+        </table>
+        <p class="center mt8 fragment"><b>∴ \(R\) es simétrica.</b></p>
+      </div>
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto</div>
+        <div class="qtext">a) \(T=\{(1,2),(2,1),(2,3),(3,3)\}\) sobre \(\{1,2,3\}\). ¿Es simétrica? ¿Qué par mínimo hay que añadir?<br>b) Entre personas, ¿es simétrica «es hermana de»?</div>
+        <button class="ans-btn" aria-controls="ans-si1" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-si1" hidden><span class="lbl-ans">Respuesta</span>a) <b>No:</b> \((2,3)\in T\) pero \((3,2)\notin T\). Basta añadir \((3,2)\).<br>b) <b>No:</b> Marta es hermana de Pedro, pero Pedro no es <i>hermana</i> de Marta. «Son hermanos» (mismos padres) <b>sí</b> es simétrica.</div>
+      </div>
+    </div>
+    <aside class="notes">El inciso b) del reto es sutil y muy formativo: la propiedad depende exactamente de cómo está definida la relación.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN C · TRANSITIVA
+     ===================================================================== -->
+<section>
+
+  <section data-transition="concave" id="transitiva">
+    <div class="kicker">C · Propiedad transitiva · Pregunta y analogía</div>
+    <div class="route" data-on="1,2,3,4"></div>
+    <h2>Conectar los pasos</h2>
+    <div class="q" style="margin-top:14px"><i class="fa-solid fa-circle-question"></i><p>Ana tiene la edad de Luis y Luis la de Marta. ¿Ana tiene la edad de Marta?</p></div>
+    <div class="two tight" style="align-items:center">
+      <div class="fig">
+        <div class="reldiag" data-set="Ana,Luis,Marta" data-rel="Ana>Luis,Luis>Marta,Ana>Marta" data-hl="Ana>Marta" data-pos="70,200;190,70;310,200" data-w="380" data-h="250" data-expect="T"></div>
+        <div class="figcap">Esquema: si están las dos flechas negras, <b>debe estar</b> la flecha directa resaltada.</div>
+      </div>
+      <div>
+        <p class="lead fragment">¡Sí! Si \(a\) va con \(b\) y \(b\) va con \(c\), entonces \(a\) <b>tiene que ir directamente</b> con \(c\).</p>
+        <div class="note fragment"><i class="fa-solid fa-triangle-exclamation"></i><span>No basta con poder «llegar caminando» de \(a\) a \(c\): la transitividad exige que el <b>atajo directo</b> \((a,c)\) esté en la relación.</span></div>
+      </div>
+    </div>
+    <aside class="notes">Usa la imagen de un atajo: cada vez que hay un camino de dos pasos, la relación debe contener también el paso directo.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Propiedad transitiva · Definición</div>
+    <div class="route" data-on="5"></div>
+    <h2>Definición formal de transitividad</h2>
+    <div class="def hl mt16">
+      <div class="head"><i class="fa-solid fa-book"></i> Definición</div>
+      <div class="body">Una relación \(R\) sobre \(A\) es <b>transitiva</b> si
+        <div class="formula">\[\forall a,b,c\in A,\quad \big[(a,b)\in R\ \land\ (b,c)\in R\big]\ \Rightarrow\ (a,c)\in R\]</div></div>
+    </div>
+    <div class="three">
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-list-check"></i> Cómo verificarla</div>
+        <div class="body small">Busca <b>todas</b> las cadenas \((a,b),(b,c)\) (el final del primero = inicio del segundo) y exige el atajo \((a,c)\).</div>
+      </div>
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-triangle-exclamation"></i> ¡Ojo con \(a=c\)!</div>
+        <div class="body small">Si están \((1,2)\) y \((2,1)\), la cadena exige \((1,1)\). Y la cadena \((2,1),(1,2)\) exige \((2,2)\).</div>
+      </div>
+      <div class="def fragment">
+        <div class="head"><i class="fa-solid fa-circle-info"></i> Sin cadenas</div>
+        <div class="body small">Si no hay ninguna cadena, nada se exige: la relación es transitiva (por vacuidad).</div>
+      </div>
+    </div>
+    <aside class="notes">El caso a = c es el error más frecuente en exámenes: muchos alumnos creen que {(1,2),(2,1)} es transitiva. No lo es: faltan (1,1) y (2,2).</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Propiedad transitiva · Ejemplo y contraejemplo</div>
+    <div class="route" data-on="6,7"></div>
+    <h2>¿Están todos los atajos?</h2>
+    <div class="two tight">
+      <div class="panel hl fig">
+        <h3>«\(&lt;\)» sobre \(\{1,2,3\}\)</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>2,2>3,1>3" data-hl="1>3" data-w="340" data-h="290" data-badges="T" data-expect="T"></div>
+        <div class="figcap">Única cadena: \((1,2),(2,3)\). El atajo \((1,3)\) <b>está</b>.</div>
+      </div>
+      <div class="panel bad fig">
+        <h3>\(S\) sobre \(\{1,2,3\}\)</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>2,2>3" data-missing="1>3" data-w="340" data-h="290" data-badges="T" data-expect="!T"></div>
+        <div class="figcap">\(S=\{(1,2),(2,3)\}\): hay cadena \((1,2),(2,3)\) pero <b>falta \((1,3)\)</b>. Se puede «caminar» de 1 a 3, ¡pero eso no basta!</div>
+      </div>
+    </div>
+    <aside class="notes">En S existe un camino 1 → 2 → 3, pero el par directo (1,3) no pertenece a S. Por eso no es transitiva.</aside>
+  </section>
+
+  <section data-transition="zoom">
+    <div class="kicker">C · Propiedad transitiva · Ejercicio y reto</div>
+    <div class="route" data-on="6,8,9"></div>
+    <h2>Revisamos todas las cadenas</h2>
+    <div class="split" style="grid-template-columns:1fr 400px">
+      <div class="panel">
+        <h3>\(R=\{(1,2),(2,1),(1,1)\}\) sobre \(\{1,2\}\)</h3>
+        <table class="tbl props mt8" style="font-size:17px">
+          <tr><th>Cadena \((a,b),(b,c)\)</th><th>Exige</th><th class="c">¿Está?</th></tr>
+          <tr class="fragment"><td>(1,2), (2,1)</td><td>(1,1)</td><td class="c y">✓ sí</td></tr>
+          <tr class="fragment"><td>(2,1), (1,2)</td><td>(2,2)</td><td class="c n">✗ no</td></tr>
+          <tr class="fragment"><td>(2,1), (1,1)</td><td>(2,1)</td><td class="c y">✓ sí</td></tr>
+          <tr class="fragment"><td>(1,1), (1,2) · (1,1), (1,1)</td><td>(1,2) · (1,1)</td><td class="c y">✓ sí</td></tr>
+        </table>
+        <p class="center mt8 fragment"><b>∴ No es transitiva</b>: falta \((2,2)\). Al añadirlo, sí lo sería.</p>
+      </div>
+      <div class="reto">
+        <div class="head"><i class="fa-solid fa-puzzle-piece"></i> Reto</div>
+        <div class="qtext">\(R=\{(1,2),(3,4)\}\) sobre \(\{1,2,3,4\}\). ¿Es transitiva?</div>
+        <button class="ans-btn" aria-controls="ans-t1" aria-expanded="false"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+        <div class="ans" id="ans-t1" hidden><span class="lbl-ans">Respuesta</span><b>Sí.</b> No hay ninguna cadena: el 2 y el 4 no inician ningún par. Sin cadenas no se exige ningún atajo.</div>
+      </div>
+    </div>
+    <aside class="notes">Método sistemático: para cada par (a,b), busca todos los pares que empiezan con b. Con 3 pares hay como máximo 9 combinaciones; aquí solo 5 forman cadena.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN C · VARIAS PROPIEDADES
+     ===================================================================== -->
+<section>
+
+  <section data-transition="convex" id="varias">
+    <div class="kicker">C · Combinando propiedades · 1 de 2</div>
+    <h2>¿Una relación puede tener varias propiedades?</h2>
+    <p class="sub mt0">Sí: las tres son independientes. Todas sobre \(A=\{1,2,3\}\). Las insignias se calculan a partir de los pares.</p>
+    <div class="three">
+      <div class="panel hl fig">
+        <h3>«misma paridad»</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>1,2>2,3>3,1>3,3>1" data-w="330" data-h="285" data-badges="R,S,T" data-expect="R,S,T"></div>
+        <div class="figcap small">\(\{(1,1),(2,2),(3,3),(1,3),(3,1)\}\)</div>
+      </div>
+      <div class="panel fig">
+        <h3>«diferencia \(\le 1\)»</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>1,2>2,3>3,1>2,2>1,2>3,3>2" data-missing="1>3" data-missing-frag data-w="330" data-h="285" data-badges="R,S,T" data-expect="R,S,!T"></div>
+        <div class="figcap small">\(\{(a,b):|a-b|\le1\}\). Cadena \((1,2),(2,3)\) sin \((1,3)\).</div>
+      </div>
+      <div class="panel fig">
+        <h3>«\(\le\)»</h3>
+        <div class="reldiag" data-set="1,2,3" data-rel="1>1,2>2,3>3,1>2,1>3,2>3" data-bad="1>2" data-w="330" data-h="285" data-badges="R,S,T" data-expect="R,!S,T"></div>
+        <div class="figcap small">\((1,2)\in R\) pero \((2,1)\notin R\).</div>
+      </div>
+    </div>
+    <aside class="notes">Reflexiva + simétrica + transitiva = relación de equivalencia («misma paridad» agrupa {1,3} y {2}). La segunda muestra que reflexiva y simétrica no implican transitiva; la tercera, que reflexiva y transitiva no implican simétrica.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">C · Combinando propiedades · 2 de 2</div>
+    <h2>Más combinaciones</h2>
+    <div class="split" style="grid-template-columns:600px 1fr">
+      <div class="two tight mt0">
+        <div class="panel fig">
+          <h3>«\(&lt;\)»</h3>
+          <div class="reldiag" data-set="1,2,3" data-rel="1>2,1>3,2>3" data-mark="1,2,3" data-w="300" data-h="270" data-badges="R,S,T" data-expect="!R,!S,T"></div>
+          <div class="figcap small">Ningún bucle.</div>
+        </div>
+        <div class="panel fig">
+          <h3>\(Q\)</h3>
+          <div class="reldiag" data-set="1,2,3" data-rel="1>1,2>2,1>2,2>1" data-mark="3" data-w="300" data-h="270" data-badges="R,S,T" data-expect="!R,S,T"></div>
+          <div class="figcap small">\(\{(1,1),(2,2),(1,2),(2,1)\}\): falta \((3,3)\).</div>
+        </div>
+      </div>
+      <div>
+        <table class="tbl props" style="font-size:17px">
+          <tr><th>Relación</th><th class="c">R</th><th class="c">S</th><th class="c">T</th></tr>
+          <tr><td>misma paridad</td><td class="c y">✓</td><td class="c y">✓</td><td class="c y">✓</td></tr>
+          <tr><td>diferencia ≤ 1</td><td class="c y">✓</td><td class="c y">✓</td><td class="c n">✗</td></tr>
+          <tr><td>≤</td><td class="c y">✓</td><td class="c n">✗</td><td class="c y">✓</td></tr>
+          <tr><td>&lt;</td><td class="c n">✗</td><td class="c n">✗</td><td class="c y">✓</td></tr>
+          <tr><td>Q</td><td class="c n">✗</td><td class="c y">✓</td><td class="c y">✓</td></tr>
+        </table>
+        <div class="note fragment"><i class="fa-solid fa-triangle-exclamation"></i><span><b>Trampa clásica:</b> «simétrica + transitiva ⇒ reflexiva» es <b>falso</b>. \(Q\) lo demuestra: el 3 no está relacionado con nadie, así que ninguna cadena le exige \((3,3)\).</span></div>
+      </div>
+    </div>
+    <aside class="notes">R = reflexiva, S = simétrica, T = transitiva. Verificación de Q: cadenas (1,2),(2,1) → (1,1) ✓; (2,1),(1,2) → (2,2) ✓; las que usan bucles dan pares ya presentes. Es simétrica y transitiva, pero no reflexiva sobre {1,2,3}.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     SECCIÓN D · EJERCICIOS
+     ===================================================================== -->
+<section>
+
+  <section data-transition="zoom" id="ejercicios">
+    <div class="kicker">D · Ejercicios · Nivel fácil</div>
+    <h2>Calentamiento</h2>
+    <div class="three">
+      <div class="ex fig">
+        <div><span class="n">1</span>¿Es función? ¿Cuál es su imagen?</div>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b" data-map="1>a,2>a,3>b" data-w="360" data-expect="fun,sob"></div>
+      </div>
+      <div class="ex fig">
+        <div><span class="n">2</span>¿Es función?</div>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c" data-map="1>a,1>b,2>c,3>c" data-w="360" data-expect="!fun"></div>
+      </div>
+      <div class="ex fig">
+        <div><span class="n">3</span>Sobre \(\{1,2\}\): ¿reflexiva? ¿simétrica?</div>
+        <div class="reldiag" data-set="1,2" data-rel="1>1,2>2,1>2" data-layout="line" data-w="320" data-h="170" data-expect="R,!S"></div>
+        <div class="small">\(R=\{(1,1),(2,2),(1,2)\}\)</div>
+      </div>
+    </div>
+    <div class="note"><i class="fa-solid fa-hourglass-half"></i><span>Resuélvelos en tu cuaderno y <b>justifica</b>. Las soluciones están en la siguiente diapositiva (↓).</span></div>
+    <aside class="notes">3–4 minutos. Pide que escriban la razón, no solo sí/no.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">D · Soluciones explicadas · Nivel fácil</div>
+    <h2>Soluciones del calentamiento</h2>
+    <div class="steps mt24">
+      <div class="step fragment"><span><b>1 · Sí es función:</b> cada elemento de \(A\) tiene exactamente una flecha (1 y 2 comparten \(a\), lo cual está permitido). \(\operatorname{Im}(f)=\{a,b\}\), que aquí coincide con el codominio.</span></div>
+      <div class="step fail fragment"><span><b>2 · No es función:</b> el 1 tiene dos flechas (\(a\) y \(b\)), así que \(f(1)\) no está determinado. Falla la unicidad.</span></div>
+      <div class="step fragment"><span><b>3a · Reflexiva:</b> \(A=\{1,2\}\) y están \((1,1)\) y \((2,2)\). <span class="yes-t">✓</span></span></div>
+      <div class="step fail fragment"><span><b>3b · No simétrica:</b> \((1,2)\in R\) pero \((2,1)\notin R\). Un solo par sin gemelo basta.</span></div>
+    </div>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">D · Ejercicios · Nivel intermedio</div>
+    <h2>Clasifica y justifica</h2>
+    <p class="sub mt0">En 4, 5 y 6: ¿inyectiva? ¿sobreyectiva? ¿biyectiva?</p>
+    <div class="three" style="margin-top:12px">
+      <div class="ex fig">
+        <div><span class="n">4</span>\(f:A\to B\)</div>
+        <div class="mapdiag" data-a="1,2,3,4" data-b="a,b,c,d" data-map="1>b,2>d,3>a,4>c" data-gap="44" data-expect="fun,biy"></div>
+      </div>
+      <div class="ex fig">
+        <div><span class="n">5</span>\(g:A\to B\)</div>
+        <div class="mapdiag" data-a="1,2,3" data-b="a,b,c,d" data-map="1>a,2>c,3>d" data-gap="44" data-expect="fun,iny,!sob"></div>
+      </div>
+      <div class="ex fig">
+        <div><span class="n">6</span>\(h:A\to B\)</div>
+        <div class="mapdiag" data-a="1,2,3,4" data-b="a,b" data-map="1>a,2>b,3>a,4>b" data-gap="44" data-expect="fun,!iny,sob"></div>
+      </div>
+    </div>
+    <div class="ex mt16" style="display:grid;grid-template-columns:1fr 260px;align-items:center;gap:20px">
+      <div><span class="n">7</span>Sobre \(A=\{1,2,3\}\), la relación \(R=\{(1,1),(2,2),(3,3),(1,2),(2,1),(1,3),(3,1)\}\).<br>¿Es reflexiva? ¿Simétrica? ¿Transitiva? <b>Comprueba cada propiedad con los pares</b>, no solo con el dibujo.</div>
+      <div class="reldiag" data-set="1,2,3" data-rel="1>1,2>2,3>3,1>2,2>1,1>3,3>1" data-w="300" data-h="215" data-expect="R,S,!T"></div>
+    </div>
+    <aside class="notes">Recuerda a los alumnos: para «sí» hay que revisar todos los casos; para «no» basta un contraejemplo concreto.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">D · Soluciones explicadas · Nivel intermedio</div>
+    <h2>Soluciones: clasificar con argumentos</h2>
+    <div class="steps mt16">
+      <div class="step fragment"><span><b>4 · Biyectiva.</b> Inyectiva: las imágenes \(b,d,a,c\) son todas distintas. Sobreyectiva: \(a,b,c,d\) reciben flecha (de 3, 1, 4 y 2). Inversa: \(a\mapsto3,\ b\mapsto1,\ c\mapsto4,\ d\mapsto2\).</span></div>
+      <div class="step fragment"><span><b>5 · Inyectiva, no sobreyectiva</b> (∴ no biyectiva). Imágenes \(a,c,d\) distintas; pero \(b\in B\) no recibe flecha.</span></div>
+      <div class="step fragment"><span><b>6 · Sobreyectiva, no inyectiva</b> (∴ no biyectiva). \(a\) y \(b\) reciben flecha; pero \(h(1)=h(3)=a\) con \(1\neq3\).</span></div>
+      <div class="step fragment"><span><b>7 · Reflexiva ✓</b> (están \((1,1),(2,2),(3,3)\)). <b>Simétrica ✓</b> (\((1,2)\leftrightarrow(2,1)\), \((1,3)\leftrightarrow(3,1)\)). <b>No transitiva ✗:</b> la cadena \((2,1),(1,3)\) exige \((2,3)\), que no está.</span></div>
+    </div>
+    <aside class="notes">En el 7, el diagrama "parece" muy conectado; solo revisando las cadenas se encuentra el fallo (2,1),(1,3). También falla (3,1),(1,2) → (3,2).</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">D · Ejercicios · Nivel avanzado</div>
+    <h2>Funciones algebraicas y pares ordenados</h2>
+    <div class="list mt16">
+      <div class="ex"><span class="n">8</span>Clasifica \(f(x)=x^2\) en cada caso:
+        <span class="mono">(a)</span> \(\mathbb{R}\to\mathbb{R}\) &nbsp; <span class="mono">(b)</span> \([0,\infty)\to\mathbb{R}\) &nbsp; <span class="mono">(c)</span> \(\mathbb{R}\to[0,\infty)\) &nbsp; <span class="mono">(d)</span> \([0,\infty)\to[0,\infty)\)</div>
+      <div class="ex"><span class="n">9</span>Demuestra que \(f:\mathbb{R}\to\mathbb{R},\ f(x)=2x+1\) es biyectiva y calcula \(f^{-1}\). ¿Sigue siendo biyectiva como \(f:\mathbb{Z}\to\mathbb{Z}\)?</div>
+      <div class="ex"><span class="n">10</span>Sobre \(A=\{1,2,3\}\), sea \(R=\{(1,2),(2,3),(1,3),(2,2)\}\). Comprueba <b>formalmente</b> si es reflexiva, simétrica y transitiva.</div>
+    </div>
+    <div class="note"><i class="fa-solid fa-scale-balanced"></i><span>Escribe siempre dominio y codominio. En el ejercicio 10, no te fíes del dibujo: <b>enumera las cadenas</b>.</span></div>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">D · Soluciones explicadas · Nivel avanzado (1)</div>
+    <h2>Ejercicio 8: el mismo \(x^2\), cuatro respuestas</h2>
+    <table class="tbl props mt16">
+      <tr><th>Caso</th><th class="c">Inyectiva</th><th class="c">Sobreyectiva</th><th>Razón</th></tr>
+      <tr class="fragment"><td>(a) \(\mathbb{R}\to\mathbb{R}\)</td><td class="c n">✗</td><td class="c n">✗</td><td>\(f(1)=f(-1)\); \(-1\) no se alcanza.</td></tr>
+      <tr class="fragment"><td>(b) \([0,\infty)\to\mathbb{R}\)</td><td class="c y">✓</td><td class="c n">✗</td><td>Sin negativos en el dominio; \(-1\) sigue sin alcanzarse.</td></tr>
+      <tr class="fragment"><td>(c) \(\mathbb{R}\to[0,\infty)\)</td><td class="c n">✗</td><td class="c y">✓</td><td>\(f(1)=f(-1)\); todo \(y\ge0\) es \(f(\sqrt y)\).</td></tr>
+      <tr class="fragment"><td>(d) \([0,\infty)\to[0,\infty)\)</td><td class="c y">✓</td><td class="c y">✓</td><td><b>Biyectiva</b>, con inversa \(\sqrt{y}\).</td></tr>
+    </table>
+    <div class="note fragment"><i class="fa-solid fa-key"></i><span>Restringir el <b>dominio</b> puede dar inyectividad; ajustar el <b>codominio</b> a la imagen da sobreyectividad.</span></div>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">D · Soluciones explicadas · Nivel avanzado (2)</div>
+    <h2>Ejercicio 9: \(f(x)=2x+1\)</h2>
+    <div class="two tight mt16">
+      <div class="panel">
+        <h3>\(f:\mathbb{R}\to\mathbb{R}\)</h3>
+        <div class="steps small mt8">
+          <div class="step fragment">Inyectiva: \(2x_1+1=2x_2+1\Rightarrow 2x_1=2x_2\Rightarrow x_1=x_2\).</div>
+          <div class="step fragment">Sobreyectiva: dado \(y\in\mathbb{R}\), \(x=\tfrac{y-1}{2}\in\mathbb{R}\) y \(f(x)=(y-1)+1=y\).</div>
+          <div class="step concl fragment"><b>Biyectiva</b>, con \(f^{-1}(y)=\tfrac{y-1}{2}\).</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>\(f:\mathbb{Z}\to\mathbb{Z}\)</h3>
+        <div class="steps small mt8">
+          <div class="step fragment">Sigue siendo inyectiva (el mismo argumento vale en \(\mathbb{Z}\)).</div>
+          <div class="step fragment">Para \(y=2\): \(2n+1=2\) da \(n=\tfrac12
+\notin\mathbb{Z}\).</div>
+          <div class="step fail fragment"><b>No sobreyectiva</b>: solo se obtienen los impares. Por tanto, no biyectiva.</div>
+        </div>
+      </div>
+    </div>
+    <div class="note fragment"><i class="fa-solid fa-key"></i><span>Misma regla, distintos conjuntos, distinta clasificación: por eso siempre se declaran dominio y codominio.</span></div>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">D · Soluciones explicadas · Nivel avanzado (3)</div>
+    <h2>Ejercicio 10: comprobar, no adivinar</h2>
+    <div class="split" style="grid-template-columns:1fr 330px">
+      <div class="panel">
+        <h3>\(R=\{(1,2),(2,3),(1,3),(2,2)\}\) sobre \(\{1,2,3\}\)</h3>
+        <div class="steps small mt8">
+          <div class="step fail fragment"><span><b>Reflexiva:</b> falta \((1,1)\) (y también \((3,3)\)). No reflexiva.</span></div>
+          <div class="step fail fragment"><span><b>Simétrica:</b> \((1,2)\in R\) pero \((2,1)
+\notin R\). No simétrica.</span></div>
+          <div class="step fragment"><span><b>Transitiva:</b> cadenas \((1,2),(2,3)\to(1,3)\) ✓; \((1,2),(2,2)\to(1,2)\) ✓; \((2,2),(2,3)\to(2,3)\) ✓; \((2,2),(2,2)\to(2,2)\) ✓. Del 3 no sale ningún par, así que \((2,3)\) y \((1,3)\) no inician cadenas.</span></div>
+          <div class="step concl fragment"><span><b>Transitiva</b>, pero ni reflexiva ni simétrica.</span></div>
+        </div>
+      </div>
+      <div class="fig fragment">
+        <div class="reldiag" data-set="1,2,3" data-rel="1>2,2>3,1>3,2>2" data-mark="1,3" data-w="300" data-h="250" data-badges="R,S,T" data-expect="!R,!S,T"></div>
+        <div class="figcap">Borde punteado con cruz: elementos sin bucle.</div>
+      </div>
+    </div>
+    <aside class="notes">Hay que encontrar TODAS las cadenas: para cada par (a,b) se buscan los pares que empiezan por b. Los pares (2,3) y (1,3) terminan en 3, del que no sale nada.</aside>
+  </section>
+
+</section>
+
+<!-- =====================================================================
+     RESUMEN VISUAL
+     ===================================================================== -->
+<section data-transition="convex" id="resumen">
+  <div class="kicker">Resumen visual</div>
+  <h2>Mapa conceptual</h2>
+  <div class="stage cmap" style="height:540px">
+    <svg class="wires" viewBox="0 0 1168 540" aria-hidden="true">
+      <line x1="584" y1="50" x2="300" y2="175"/><text x="410" y="100">caso especial</text>
+      <line x1="584" y1="50" x2="878" y2="175"/><text x="760" y="100">cuando B = A</text>
+      <line x1="300" y1="175" x2="150" y2="320"/><line x1="300" y1="175" x2="450" y2="320"/>
+      <line x1="150" y1="320" x2="300" y2="465"/><line x1="450" y1="320" x2="300" y2="465"/><text x="300" y="400">ambas</text>
+      <line x1="878" y1="175" x2="688" y2="320"/><line x1="878" y1="175" x2="878" y2="320"/><line x1="878" y1="175" x2="1064" y2="320"/>
+      <line x1="688" y1="320" x2="878" y2="465"/><line x1="878" y1="320" x2="878" y2="465"/><line x1="1064" y1="320" x2="878" y2="465"/><text x="975" y="410">las tres</text>
+    </svg>
+    <div class="nodec hl" style="left:584px;top:50px"><div class="t">Relación</div><div class="d">\(R\subseteq A\times B\): lista de pares</div></div>
+    <div class="nodec" style="left:300px;top:175px"><div class="t">Función</div><div class="d">cada \(x\in A\) tiene <b>exactamente una</b> salida</div></div>
+    <div class="nodec" style="left:878px;top:175px"><div class="t">Relación sobre \(A\)</div><div class="d">\(R\subseteq A\times A\)</div></div>
+    <div class="nodec fragment" style="left:150px;top:320px"><div class="t">Inyectiva</div><div class="d">a cada \(y\) llega <b>≤ 1</b> flecha</div></div>
+    <div class="nodec fragment" style="left:450px;top:320px"><div class="t">Sobreyectiva</div><div class="d">a cada \(y\) llega <b>≥ 1</b> flecha</div></div>
+    <div class="nodec hl fragment" style="left:300px;top:465px"><div class="t">Biyectiva</div><div class="d"><b>= 1</b> flecha · tiene inversa</div></div>
+    <div class="nodec fragment" style="left:688px;top:320px"><div class="t">Reflexiva</div><div class="d">\((a,a)\) para todo \(a\)</div></div>
+    <div class="nodec fragment" style="left:878px;top:320px"><div class="t">Simétrica</div><div class="d">\((a,b)\Rightarrow(b,a)\)</div></div>
+    <div class="nodec fragment" style="left:1064px;top:320px"><div class="t">Transitiva</div><div class="d">\((a,b),(b,c)\Rightarrow(a,c)\)</div></div>
+    <div class="nodec hl fragment" style="left:878px;top:465px"><div class="t">Equivalencia</div><div class="d">las tres a la vez</div></div>
+  </div>
+  <aside class="notes">Recorre el mapa de arriba abajo. Recuerda: inyectiva, sobreyectiva y biyectiva dependen del dominio y del codominio declarados; reflexiva, simétrica y transitiva dependen del conjunto A y se verifican con los pares.</aside>
+</section>
+
+<!-- =====================================================================
+     RETO FINAL
+     ===================================================================== -->
+<section>
+
+  <section data-transition="zoom" id="reto-final">
+    <div class="kicker">Reto final</div>
+    <h2>Una función que también es una relación</h2>
+    <div class="split" style="grid-template-columns:420px 1fr">
+      <div class="fig">
+        <div class="mapdiag" data-a="1,2,3,4" data-b="1,2,3,4" data-map="1>2,2>1,3>4,4>3" data-la="A" data-lb="A" data-expect="fun,biy"></div>
+        <div class="figcap">\(f:A\to A\) con \(A=\{1,2,3,4\}\):<br>\(f(1)=2,\ f(2)=1,\ f(3)=4,\ f(4)=3\).</div>
+      </div>
+      <div class="list tight">
+        <div class="ex"><span class="n">a</span>¿Es \(f\) biyectiva? Si lo es, ¿cuál es \(f^{-1}\)?</div>
+        <div class="ex"><span class="n">b</span>Considera la relación \(R=\{(a,b)\in A\times A: f(a)=b\}\) (las flechas de \(f\) vistas como pares). Escribe sus pares y dibújala como grafo sobre \(A\).</div>
+        <div class="ex"><span class="n">c</span>¿Es \(R\) reflexiva? ¿Simétrica? ¿Transitiva? Justifica cada respuesta.</div>
+        <div class="ex"><span class="n">d</span>¿Cuáles son los <b>menos pares posibles</b> que hay que añadir a \(R\) para que sea transitiva? ¿Qué propiedades tiene el resultado?</div>
+      </div>
+    </div>
+    <aside class="notes">Trabajo en equipos de 3, unos 10 minutos. Cada equipo debe explicar su razonamiento en voz alta. La solución está en la diapositiva de abajo.</aside>
+  </section>
+
+  <section data-transition="slide">
+    <div class="kicker">Reto final · Solución</div>
+    <h2>Razonamiento completo</h2>
+    <div class="split" style="grid-template-columns:1fr 470px">
+      <div class="steps small">
+        <div class="step fragment"><span><b>a)</b> Imágenes \(2,1,4,3\): distintas (inyectiva) y cubren \(A\) (sobreyectiva) ⇒ <b>biyectiva</b>. Como \(f(f(x))=x\), \(f^{-1}=f\).</span></div>
+        <div class="step fragment"><span><b>b)</b> \(R=\{(1,2),(2,1),(3,4),(4,3)\}\).</span></div>
+        <div class="step fail fragment"><span><b>c)</b> Reflexiva ✗: no hay ningún \((a,a)\). Simétrica ✓: cada par tiene su gemelo. Transitiva ✗: la cadena \((1,2),(2,1)\) exige \((1,1)\notin R\).</span></div>
+        <div class="step fragment"><span><b>d)</b> Las cadenas \((1,2),(2,1)\), \((2,1),(1,2)\), \((3,4),(4,3)\), \((4,3),(3,4)\) exigen \((1,1),(2,2),(3,3),(4,4)\). Al añadir esos <b>4 bucles</b> ya no faltan atajos.</span></div>
+        <div class="step concl fragment"><span>El resultado es reflexivo, simétrico y transitivo: una <b>relación de equivalencia</b> con grupos \(\{1,2\}\) y \(\{3,4\}\).</span></div>
+      </div>
+      <div class="two tight mt0" style="gap:14px">
+        <div class="fig fragment">
+          <div class="figcap"><b>Antes:</b> \(R\)</div>
+          <div class="reldiag" data-set="1,2,3,4" data-rel="1>2,2>1,3>4,4>3" data-w="300" data-h="220" data-pos="70,75;230,75;230,165;70,165" data-loops="-135;-45;45;135" data-badges="R,S,T" data-expect="!R,S,!T"></div>
+        </div>
+        <div class="fig fragment">
+          <div class="figcap"><b>Después:</b> \(R\) + 4 bucles</div>
+          <div class="reldiag" data-set="1,2,3,4" data-rel="1>2,2>1,3>4,4>3,1>1,2>2,3>3,4>4" data-hl="1>1,2>2,3>3,4>4" data-w="300" data-h="220" data-pos="70,75;230,75;230,165;70,165" data-loops="-135;-45;45;135" data-badges="R,S,T" data-expect="R,S,T"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-transition="zoom" id="cierre">
+    <div class="kicker">Para terminar</div>
+    <h1 class="center" style="font-size:58px;margin-top:120px;line-height:1.2">«Las matemáticas no se memorizan:<br>se <span class="ac">observan</span>, se <span class="ac">razonan</span> y se <span class="ac">descubren</span>.»</h1>
+    <p class="sub" style="margin-top:40px">Busca funciones y relaciones a tu alrededor: ¿qué reglas conectan las cosas que ves?</p>
+    <div class="pills mt24">
+      <span class="pill"><i class="fa-solid fa-magnifying-glass"></i> Observa</span>
+      <span class="pill"><i class="fa-solid fa-pen"></i> Define</span>
+      <span class="pill"><i class="fa-solid fa-check-double"></i> Comprueba</span>
+    </div>
+  </section>
+
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/math/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="diagramas.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>

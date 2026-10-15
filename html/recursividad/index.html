@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recursividad</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="recursividad.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     1 · PORTADA
+     ===================================================================== -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Programación · Matemáticas discretas</div>
+  <h1 class="center" style="font-size:68px;margin-top:26px;line-height:1.08">Recursividad</h1>
+  <p class="center" style="font-family:var(--serif);font-size:36px;color:var(--navy);margin-top:8px">cuando una función se llama a sí misma</p>
+  <p class="sub" style="font-size:24px;margin-top:12px">Aprende programación descubriendo un truco que se repite una y otra vez.</p>
+  <svg class="ill mt24" viewBox="0 0 760 250" width="760" role="img" aria-label="Cinco muñecas rusas, cada una más pequeña que la anterior">
+    <defs>
+      <g id="doll">
+        <ellipse cx="0" cy="0" rx="42" ry="56" style="stroke:var(--navy);stroke-width:2.5"/>
+        <circle cx="0" cy="-62" r="33" style="stroke:var(--navy);stroke-width:2.5"/>
+        <circle cx="0" cy="-60" r="21" style="fill:#fff;stroke:var(--navy);stroke-width:2"/>
+        <circle cx="-7" cy="-63" r="2.6" style="fill:var(--navy)"/><circle cx="7" cy="-63" r="2.6" style="fill:var(--navy)"/>
+        <path d="M-6 -52 Q0 -47 6 -52" style="fill:none;stroke:var(--navy);stroke-width:2"/>
+        <circle cx="0" cy="12" r="17" style="fill:#fff;stroke:var(--navy);stroke-width:2"/>
+        <circle cx="0" cy="12" r="7" style="fill:var(--accent);stroke:var(--navy);stroke-width:2"/>
+      </g>
+    </defs>
+    <g transform="translate(120,175) scale(1.35)"><g class="bobg" style="fill:var(--accent-l)"><use href="#doll"/></g></g>
+    <g transform="translate(305,190) scale(1.08)"><g class="bobg" style="fill:var(--amber-l);animation-delay:.2s"><use href="#doll"/></g></g>
+    <g transform="translate(460,202) scale(.85)"><g class="bobg" style="fill:var(--blue-l);animation-delay:.4s"><use href="#doll"/></g></g>
+    <g transform="translate(585,211) scale(.66)"><g class="bobg" style="fill:var(--red-l);animation-delay:.6s"><use href="#doll"/></g></g>
+    <g transform="translate(680,218) scale(.5)"><g class="bobg" style="fill:#fff;animation-delay:.8s"><use href="#doll"/></g></g>
+  </svg>
+  <aside class="notes">Bienvenida. Hoy vamos a descubrir un truco de programación que parece magia: una función que, para resolver un problema, se pide ayuda a sí misma. La ruta será siempre la misma: primero una historia, luego un dibujo, después las matemáticas y al final el código.</aside>
+</section>
+
+<!-- =====================================================================
+     2 · PREGUNTA: CAJAS DENTRO DE CAJAS
+     ===================================================================== -->
+<section data-transition="convex" id="cajas">
+  <div class="kicker">Historia · Para empezar</div>
+  <div class="route" data-on="1"></div>
+  <h2>Una caja… dentro de otra caja</h2>
+  <div class="q"><i class="fa-solid fa-circle-question"></i><p>¿Qué pasaría si para abrir una caja tuvieras que abrir otra caja más pequeña?</p></div>
+  <div class="boxrow">
+    <div class="bx">
+      <svg class="ill" viewBox="0 0 170 160" width="170" role="img" aria-label="Caja grande cerrada">
+        <rect class="box" x="10" y="40" width="150" height="110" rx="6"/><rect class="box ac" x="2" y="22" width="166" height="26" rx="5"/>
+        <text class="txt" x="85" y="98" style="font-size:40px">?</text></svg>
+      <span class="lbl">Caja 1</span>
+    </div>
+    <i class="fa-solid fa-arrow-right arr fragment fade-in" data-fragment-index="1" aria-hidden="true"></i>
+    <div class="bx fragment zoom-in" data-fragment-index="1">
+      <svg class="ill" viewBox="0 0 130 125" width="130" role="img" aria-label="Caja mediana cerrada">
+        <rect class="box" x="8" y="32" width="114" height="86" rx="6"/><rect class="box ac" x="2" y="17" width="126" height="22" rx="5"/>
+        <text class="txt" x="65" y="77" style="font-size:34px">?</text></svg>
+      <span class="lbl">Caja 2</span>
+    </div>
+    <i class="fa-solid fa-arrow-right arr fragment fade-in" data-fragment-index="2" aria-hidden="true"></i>
+    <div class="bx fragment zoom-in" data-fragment-index="2">
+      <svg class="ill" viewBox="0 0 100 95" width="100" role="img" aria-label="Caja pequeña cerrada">
+        <rect class="box" x="6" y="25" width="88" height="64" rx="5"/><rect class="box ac" x="1" y="13" width="98" height="18" rx="4"/>
+        <text class="txt" x="50" y="58" style="font-size:28px">?</text></svg>
+      <span class="lbl">Caja 3</span>
+    </div>
+    <i class="fa-solid fa-arrow-right arr fragment fade-in" data-fragment-index="3" aria-hidden="true"></i>
+    <div class="bx fragment zoom-in" data-fragment-index="3">
+      <svg class="ill" viewBox="0 0 100 100" width="100" role="img" aria-label="Regalo envuelto con moño">
+        <rect class="box am" x="8" y="34" width="84" height="60" rx="5"/><rect class="box am" x="3" y="22" width="94" height="18" rx="4"/>
+        <rect class="rib" x="44" y="22" width="12" height="72"/>
+        <path class="rib" d="M50 22 C35 2 18 12 32 22 Z M50 22 C65 2 82 12 68 22 Z"/></svg>
+      <span class="lbl">¡Regalo!</span>
+    </div>
+  </div>
+  <div class="two tight" style="margin-top:22px">
+    <div class="bubble fragment fade-up" data-fragment-index="4" style="position:static"><i class="fa-solid fa-comment-dots ac"></i> ¿Qué tienes que hacer para llegar al regalo?</div>
+    <div class="bubble fragment fade-up" data-fragment-index="5" style="position:static"><i class="fa-solid fa-hand ac"></i> ¿Y cuándo dejas de abrir cajas?</div>
+  </div>
+  <aside class="notes">No des todavía la definición. Deja que los alumnos respondan: "abrir la caja y hacer lo mismo con la de adentro", "parar cuando encontramos el regalo". Anota sus palabras en el pizarrón: más adelante las convertiremos en "caso recursivo" y "caso base".</aside>
+</section>
+
+<!-- =====================================================================
+     3 · RECURSIVIDAD EN LA VIDA COTIDIANA
+     ===================================================================== -->
+<section data-transition="slide" id="cotidiana">
+  <div class="kicker">Dibujo · La vida cotidiana</div>
+  <div class="route" data-on="1,2"></div>
+  <h2>Cosas que contienen una versión más pequeña de sí mismas</h2>
+  <div class="three">
+    <div class="panel fig fragment fade-up">
+      <h3>Muñecas rusas</h3>
+      <svg class="ill" viewBox="0 0 300 190" width="300" role="img" aria-label="Una muñeca grande abierta con una muñeca más pequeña dentro">
+        <g transform="translate(78,120) scale(1.05)" style="fill:var(--accent-l)"><use href="#doll"/></g>
+        <g transform="translate(190,138) scale(.7)" style="fill:var(--amber-l)"><use href="#doll"/></g>
+        <g transform="translate(262,151) scale(.45)" style="fill:var(--blue-l)"><use href="#doll"/></g>
+      </svg>
+      <div class="figcap">Dentro de cada muñeca hay <b>otra muñeca</b>, igual pero más pequeña… hasta la última, que ya no se abre.</div>
+    </div>
+    <div class="panel fig fragment fade-up">
+      <h3>Cajas de regalo</h3>
+      <svg class="ill" viewBox="0 0 300 190" width="300" role="img" aria-label="Cuatro cajas, una dentro de otra, con un regalo al centro">
+        <rect class="box" x="40" y="5" width="220" height="180" rx="8"/>
+        <rect class="box ac" x="72" y="32" width="156" height="128" rx="7"/>
+        <rect class="box" x="102" y="56" width="96" height="80" rx="6"/>
+        <rect class="box am" x="126" y="76" width="48" height="40" rx="4"/>
+        <rect class="rib" x="146" y="76" width="8" height="40"/>
+      </svg>
+      <div class="figcap">Abrir una caja es encontrar <b>otra caja</b>. La caja más pequeña guarda el regalo.</div>
+    </div>
+    <div class="panel fig fragment fade-up">
+      <h3>Foto dentro de una foto</h3>
+      <svg class="ill" id="droste" viewBox="0 0 300 190" width="300" role="img" aria-label="Una persona sostiene una foto de sí misma, que a su vez sostiene una foto más pequeña, varias veces"></svg>
+      <div class="figcap">La persona sostiene <b>una foto de sí misma</b>… que sostiene otra foto más pequeña.</div>
+    </div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-lightbulb"></i><span>Estos ejemplos nos ayudan a <b>imaginar</b> la recursividad, pero no son programas. En programación lo importante es que <b>el problema se hace más pequeño</b> y que <b>en algún momento se detiene</b>. (Dato curioso: el dibujo de la foto lo hizo una función recursiva).</span></div>
+  <aside class="notes">Pregunta: ¿qué tienen en común los tres? Algo contiene una copia más pequeña de sí mismo. Pero aclara: dos espejos frente a frente nunca terminan; una función recursiva bien hecha sí debe terminar. La foto se dibujó con presentacion.js, con una función que se llama a sí misma hasta que la foto es demasiado pequeña.</aside>
+</section>
+
+<!-- =====================================================================
+     4 · ¿QUÉ ES LA RECURSIVIDAD?
+     ===================================================================== -->
+<section data-transition="convex" id="que-es">
+  <div class="kicker">Intuición · La idea</div>
+  <div class="route" data-on="2"></div>
+  <h2>¿Qué es la recursividad?</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-lightbulb"></i> En palabras sencillas</div>
+    <div class="body lead">La <b>recursividad</b> ocurre cuando una función resuelve un problema <b>llamándose a sí misma</b> para resolver una <b>versión más pequeña</b> del mismo problema.</div>
+  </div>
+  <div class="split" style="grid-template-columns:1fr 430px;margin-top:22px">
+    <div class="steps small">
+      <div class="step fragment fade-right">Tenemos un <b>problema</b>.</div>
+      <div class="step fragment fade-right">Lo hacemos <b>más pequeño</b>.</div>
+      <div class="step fragment fade-right">Resolvemos la parte pequeña <b>de la misma manera</b>.</div>
+      <div class="step fragment fade-right">Llegamos a un problema tan sencillo que <b>ya sabemos resolverlo</b>.</div>
+    </div>
+    <svg class="ill fragment fade-left" viewBox="0 0 430 190" width="430" role="img" aria-label="Cuatro cuadros cada vez más pequeños con los números 4, 3, 2 y 1; el último está marcado como fácil">
+      <rect class="box" x="4" y="40" width="130" height="130" rx="10"/><text class="txt" x="69" y="105" style="font-size:44px">4</text>
+      <rect class="box" x="160" y="65" width="100" height="100" rx="9"/><text class="txt" x="210" y="115" style="font-size:36px">3</text>
+      <rect class="box" x="284" y="90" width="72" height="72" rx="8"/><text class="txt" x="320" y="126" style="font-size:28px">2</text>
+      <rect class="box ac" x="378" y="114" width="48" height="48" rx="7"/><text class="txt" x="402" y="138" style="font-size:22px">1</text>
+      <text class="txt" x="402" y="92" style="fill:var(--accent-d)">¡fácil!</text>
+      <path class="ln" d="M140 20 Q300 -10 400 75" stroke-dasharray="6 6"/><path class="ln" d="M392 66 L400 75 L404 64"/>
+      <text class="txt" x="262" y="50" style="font-size:14px;fill:var(--muted)">cada vez más pequeño</text>
+    </svg>
+  </div>
+  <div class="big-idea mt24 fragment zoom-in"><i class="fa-solid fa-arrow-down-short-wide"></i>El problema se hace más pequeño hasta que podemos resolverlo directamente.</div>
+  <aside class="notes">Relaciona con las cajas: abrir una caja (hacer el problema más pequeño), repetir con la caja de adentro (resolver igual), y el regalo es el problema que ya sabemos resolver. Insiste en "versión más pequeña DEL MISMO problema".</aside>
+</section>
+
+<!-- =====================================================================
+     5 · LOS DOS INGREDIENTES
+     ===================================================================== -->
+<section data-transition="slide" id="ingredientes">
+  <div class="kicker">Dibujo · Los dos ingredientes</div>
+  <div class="route" data-on="2,3"></div>
+  <h2>Los dos ingredientes mágicos</h2>
+  <div class="split" style="grid-template-columns:600px 1fr;margin-top:18px">
+    <svg class="ill" viewBox="0 0 600 400" width="600" role="img" aria-label="Escalera de cinco escalones que baja. Cada escalón es una llamada más pequeña; el último escalón es el caso base">
+      <rect class="stp" x="0"   y="40"  width="120" height="360"/>
+      <rect class="stp" x="120" y="110" width="120" height="290"/>
+      <rect class="stp" x="240" y="180" width="120" height="220"/>
+      <rect class="stp" x="360" y="250" width="120" height="150"/>
+      <rect class="stp base" x="480" y="320" width="120" height="80"/>
+      <text class="slbl" x="60"  y="70">n</text>
+      <text class="slbl" x="180" y="140">n − 1</text>
+      <text class="slbl" x="300" y="210">n − 2</text>
+      <text class="slbl" x="420" y="280">…</text>
+      <text class="slbl ac" x="540" y="348">caso base</text>
+      <g class="fragment" data-fragment-index="1">
+        <path class="ln" d="M90 22 Q150 0 168 92" style="stroke:var(--amber)"/><path class="ln" d="M160 84 L168 94 L174 82" style="stroke:var(--amber)"/>
+        <path class="ln" d="M210 92 Q270 70 288 162" style="stroke:var(--amber)"/><path class="ln" d="M280 154 L288 164 L294 152" style="stroke:var(--amber)"/>
+        <path class="ln" d="M330 162 Q390 140 408 232" style="stroke:var(--amber)"/><path class="ln" d="M400 224 L408 234 L414 222" style="stroke:var(--amber)"/>
+        <path class="ln" d="M450 232 Q510 210 528 302" style="stroke:var(--amber)"/><path class="ln" d="M520 294 L528 304 L534 292" style="stroke:var(--amber)"/>
+        <text class="slbl" x="250" y="30" style="fill:var(--pend)">↓ caso recursivo: baja un escalón</text>
+      </g>
+      <g class="fragment" data-fragment-index="2">
+        <circle cx="540" cy="296" r="13" style="fill:var(--accent);stroke:var(--navy);stroke-width:2.5"/>
+        <text class="slbl ac" x="540" y="378" style="font-size:14px">aquí para</text>
+      </g>
+    </svg>
+    <div class="list" style="gap:18px">
+      <div class="def fragment fade-left" data-fragment-index="1" style="border-color:var(--amber);box-shadow:5px 5px 0 var(--amber)">
+        <div class="head" style="border-color:var(--amber);color:var(--pend)"><i class="fa-solid fa-stairs"></i> Caso recursivo</div>
+        <div class="body">La función <b>vuelve a llamarse a sí misma</b> con un problema <b>más pequeño</b>: baja un escalón.</div>
+      </div>
+      <div class="def hl fragment fade-left" data-fragment-index="2">
+        <div class="head"><i class="fa-solid fa-flag-checkered"></i> Caso base</div>
+        <div class="body">El momento en que <b>dejamos de repetir</b> porque <b>ya sabemos la respuesta</b>: el último escalón.</div>
+      </div>
+      <div class="note fragment fade-up" data-fragment-index="3" style="margin-top:0"><i class="fa-solid fa-triangle-exclamation"></i><span>No basta con llamarse a sí misma: la función necesita una <b>condición de terminación</b> y cada llamada debe <b>acercarse</b> a ella.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Vuelve a las cajas: "abrir la caja de adentro" es el caso recursivo; "encontré el regalo, ya no abro más" es el caso base. Si la escalera no tuviera último escalón, bajaríamos para siempre.</aside>
+</section>
+
+<!-- =====================================================================
+     6 · CUENTA REGRESIVA
+     ===================================================================== -->
+<section data-transition="convex" id="cuenta">
+  <div class="kicker">Código · Primer ejemplo</div>
+  <div class="route" data-on="1,4"></div>
+  <h2>La cuenta regresiva</h2>
+  <div class="seq" aria-label="Cuenta regresiva: 5, 4, 3, 2, 1, 0 y despegue">
+    <div class="cell"><b>5</b></div><span class="sar">→</span><div class="cell"><b>4</b></div><span class="sar">→</span><div class="cell"><b>3</b></div><span class="sar">→</span>
+    <div class="cell"><b>2</b></div><span class="sar">→</span><div class="cell"><b>1</b></div><span class="sar">→</span><div class="cell"><b>0</b></div><span class="sar">→</span>
+    <i class="fa-solid fa-rocket" style="font-size:40px;color:var(--accent)" aria-hidden="true"></i>
+  </div>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:20px">
+    <div>
+      <div class="code">
+        <div class="bar"><b></b><b></b><b></b>&nbsp; pseudocódigo</div>
+        <div class="src">
+<pre data-lang="pseudo"><code>función cuentaRegresiva(n):
+    si n &lt; 0:
+        terminar
+
+    mostrar n
+    cuentaRegresiva(n - 1)</code></pre>
+          <div class="hl fragment fade-in-then-out" data-fragment-index="1" style="--l:1"></div>
+          <div class="hl fragment fade-in-then-out" data-fragment-index="2" style="--l:2;--n:2"></div>
+          <div class="hl fragment fade-in-then-out" data-fragment-index="3" style="--l:5"></div>
+          <div class="hl fragment fade-in" data-fragment-index="4" style="--l:6"></div>
+        </div>
+      </div>
+    </div>
+    <div class="steps small">
+      <div class="step fragment fade-left" data-fragment-index="1">La función recibe un número <b>n</b>: desde dónde contar.</div>
+      <div class="step fragment fade-left" data-fragment-index="2"><span class="kw base">caso base</span> Si <span class="mono">n &lt; 0</span>, ya contamos todo: <b>terminar</b>.</div>
+      <div class="step fragment fade-left" data-fragment-index="3">Si no, decimos el número en voz alta: <b>mostrar n</b>.</div>
+      <div class="step fragment fade-left" data-fragment-index="4"><span class="kw rec">caso recursivo</span> Le pedimos a la <b>misma función</b> que cuente desde <span class="mono">n - 1</span>: un número más pequeño.</div>
+    </div>
+  </div>
+  <aside class="notes">Pide a un alumno que sea "la función": cuando recibe el 5, dice "5" y le pasa la tarjeta con el 4 a otro alumno, que hace exactamente lo mismo. Cuando alguien recibe −1, solo dice "terminé". Así se ve que cada llamada es una copia de la misma regla con un número menor.</aside>
+</section>
+
+<!-- =====================================================================
+     7 · PASO A PASO: cuentaRegresiva(3)
+     ===================================================================== -->
+<section data-transition="slide" id="paso-a-paso">
+  <div class="kicker">Dibujo · Paso a paso</div>
+  <div class="route" data-on="2,4"></div>
+  <h2>¿Qué sucede al llamar <span class="mono" style="font-size:.85em">cuentaRegresiva(3)</span>?</h2>
+  <div class="split" style="grid-template-columns:1fr 330px;margin-top:16px">
+    <div class="calltree" style="min-height:300px">
+      <div class="call root fragment fade-right" data-fragment-index="1" style="--d:0"><span class="fn">cuentaRegresiva(3)</span><span class="act">muestra 3</span><span class="done later-in fragment custom" data-fragment-index="6" style="--delay:1.6s"><i class="fa-solid fa-check"></i> terminó</span></div>
+      <div class="call fragment fade-right" data-fragment-index="2" style="--d:1"><span class="fn">cuentaRegresiva(2)</span><span class="act">muestra 2</span><span class="done later-in fragment custom" data-fragment-index="6" style="--delay:1.2s"><i class="fa-solid fa-check"></i> terminó</span></div>
+      <div class="call fragment fade-right" data-fragment-index="3" style="--d:2"><span class="fn">cuentaRegresiva(1)</span><span class="act">muestra 1</span><span class="done later-in fragment custom" data-fragment-index="6" style="--delay:.8s"><i class="fa-solid fa-check"></i> terminó</span></div>
+      <div class="call fragment fade-right" data-fragment-index="4" style="--d:3"><span class="fn">cuentaRegresiva(0)</span><span class="act">muestra 0</span><span class="done later-in fragment custom" data-fragment-index="6" style="--delay:.4s"><i class="fa-solid fa-check"></i> terminó</span></div>
+      <div class="call base fragment fade-right" data-fragment-index="5" style="--d:4"><span class="fn">cuentaRegresiva(-1)</span><span class="kw base">caso base</span><span class="done later-in fragment custom" data-fragment-index="6" style="--delay:0s"><i class="fa-solid fa-check"></i> terminó</span></div>
+    </div>
+    <div>
+      <div class="console">
+        <div class="bar">pantalla</div>
+        <div class="out"><span class="fragment" data-fragment-index="1">3</span><span class="fragment" data-fragment-index="2">2</span><span class="fragment" data-fragment-index="3">1</span><span class="fragment" data-fragment-index="4">0</span></div>
+      </div>
+      <div class="pills mt16" style="justify-content:flex-start;gap:10px">
+        <span class="pill fragment" data-fragment-index="1"><i class="fa-solid fa-arrow-down ac"></i> Bajada: llamadas</span>
+        <span class="pill fragment" data-fragment-index="6"><i class="fa-solid fa-arrow-up b"></i> Regreso: terminan</span>
+      </div>
+    </div>
+  </div>
+  <div class="captions mt16">
+    <div class="cap fragment fade-out" data-fragment-index="1"><span class="n">0</span><span>Llamamos a la función con <b>3</b>. Avanza para ver cada llamada.</span></div>
+    <div class="fragment fade-out" data-fragment-index="5"><div class="cap fragment fade-in" data-fragment-index="1"><span class="n"><i class="fa-solid fa-arrow-down" style="font-size:22px"></i></span><span><b>Bajada:</b> cada llamada muestra su número y llama a la función con uno menos. Las anteriores <b>esperan</b>.</span></div></div>
+    <div class="cap fragment fade-in-then-out" data-fragment-index="5"><span class="n"><i class="fa-solid fa-flag-checkered" style="font-size:22px"></i></span><span>Con <span class="mono">-1</span> se cumple <span class="mono">n &lt; 0</span>: <span class="kw base">caso base</span>. Ya no hay más llamadas.</span></div>
+    <div class="cap done fragment fade-in" data-fragment-index="6"><span class="n"><i class="fa-solid fa-arrow-up" style="font-size:22px"></i></span><span><b>Regreso:</b> cada llamada termina y el programa vuelve a la anterior. Aquí no queda nada pendiente: esta función solo <b>hace acciones</b>, no devuelve un número.</span></div>
+  </div>
+  <aside class="notes">Señala la sangría: cada llamada está "dentro" de la anterior, como las cajas. En el regreso, las llamadas terminan de abajo hacia arriba (primero la última que empezó). Aclara que no todas las funciones recursivas devuelven un número: esta solo muestra texto. En el factorial veremos que el regreso sí trae resultados.</aside>
+</section>
+
+<!-- =====================================================================
+     8 · MATEMÁTICAS: LOS NÚMEROS NATURALES
+     ===================================================================== -->
+<section data-transition="concave" id="naturales">
+  <div class="kicker">Matemáticas · Sucesiones</div>
+  <div class="route" data-on="3"></div>
+  <h2>Las matemáticas también usan reglas recursivas</h2>
+  <div class="two tight">
+    <div class="def">
+      <div class="head"><i class="fa-solid fa-flag-checkered"></i> Primer elemento</div>
+      <div class="body formula">\(a_0 = 0\)</div>
+    </div>
+    <div class="def" style="border-color:var(--amber);box-shadow:5px 5px 0 var(--amber)">
+      <div class="head" style="border-color:var(--amber);color:var(--pend)"><i class="fa-solid fa-forward-step"></i> Regla para el siguiente</div>
+      <div class="body formula">\(a_{n+1} = a_n + 1\)</div>
+    </div>
+  </div>
+  <div class="seq mt24" style="gap:6px">
+    <div class="col-c"><div class="cell base"><b>0</b></div><span class="sl">\(a_0\)</span></div>
+    <span class="sar fragment" data-fragment-index="1">+1 →</span>
+    <div class="col-c fragment" data-fragment-index="1"><div class="cell"><b>1</b></div><span class="sl">\(a_1\)</span></div>
+    <span class="sar fragment" data-fragment-index="2">+1 →</span>
+    <div class="col-c fragment" data-fragment-index="2"><div class="cell"><b>2</b></div><span class="sl">\(a_2\)</span></div>
+    <span class="sar fragment" data-fragment-index="3">+1 →</span>
+    <div class="col-c fragment" data-fragment-index="3"><div class="cell"><b>3</b></div><span class="sl">\(a_3\)</span></div>
+    <span class="sar fragment" data-fragment-index="4">+1 →</span>
+    <div class="col-c fragment" data-fragment-index="4"><div class="cell"><b>4</b></div><span class="sl">\(a_4\)</span></div>
+    <span class="sar fragment" data-fragment-index="4">+1 →</span>
+    <div class="col-c fragment" data-fragment-index="4"><div class="cell"><b>5</b></div><span class="sl">\(a_5\)</span></div>
+    <span class="sar fragment" data-fragment-index="4">…</span>
+  </div>
+  <div class="center fragment fade-up mt16" data-fragment-index="5" style="font-size:24px">Por ejemplo: \(a_3 = a_2 + 1 = (a_1 + 1) + 1 = \big((a_0+1)+1\big)+1 = 3\)</div>
+  <div class="note fragment fade-up" data-fragment-index="6"><i class="fa-solid fa-circle-info"></i><span>Cada número se <b>construye usando el anterior</b>. Ojo: esto es una <b>definición recursiva de una sucesión</b>, no una función de un programa llamándose a sí misma; pero la idea es la misma: un punto de partida y una regla.</span></div>
+  <aside class="notes">El primer elemento hace el papel de caso base: sin él, la regla no podría empezar. Pregunta: si cambiamos a_0 = 5, ¿qué sucesión obtenemos? (5, 6, 7, ...). La regla sola no basta: hace falta el punto de partida.</aside>
+</section>
+
+<!-- =====================================================================
+     9 · EL FACTORIAL
+     ===================================================================== -->
+<section data-transition="slide" id="factorial">
+  <div class="kicker">Matemáticas · El factorial</div>
+  <div class="route" data-on="1,3"></div>
+  <h2>¿De cuántas maneras podemos ordenar 3 objetos?</h2>
+  <div class="split" style="grid-template-columns:430px 1fr;margin-top:18px">
+    <div class="panel">
+      <div class="orders" aria-label="Las seis formas de ordenar una manzana, una estrella y un corazón">
+        <span><i class="fa-solid fa-apple-whole"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-heart"></i></span>
+        <span><i class="fa-solid fa-apple-whole"></i><i class="fa-solid fa-heart"></i><i class="fa-solid fa-star"></i></span>
+        <span><i class="fa-solid fa-star"></i><i class="fa-solid fa-apple-whole"></i><i class="fa-solid fa-heart"></i></span>
+        <span><i class="fa-solid fa-star"></i><i class="fa-solid fa-heart"></i><i class="fa-solid fa-apple-whole"></i></span>
+        <span><i class="fa-solid fa-heart"></i><i class="fa-solid fa-apple-whole"></i><i class="fa-solid fa-star"></i></span>
+        <span><i class="fa-solid fa-heart"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-apple-whole"></i></span>
+      </div>
+      <div class="figcap" style="max-width:none;margin-top:8px">3 opciones para el primero × 2 para el segundo × 1 para el último \(= 6\)</div>
+    </div>
+    <div class="list" style="gap:14px">
+      <div class="def fragment fade-left">
+        <div class="head"><i class="fa-solid fa-xmark"></i> Factorial de un número</div>
+        <div class="body formula" style="margin:2px 0">\(n! = n\,(n-1)\,(n-2)\cdots 2\cdot 1\)</div>
+      </div>
+      <div class="def hl fragment fade-left">
+        <div class="head"><i class="fa-solid fa-repeat"></i> La misma idea, de forma recursiva</div>
+        <div class="body">
+          <div class="two nowrap" style="margin-top:0;gap:16px;align-items:center;grid-template-columns:1fr 1.8fr">
+            <div class="formula">\(0! = 1\)<br><span class="kw base" style="font-size:15px">caso base</span></div>
+            <div class="formula">\(n! = n\cdot(n-1)!,\quad n\geq 1\)<br><span class="kw rec" style="font-size:15px">caso recursivo</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="note fragment fade-up" style="margin-top:4px"><i class="fa-solid fa-lightbulb"></i><span><b>¿Por qué \(0! = 1\)?</b> Es una convención fundamental: hace que \(1! = 1\cdot 0! = 1\) funcione, y hay exactamente <b>una</b> manera de ordenar cero objetos (no hacer nada). Sin este caso base, la regla nunca se detendría.</span></div>
+    </div>
+  </div>
+  <aside class="notes">No pidas memorizar: haz que vean que "ordenar n objetos" = elegir el primero (n formas) y luego ordenar los n−1 restantes, que es el MISMO problema más pequeño. Eso es exactamente n! = n·(n−1)!.</aside>
+</section>
+
+<!-- =====================================================================
+     10 · 4! PASO A PASO
+     ===================================================================== -->
+<section data-transition="slide" id="factorial-4">
+  <div class="kicker">Matemáticas · Bajada y regreso</div>
+  <div class="route" data-on="2,3"></div>
+  <h2>Calculemos \(4!\) paso a paso</h2>
+  <div class="trace mt16">
+    <div class="th pend"><i class="fa-solid fa-arrow-down"></i> Bajada · queda pendiente</div><div></div><div class="th ret"><i class="fa-solid fa-arrow-up"></i> Regreso · se completa</div>
+    <div class="tc pend fragment fade-right" data-fragment-index="1">\(4! = 4\cdot 3!\)<span class="tag"><i class="fa-solid fa-hourglass-half"></i> pendiente</span></div>
+    <div class="arw fragment" data-fragment-index="9">←</div>
+    <div class="tc ret fragment fade-left" data-fragment-index="9">\(4! = 4\cdot 6 = \mathbf{24}\)<span class="tag"><i class="fa-solid fa-circle-check"></i> resultado</span></div>
+    <div class="tc pend fragment fade-right" data-fragment-index="2">\(3! = 3\cdot 2!\)<span class="tag"><i class="fa-solid fa-hourglass-half"></i> pendiente</span></div>
+    <div class="arw fragment" data-fragment-index="8">←</div>
+    <div class="tc ret fragment fade-left" data-fragment-index="8">\(3! = 3\cdot 2 = 6\)<span class="tag"><i class="fa-solid fa-arrow-turn-up"></i> regresa 6</span></div>
+    <div class="tc pend fragment fade-right" data-fragment-index="3">\(2! = 2\cdot 1!\)<span class="tag"><i class="fa-solid fa-hourglass-half"></i> pendiente</span></div>
+    <div class="arw fragment" data-fragment-index="7">←</div>
+    <div class="tc ret fragment fade-left" data-fragment-index="7">\(2! = 2\cdot 1 = 2\)<span class="tag"><i class="fa-solid fa-arrow-turn-up"></i> regresa 2</span></div>
+    <div class="tc pend fragment fade-right" data-fragment-index="4">\(1! = 1\cdot 0!\)<span class="tag"><i class="fa-solid fa-hourglass-half"></i> pendiente</span></div>
+    <div class="arw fragment" data-fragment-index="6">←</div>
+    <div class="tc ret fragment fade-left" data-fragment-index="6">\(1! = 1\cdot 1 = 1\)<span class="tag"><i class="fa-solid fa-arrow-turn-up"></i> regresa 1</span></div>
+    <div class="tc base fragment fade-right" data-fragment-index="5">\(0! = 1\)<span class="tag"><i class="fa-solid fa-flag-checkered"></i> caso base</span></div>
+    <div class="arw fragment" data-fragment-index="5">↗</div>
+    <div class="tc ret fragment fade-left" data-fragment-index="5" style="border-style:dotted">valor conocido: \(1\)<span class="tag"><i class="fa-solid fa-arrow-turn-up"></i> regresa 1</span></div>
+  </div>
+  <div class="note fragment fade-up" data-fragment-index="9" style="margin-top:14px"><i class="fa-solid fa-eye"></i><span>Al bajar, cada cuenta queda <b>a medias</b> (borde punteado, reloj de arena). Al llegar al caso base, los resultados <b>suben</b> uno por uno y completan las cuentas pendientes.</span></div>
+  <aside class="notes">Lee la columna izquierda de arriba abajo (bajada) y la derecha de abajo hacia arriba (regreso). Pregunta antes de cada clic del regreso: ¿cuánto vale 2!? Así participan. Las formas (punteado vs. sólido) y los íconos distinguen los dos momentos, no solo el color.</aside>
+</section>
+
+<!-- =====================================================================
+     11 · DEL PAPEL AL CÓDIGO
+     ===================================================================== -->
+<section data-transition="convex" id="codigo">
+  <div class="kicker">Código · JavaScript</div>
+  <div class="route" data-on="4"></div>
+  <h2>Del papel al código</h2>
+  <div class="split" style="grid-template-columns:660px 1fr;margin-top:18px">
+    <div class="code sm">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; factorial.js</div>
+      <div class="src">
+<pre data-check="factorial(4) === 24 &amp;&amp; factorial(0) === 1 &amp;&amp; __out[0] === 24"><code>function factorial(n) {
+    if (n &lt; 0) {
+        throw new Error("El número debe ser no negativo");
+    }
+
+    if (n === 0) {
+        return 1;
+    }
+
+    return n * factorial(n - 1);
+}
+
+console.log(factorial(4)); // 24</code></pre>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="1" style="--l:1"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="2" style="--l:2;--n:3"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="3" style="--l:6;--n:3"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="4" style="--l:10"></div>
+        <div class="hl fragment fade-in-then-out" data-fragment-index="5" style="--l:10"></div>
+        <div class="hl fragment fade-in" data-fragment-index="6" style="--l:13"></div>
+      </div>
+    </div>
+    <div class="steps small">
+      <div class="step fragment fade-left" data-fragment-index="1">Recibe un número <span class="mono">n</span>.</div>
+      <div class="step fragment fade-left" data-fragment-index="2">Comprueba que la entrada sea válida: si es negativa, <b>error</b>.</div>
+      <div class="step fragment fade-left" data-fragment-index="3"><span class="kw base">caso base</span> si <span class="mono">n</span> es 0, devuelve 1.</div>
+      <div class="step fragment fade-left" data-fragment-index="4"><span class="kw rec">caso recursivo</span> se llama a sí misma con <span class="mono">n - 1</span>.</div>
+      <div class="step fragment fade-left" data-fragment-index="5">Cuando la llamada <span class="kw ret">retorna</span>, multiplica <span class="mono">n</span> por ese resultado.</div>
+      <div class="step fragment fade-left" data-fragment-index="6">Probamos: <span class="mono">factorial(4)</span> muestra <b>24</b>.</div>
+    </div>
+  </div>
+  <div class="note fragment fade-up" data-fragment-index="7" style="margin-top:16px"><i class="fa-solid fa-circle-info"></i><span>Este ejemplo supone <b>enteros no negativos</b>. Un programa real puede necesitar más validaciones (por ejemplo, rechazar <span class="mono">2.5</span> con <span class="mono">Number.isInteger</span>) y cuidar números muy grandes.</span></div>
+  <aside class="notes">Compara con la diapositiva anterior: if (n === 0) return 1 es 0! = 1, y return n * factorial(n - 1) es n! = n·(n−1)!. El código es casi una traducción literal de la definición matemática. ¿Qué pasaría con factorial(2.5)? 2.5, 1.5, 0.5, −0.5 → error: nunca llega exactamente a 0.</aside>
+</section>
+
+<!-- =====================================================================
+     12 · LA PILA DE LLAMADAS
+     ===================================================================== -->
+<section data-transition="slide" id="pila">
+  <div class="kicker">Dibujo · La pila de llamadas</div>
+  <div class="route" data-on="2,4"></div>
+  <h2>¿Cómo recuerda el programa lo que tiene pendiente?</h2>
+  <div class="split" style="grid-template-columns:400px 1fr;margin-top:14px">
+    <div class="stackbox">
+      <div class="stack" aria-label="Pila de llamadas de factorial(4)">
+        <div class="fragment fade-out" data-fragment-index="10"><div class="frame fragment fade-up" data-fragment-index="1"><span class="nm">factorial(4)</span><span class="st"><span class="wait fragment fade-out" data-fragment-index="9"><i class="fa-solid fa-hourglass-half"></i> 4 × ?</span><span class="val fragment" data-fragment-index="9">4 × 6 = 24</span></span></div></div>
+        <div class="fragment fade-out" data-fragment-index="9"><div class="frame fragment fade-up" data-fragment-index="2"><span class="nm">factorial(3)</span><span class="st"><span class="wait fragment fade-out" data-fragment-index="8"><i class="fa-solid fa-hourglass-half"></i> 3 × ?</span><span class="val fragment" data-fragment-index="8">3 × 2 = 6</span></span></div></div>
+        <div class="fragment fade-out" data-fragment-index="8"><div class="frame fragment fade-up" data-fragment-index="3"><span class="nm">factorial(2)</span><span class="st"><span class="wait fragment fade-out" data-fragment-index="7"><i class="fa-solid fa-hourglass-half"></i> 2 × ?</span><span class="val fragment" data-fragment-index="7">2 × 1 = 2</span></span></div></div>
+        <div class="fragment fade-out" data-fragment-index="7"><div class="frame fragment fade-up" data-fragment-index="4"><span class="nm">factorial(1)</span><span class="st"><span class="wait fragment fade-out" data-fragment-index="6"><i class="fa-solid fa-hourglass-half"></i> 1 × ?</span><span class="val fragment" data-fragment-index="6">1 × 1 = 1</span></span></div></div>
+        <div class="fragment fade-out" data-fragment-index="6"><div class="frame base fragment fade-up" data-fragment-index="5"><span class="nm">factorial(0)</span><span class="st"><span class="val"><i class="fa-solid fa-flag-checkered"></i> caso base: 1</span></span></div></div>
+      </div>
+      <div class="stack-lbl">pila de llamadas</div>
+    </div>
+    <div>
+      <div class="note" style="margin-top:0"><i class="fa-solid fa-layer-group"></i><span>Imagina una <b>pila de platos</b>. Cada vez que empezamos una tarea nueva, ponemos un plato <b>encima</b>. Cuando terminamos, retiramos <b>el de arriba</b>.</span></div>
+      <div class="list tight mt16">
+        <div class="item"><div class="sq"><i class="fa-solid fa-box-archive"></i></div><div><div class="t">Cada llamada guarda sus propios datos</div><div class="v">su valor de n y lo que le falta por hacer</div></div></div>
+        <div class="item"><div class="sq"><i class="fa-solid fa-location-dot"></i></div><div><div class="t">Y recuerda a dónde regresar</div><div class="v">el punto exacto donde se quedó la anterior</div></div></div>
+      </div>
+      <div class="captions side-caps mt16" style="width:auto">
+        <div class="cap fragment fade-out" data-fragment-index="1"><span class="n">0</span><span>La pila empieza vacía. Llamamos a <span class="mono">factorial(4)</span>.</span></div>
+        <div class="fragment fade-out" data-fragment-index="5"><div class="cap fragment fade-in" data-fragment-index="1"><span class="n"><i class="fa-solid fa-arrow-up" style="font-size:22px"></i></span><span><b>Crece:</b> cada llamada pone un plato nuevo arriba y deja su cuenta <b>pendiente</b> (⌛).</span></div></div>
+        <div class="cap fragment fade-in-then-out" data-fragment-index="5"><span class="n"><i class="fa-solid fa-flag-checkered" style="font-size:22px"></i></span><span><span class="mono">factorial(0)</span> es el <span class="kw base">caso base</span>: ya sabe que vale 1. ¡No pone más platos!</span></div>
+        <div class="fragment fade-out" data-fragment-index="10"><div class="cap fragment fade-in" data-fragment-index="6"><span class="n"><i class="fa-solid fa-arrow-down" style="font-size:22px"></i></span><span><b>Se reduce:</b> se quita el plato de arriba y su resultado completa la cuenta del plato de abajo.</span></div></div>
+        <div class="cap done fragment fade-in" data-fragment-index="10"><span class="n"><i class="fa-solid fa-check" style="font-size:22px"></i></span><span>La pila queda vacía y el resultado final es <b>24</b>.</span></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Diez clics: cinco para apilar y cinco para desapilar. El último plato que se puso es el primero que se quita (LIFO). Si la pila crece demasiado (miles de platos), el programa se queda sin espacio: eso veremos al olvidar el caso base.</aside>
+</section>
+
+<!-- =====================================================================
+     13 · LABORATORIO INTERACTIVO
+     ===================================================================== -->
+<section data-transition="zoom" id="laboratorio">
+  <div class="kicker">Práctica · Laboratorio</div>
+  <div class="route" data-on="4,5"></div>
+  <h2>Laboratorio: mueve tú la pila</h2>
+  <div class="split lab" style="grid-template-columns:420px 1fr;margin-top:12px">
+    <div class="stackbox">
+      <div class="stack" id="lab-stack" aria-live="polite" aria-label="Pila de llamadas del laboratorio" style="min-height:300px"></div>
+      <div class="stack-lbl">pila de llamadas</div>
+    </div>
+    <div>
+      <div class="lab-ctrl">
+        <span class="mono" style="font-size:20px">factorial(</span>
+        <button class="btn" id="lab-menos" aria-label="Disminuir n"><i class="fa-solid fa-minus"></i></button>
+        <span class="nval" id="lab-n" aria-live="polite">4</span>
+        <button class="btn" id="lab-mas" aria-label="Aumentar n"><i class="fa-solid fa-plus"></i></button>
+        <span class="mono" style="font-size:20px">)</span>
+      </div>
+      <div class="lab-ctrl mt16">
+        <button class="btn" id="lab-atras"><i class="fa-solid fa-backward-step"></i> Paso anterior</button>
+        <button class="btn" id="lab-paso"><i class="fa-solid fa-forward-step"></i> Siguiente paso</button>
+        <button class="btn r" id="lab-reset"><i class="fa-solid fa-rotate-left"></i> Reiniciar</button>
+      </div>
+      <div class="lab-status" id="lab-status" aria-live="polite"></div>
+      <div class="console lab-log mt16">
+        <div class="bar">registro de llamadas y retornos · <span id="lab-cont">paso 0</span></div>
+        <div class="out" id="lab-log"></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Pide a los alumnos que predigan qué pasará antes de pulsar "Siguiente paso". Prueba n = 0: el caso base responde de inmediato, sin llamadas recursivas. Para n, hay n llamadas recursivas además de la inicial y la pila llega a n + 1 platos. El laboratorio usa la función factorial real: cada paso se registra mientras se ejecuta.</aside>
+</section>
+
+<!-- =====================================================================
+     14 · OLVIDAR EL CASO BASE
+     ===================================================================== -->
+<section data-transition="concave" id="sin-caso-base">
+  <div class="kicker">Errores comunes · Sin caso base</div>
+  <div class="route" data-on="4"></div>
+  <h2>¿Qué ocurre si olvidamos el caso base?</h2>
+  <div class="two tight">
+    <div>
+      <div class="code bad">
+        <div class="bar"><b></b><b></b><b></b>&nbsp; contar.js · incorrecto</div>
+        <div class="src">
+<pre data-norun><code>function contar(n) {
+    console.log(n);
+    return contar(n - 1);
+}</code></pre>
+          <div class="hl bad" style="--l:3"></div>
+        </div>
+      </div>
+      <div class="verdict no mt16"><i class="fa-solid fa-circle-xmark"></i> nunca se detiene por sí sola</div>
+      <div class="console mt16" id="sim-console">
+        <div class="bar">simulación controlada · <span id="sim-prof">profundidad 0</span></div>
+        <div class="out" id="sim-out" style="height:128px;overflow:hidden"><span class="muted">Pulsa «Simular contar(5)».</span></div>
+      </div>
+      <div class="depth"><span>pila</span><div class="meter" aria-hidden="true"><span id="sim-meter"></span></div></div>
+      <div class="lab-ctrl mt8">
+        <button class="btn r" id="sim-run"><i class="fa-solid fa-play"></i> Simular contar(5)</button>
+        <button class="btn" id="sim-reset"><i class="fa-solid fa-rotate-left"></i> Reiniciar</button>
+      </div>
+    </div>
+    <div>
+      <div class="fragment fade-left">
+        <div class="code">
+          <div class="bar"><b></b><b></b><b></b>&nbsp; contar.js · corregido</div>
+          <div class="src">
+<pre data-check="(contar(3), __out.join(',') === '3,2,1,0')"><code>function contar(n) {
+    if (n &lt; 0) return;   // caso base
+    console.log(n);
+    contar(n - 1);       // más pequeño
+}</code></pre>
+            <div class="hl" style="--l:2"></div>
+          </div>
+        </div>
+        <div class="verdict yes mt16"><i class="fa-solid fa-circle-check"></i> se detiene al llegar a n &lt; 0</div>
+      </div>
+      <div class="note fragment fade-up" style="margin-top:14px"><i class="fa-solid fa-triangle-exclamation"></i><span>Sin caso base, cada llamada pone otro plato en la pila… hasta que no cabe ninguno más: <span class="mono">RangeError: Maximum call stack size exceeded</span> (<b>desbordamiento de pila</b>).</span></div>
+      <div class="note fragment fade-up" style="margin-top:14px;background:var(--blue-l);border-color:var(--blue);color:#14365c"><i class="fa-solid fa-shoe-prints" style="color:var(--blue)"></i><span>También falla si la llamada <b>no se acerca</b> al caso base, por ejemplo <span class="mono">contar(n + 1)</span> o <span class="mono">contar(n)</span>.</span></div>
+    </div>
+  </div>
+  <aside class="notes">La simulación NO ejecuta el código infinito: es una animación que imita lo que pasaría, y se detiene con el mensaje de error que mostraría el navegador. El límite real depende del navegador (en Chrome, alrededor de diez mil llamadas para una función sencilla).</aside>
+</section>
+
+<!-- =====================================================================
+     15 · RECURSIVIDAD FRENTE A ITERACIÓN
+     ===================================================================== -->
+<section data-transition="slide" id="iteracion">
+  <div class="kicker">Código · Comparación</div>
+  <div class="route" data-on="4"></div>
+  <h2>Recursividad frente a iteración</h2>
+  <div class="two tight" style="gap:24px;margin-top:12px">
+    <div class="code xs">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; recursiva</div>
+      <div class="src">
+<pre data-check="(contarRecursivo(3), __out.join(',') === '3,2,1')"><code>function contarRecursivo(n) {
+    if (n === 0) return;
+    console.log(n);
+    contarRecursivo(n - 1);
+}</code></pre>
+      </div>
+    </div>
+    <div class="code xs">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; iterativa</div>
+      <div class="src">
+<pre data-check="(contarIterativo(3), __out.join(',') === '3,2,1')"><code>function contarIterativo(n) {
+    for (let i = n; i &gt; 0; i--) {
+        console.log(i);
+    }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <table class="tbl cmp mt16 fragment fade-up">
+    <thead><tr><th>Aspecto</th><th><i class="fa-solid fa-repeat"></i> Recursiva</th><th><i class="fa-solid fa-rotate"></i> Iterativa</th></tr></thead>
+    <tbody>
+      <tr><td>Cómo repite</td><td>La función se llama a sí misma</td><td>Un ciclo (<span class="mono">for</span>, <span class="mono">while</span>) vuelve a empezar</td></tr>
+      <tr><td>Estructura</td><td>Caso base + caso recursivo</td><td>Variable de control + condición del ciclo</td></tr>
+      <tr><td>Cómo termina</td><td>Al llegar al caso base</td><td>Cuando la condición del ciclo es falsa</td></tr>
+      <tr><td>Ventajas</td><td>Natural para datos anidados (árboles, carpetas)</td><td>Suele ser más rápida y sencilla de seguir</td></tr>
+      <tr><td>Desventajas</td><td>Riesgo de desbordar la pila</td><td>Con datos anidados el código se complica</td></tr>
+      <tr><td>Memoria</td><td>Un «plato» por llamada activa (crece con n)</td><td>Constante: solo unas variables</td></tr>
+    </tbody>
+  </table>
+  <div class="note fragment fade-up" style="margin-top:12px"><i class="fa-solid fa-scale-balanced"></i><span>La recursividad puede hacer algunas soluciones <b>más naturales</b>, pero <b>no siempre</b> es más rápida ni gasta menos memoria: la iteración evita mantener muchas llamadas activas.</span></div>
+  <aside class="notes">Ambas funciones imprimen 3, 2, 1. Todo lo que se hace con recursión se puede hacer con iteración (a veces con una pila explícita) y viceversa. La pregunta no es cuál es "mejor" sino cuál expresa más claramente el problema.</aside>
+</section>
+
+<!-- =====================================================================
+     16 · ¿DÓNDE SE UTILIZA?
+     ===================================================================== -->
+<section data-transition="convex" id="usos">
+  <div class="kicker">Dibujo · Aplicaciones</div>
+  <div class="route" data-on="2,4"></div>
+  <h2>¿Dónde se utiliza la recursividad?</h2>
+  <div class="split" style="grid-template-columns:400px 1fr;margin-top:14px">
+    <div class="panel">
+      <div class="tree" id="arbol">
+        <ul>
+          <li class="dir"><span class="nd"><i class="fa-solid fa-folder-open"></i>Mis documentos <span class="cnt"></span></span>
+            <ul>
+              <li class="file"><span class="nd"><i class="fa-solid fa-file-lines"></i>tarea.txt</span></li>
+              <li class="dir"><span class="nd"><i class="fa-solid fa-folder-open"></i>Fotos <span class="cnt"></span></span>
+                <ul>
+                  <li class="file"><span class="nd"><i class="fa-solid fa-file-image"></i>playa.jpg</span></li>
+                  <li class="dir"><span class="nd"><i class="fa-solid fa-folder-open"></i>Vacaciones <span class="cnt"></span></span>
+                    <ul>
+                      <li class="file"><span class="nd"><i class="fa-solid fa-file-image"></i>sol.jpg</span></li>
+                      <li class="file"><span class="nd"><i class="fa-solid fa-file-image"></i>mar.jpg</span></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li class="dir"><span class="nd"><i class="fa-solid fa-folder-open"></i>Música <span class="cnt"></span></span>
+                <ul>
+                  <li class="file"><span class="nd"><i class="fa-solid fa-file-audio"></i>canción.mp3</span></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <button class="btn mt16" id="arbol-run"><i class="fa-solid fa-magnifying-glass"></i> Contar archivos</button>
+      <div class="small mt8" id="arbol-msg" aria-live="polite">Una carpeta contiene <b>otras carpetas</b>: el mismo tipo de dato, más pequeño.</div>
+    </div>
+    <div>
+      <div class="code xs">
+        <div class="bar"><b></b><b></b><b></b>&nbsp; contarArchivos.js</div>
+        <div class="src">
+<pre data-check="contarArchivos({contenido:[{esArchivo:true},{contenido:[{esArchivo:true},{contenido:[]}]}]}) === 2"><code>function contarArchivos(carpeta) {
+    let total = 0;
+    for (const cosa of carpeta.contenido) {
+        if (cosa.esArchivo) total = total + 1;     // caso base
+        else total = total + contarArchivos(cosa); // subcarpeta
+    }
+    return total;
+}</code></pre>
+        </div>
+      </div>
+      <div class="list tight mt16">
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-sitemap"></i></div><div><div class="t">Árboles de decisiones y árboles binarios</div><div class="v">cada rama es otro árbol más pequeño</div></div></div>
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-scissors"></i></div><div><div class="t">Divide y vencerás</div><div class="v">partir el problema en partes más pequeñas</div></div></div>
+        <div class="item fragment fade-left"><div class="sq"><i class="fa-solid fa-magnifying-glass"></i></div><div><div class="t">Búsqueda binaria · ordenamiento por mezcla</div><div class="v">buscan u ordenan la mitad, y luego la mitad de la mitad…</div></div></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">La recursividad brilla cuando los datos contienen datos del mismo tipo: carpetas con carpetas, árboles con subárboles. El botón recorre el árbol con una función recursiva real sobre la página: entra en cada subcarpeta, cuenta sus archivos y suma el total al regresar.</aside>
+</section>
+
+<!-- =====================================================================
+     17 · SUMA DE 1 A n
+     ===================================================================== -->
+<section data-transition="slide" id="suma">
+  <div class="kicker">Matemáticas y código · Nivel intermedio</div>
+  <div class="route" data-on="3,4"></div>
+  <h2>Sumar los números de 1 a \(n\)</h2>
+  <div class="split" style="grid-template-columns:560px 1fr;margin-top:14px">
+    <div>
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-plus"></i> Definición recursiva</div>
+        <div class="body"><div class="two nowrap" style="margin-top:0;gap:12px;grid-template-columns:1fr 1.9fr">
+          <div class="formula" style="font-size:26px">\(S(0) = 0\)<br><span class="kw base" style="font-size:14px">caso base</span></div>
+          <div class="formula" style="font-size:26px">\(S(n) = n + S(n-1),\ n&gt;0\)<br><span class="kw rec" style="font-size:14px">caso recursivo</span></div>
+        </div></div>
+      </div>
+      <div class="derive mt16">
+        <div class="fragment fade-up">\(S(4) = 4 + S(3)\)</div>
+        <div class="fragment fade-up">\(\phantom{S(4)} = 4 + 3 + S(2)\)</div>
+        <div class="fragment fade-up">\(\phantom{S(4)} = 4 + 3 + 2 + S(1)\)</div>
+        <div class="fragment fade-up">\(\phantom{S(4)} = 4 + 3 + 2 + 1 + S(0)\)</div>
+        <div class="fragment fade-up">\(\phantom{S(4)} = 4 + 3 + 2 + 1 + 0 = \mathbf{10}\)</div>
+      </div>
+    </div>
+    <div>
+      <div class="bars" role="img" aria-label="Columnas de 4, 3, 2 y 1 cuadritos y S(0) igual a 0: en total 10 cuadritos">
+        <div class="col"><span class="lab">4</span><i class="u"></i><i class="u"></i><i class="u"></i><i class="u"></i></div>
+        <div class="col"><span class="lab">3</span><i class="u"></i><i class="u"></i><i class="u"></i></div>
+        <div class="col"><span class="lab">2</span><i class="u"></i><i class="u"></i></div>
+        <div class="col"><span class="lab">1</span><i class="u"></i></div>
+        <div class="col base"><span class="lab">S(0) = 0</span></div>
+      </div>
+      <div class="figcap center" style="max-width:none">Cada paso quita una columna: el problema se hace más pequeño.</div>
+      <div class="code xs mt16">
+        <div class="bar"><b></b><b></b><b></b>&nbsp; suma.js</div>
+        <div class="src">
+<pre data-check="suma(4) === 10 &amp;&amp; suma(0) === 0 &amp;&amp; suma(100) === 5050"><code>function suma(n) {
+    if (n === 0) return 0;      // caso base
+    return n + suma(n - 1);     // caso recursivo
+}
+
+console.log(suma(4)); // 10</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Mismo esquema que el factorial, cambiando × por + y el caso base 1 por 0. ¿Por qué S(0) = 0 y no 1? Porque sumar "nada" da 0 (el neutro de la suma), igual que multiplicar "nada" da 1 (el neutro del producto). Dato extra: S(n) = n(n+1)/2, la fórmula de Gauss.</aside>
+</section>
+
+<!-- =====================================================================
+     18 · ACTIVIDAD
+     ===================================================================== -->
+<section data-transition="zoom" id="actividad">
+  <div class="kicker">Práctica · ¡Te toca pensar!</div>
+  <div class="route" data-on="5"></div>
+  <h2>Actividad: responde antes de avanzar</h2>
+  <div class="quiz">
+    <div class="qz"><span class="n">1</span>¿Cuál es el caso base de la función <span class="mono">factorial</span>?
+      <div class="qa fragment">\(n = 0\): devuelve 1, porque \(0! = 1\).</div></div>
+    <div class="qz"><span class="n">2</span>¿Qué pasa si la llamada recursiva recibe <b>el mismo valor</b> y no hay otra condición de terminación?
+      <div class="qa fragment">Nunca se acerca al caso base: recursión infinita y desbordamiento de pila.</div></div>
+    <div class="qz"><span class="n">3</span>¿Cuánto vale <span class="mono">factorial(3)</span>?
+      <div class="qa fragment">\(3\cdot 2\cdot 1 = 6\).</div></div>
+    <div class="qz"><span class="n">4</span>¿Cuántas llamadas recursivas hace <span class="mono">factorial(3)</span>, sin contar la inicial?
+      <div class="qa fragment"><b>3</b>: <span class="mono">factorial(2)</span>, <span class="mono">factorial(1)</span> y <span class="mono">factorial(0)</span>.</div></div>
+    <div class="qz wide"><span class="n">5</span>¿Qué ventaja tiene reducir el problema en cada llamada?
+      <div class="qa fragment">Garantiza que en algún momento se llega al caso base, así que la función <b>termina</b>; además, cada problema es más fácil que el anterior.</div></div>
+  </div>
+  <aside class="notes">Da 30 segundos por pregunta para que lo discutan en parejas antes de mostrar la respuesta. Para la 4, usa el laboratorio con n = 3: la pila llega a 4 platos (la llamada inicial más 3 recursivas).</aside>
+</section>
+
+<!-- =====================================================================
+     19 · RETO FINAL
+     ===================================================================== -->
+<section data-transition="slide" id="reto">
+  <div class="kicker">Práctica · Reto final</div>
+  <div class="route" data-on="5"></div>
+  <h2>Reto: diseña tu propia cuenta atrás</h2>
+  <div class="q" style="margin-top:10px;padding:12px 24px"><i class="fa-solid fa-rocket"></i><p style="font-size:25px">Escribe una función recursiva <span class="mono">cuentaAtras(n)</span> que muestre los números desde <span class="mono">n</span> hasta <span class="mono">0</span>.</p></div>
+  <div class="split" style="grid-template-columns:470px 1fr;margin-top:14px">
+    <div>
+      <div class="small muted" style="margin-bottom:8px">Antes de programar, identifica:</div>
+      <div class="check">
+        <div class="ci"><i class="fa-solid fa-right-to-bracket"></i> El <b>parámetro</b> de entrada</div>
+        <div class="ci"><i class="fa-solid fa-flag-checkered"></i> El <span class="kw base">caso base</span></div>
+        <div class="ci"><i class="fa-solid fa-stairs"></i> El <span class="kw rec">caso recursivo</span></div>
+        <div class="ci"><i class="fa-solid fa-list-ol"></i> La secuencia de <span class="kw llam">llamadas</span> para \(n = 3\)</div>
+        <div class="ci"><i class="fa-solid fa-display"></i> El resultado que aparece en pantalla</div>
+      </div>
+    </div>
+    <div>
+      <div class="panel fragment fade-left">
+        <h3><i class="fa-solid fa-lightbulb a"></i> Pista</h3>
+        <div class="seq" style="margin-top:6px;gap:4px">
+          <div class="cell"><b>3</b></div><span class="sar">→</span><div class="cell"><b>2</b></div><span class="sar">→</span><div class="cell"><b>1</b></div><span class="sar">→</span><div class="cell base"><b>0</b></div>
+          <span class="sar" style="font-size:18px;color:var(--accent-d)">¿y aquí, paro?</span>
+        </div>
+        <div class="small center" style="margin-top:4px">¿Qué número es tan sencillo que ya no necesita otra llamada?</div>
+      </div>
+      <button class="ans-btn" aria-expanded="false" aria-controls="sol-reto"><i class="fa-solid fa-eye"></i> Ver respuesta</button>
+      <div class="ans" id="sol-reto" hidden>
+        <div class="code xs">
+          <div class="src">
+<pre data-check="(cuentaAtras(3), __out.join(',') === '3,2,1,0')"><code>function cuentaAtras(n) {   // n: entero ≥ 0
+    console.log(n);
+    if (n === 0) return;       // caso base
+    cuentaAtras(n - 1);        // caso recursivo
+}</code></pre>
+          </div>
+        </div>
+        <div class="small mt8">Llamadas: <span class="mono">cuentaAtras(3) → (2) → (1) → (0)</span>. Pantalla: 3, 2, 1, 0.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Deja que trabajen 5 a 10 minutos. Variante para los rápidos: que muestren "¡Despegue!" al final, o que cuenten hacia arriba (pista: mostrar DESPUÉS de la llamada recursiva). Pregunta de rigor: ¿qué pasa con cuentaAtras(-1)? No llega nunca a 0; habría que validar la entrada o usar n &lt;= 0 como caso base.</aside>
+</section>
+
+<!-- =====================================================================
+     20 · RESUMEN
+     ===================================================================== -->
+<section data-transition="zoom" id="resumen">
+  <div class="kicker">Resumen</div>
+  <h2>Lo que aprendimos hoy</h2>
+  <div class="sum">
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-repeat"></i></div><div><div class="t">Una función recursiva se llama a sí misma</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-arrow-down-short-wide"></i></div><div><div class="t">Cada llamada resuelve un problema más pequeño</div><div class="v">y avanza hacia la condición de terminación</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-flag-checkered"></i></div><div><div class="t">El caso base detiene las llamadas</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-layer-group"></i></div><div><div class="t">La pila de llamadas recuerda lo pendiente</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-square-root-variable"></i></div><div><div class="t">Las matemáticas también usan definiciones recursivas</div><div class="v">\(a_{n+1}=a_n+1\) · \(n! = n\cdot(n-1)!\)</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-scale-balanced"></i></div><div><div class="t">Es útil, pero no siempre la mejor opción</div><div class="v">a veces un ciclo es más eficiente</div></div></div>
+  </div>
+  <p class="quote fragment zoom-in"><i class="fa-solid fa-quote-left"></i>Los problemas grandes parecen difíciles, pero a veces basta con aprender a resolver uno más pequeño.</p>
+  <aside class="notes">Cierra regresando a las cajas del inicio: abrir una caja = caso recursivo; encontrar el regalo = caso base; recordar en qué caja ibas = la pila de llamadas.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/math/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>

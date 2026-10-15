@@ -1,0 +1,74 @@
+/* =====================================================================
+   AUTÓMATAS NO DETERMINISTAS · Complemento propio de esta presentación
+   Orden de carga: tema-redes.css → mate.css → afd.css → este.
+   afd.css es una copia SIN CAMBIOS de la presentación de AFD (diagramas,
+   tablas, cinta, simulador, botones, cadenas); aquí solo se añade lo nuevo:
+   celdas con conjuntos, árbol de caminos, conjuntos activos, transiciones ε,
+   comparación AFD/AFN y tarjetas de clasificación.
+   ===================================================================== */
+
+/* ---------- Tabla con conjuntos ---------- */
+.tbl.ttab td.multi{background:var(--amber-l); color:var(--pend); font-weight:600;}
+.tbl.ttab td.vacio{color:var(--muted);}
+.tbl.ttab td.ecl{background:var(--blue-l); color:#14518f; font-weight:600;}
+.tbl.ttab tr.fin td.multi{background:var(--amber-l);}
+.tbl.ttab td.on{outline:3px solid var(--amber); outline-offset:-3px;}
+
+/* ---------- Transiciones ε (el tema ya trae .ed.eps y .el.eps) ---------- */
+.fa-svg .el.eps{font-size:22px;}
+.fa-svg .ed.eps.on{stroke:var(--amber); stroke-dasharray:6 5;}
+
+/* ---------- Conjunto de estados activos ---------- */
+.conj{display:inline-block; font:600 20px var(--mono); color:var(--navy); background:var(--amber-l); border:2px solid var(--amber);
+  border-radius:999px; padding:2px 14px; white-space:nowrap;}
+.conj.vacio{background:#fff; color:var(--muted); border-style:dashed; border-color:#9aa5ae;}
+.conj sub, .sets sub, .ttab sub, .estado-sim sub{font-size:.7em;}
+.sets{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:4px 6px; font-family:var(--mono); font-size:18px; min-height:34px; margin-top:6px;}
+.sets .ar{display:inline-flex; flex-direction:column; align-items:center; color:var(--accent); font-size:14px; line-height:1;}
+.sets .ar b{font-size:13px; color:var(--pend);}
+.sets .conj{font-size:16px; padding:1px 10px;}
+.sets .conj.fin-ok{background:var(--ok-l); border-color:var(--ok); color:var(--ok);}
+.sets .conj.fin-no{background:var(--red-l); border-color:var(--red); color:var(--red-t);}
+
+/* ---------- Árbol de caminos ---------- */
+svg.arbol{display:block; overflow:visible; margin:0 auto;}
+.arbol .e{stroke:var(--navy); stroke-width:2.2; fill:none;}
+.arbol .lb{font-family:var(--mono); font-size:15px; font-weight:600; fill:var(--pend); text-anchor:middle; paint-order:stroke; stroke:#fff; stroke-width:5px;}
+.arbol .nd circle{fill:#fff; stroke:var(--navy); stroke-width:2.2;}
+.arbol .nd text{font-family:var(--mono); font-size:15px; font-weight:600; fill:var(--navy); text-anchor:middle; dominant-baseline:central;}
+.arbol .nd.acc circle{fill:var(--ok-l); stroke:var(--ok); stroke-width:3;}
+.arbol .nd.rej circle{fill:var(--red-l); stroke:var(--red); stroke-dasharray:5 4;}
+.arbol .x{font-family:var(--mono); font-size:15px; font-weight:600; fill:var(--red-t);}
+.arbol .ok{font-family:var(--mono); font-size:15px; font-weight:600; fill:var(--ok);}
+.arbol .col{font-family:var(--mono); font-size:14px; fill:var(--muted); text-anchor:middle;}
+.leyenda{display:flex; flex-wrap:wrap; gap:8px 18px; justify-content:center; font-size:16px; color:var(--muted); margin-top:6px;}
+.leyenda span{display:inline-flex; align-items:center; gap:6px;}
+.leyenda i.c{width:16px; height:16px; border-radius:50%; border:2px solid; display:inline-block;}
+
+/* ---------- Comparación AFD / AFN ---------- */
+.tbl.cmp{font-family:var(--sans); font-size:18px;}
+.tbl.cmp td{padding:7px 12px; vertical-align:top;}
+.tbl.cmp td:first-child{font-family:var(--mono); font-weight:600; font-size:15px; color:var(--muted); white-space:nowrap;}
+
+/* ---------- Clasificación AFD / AFN ---------- */
+.clasif{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:14px;}
+.clasif .panel{display:flex; flex-direction:column; align-items:center; gap:6px;}
+.clasif .razones{font-size:15px; color:var(--ink); text-align:left; align-self:stretch; min-height:20px;}
+.clasif .razones li{margin:2px 0;}
+.clasif .razones ul{margin:4px 0 0 18px; padding:0;}
+
+/* Botones con las cadenas en el simulador */
+.sim .elegir-w{display:flex; flex-wrap:wrap; gap:6px; justify-content:center;}
+.pasos-ecl{font-size:15px; color:#14518f; text-align:center; min-height:20px;}
+
+/* ---------- Resaltado de piezas (fragmentos data-hl) ---------- */
+.hl-multi .ed[data-k="q0>q0"], .hl-multi .ed[data-k="q0>q1"]{stroke:var(--amber); stroke-width:5;}
+.hl-multi .sh[class~="e-q0>q0"], .hl-multi .sh[class~="e-q0>q1"]{fill:var(--amber);}
+.hl-multi .el[data-k="q0>q0"], .hl-multi .el[data-k="q0>q1"]{fill:var(--pend); font-size:23px;}
+.hl-faltan .state[data-s="q1"] .st, .hl-faltan .state[data-s="q2"] .st:not(.in){stroke:var(--red); stroke-dasharray:6 5; stroke-width:3.5; fill:var(--red-l);}
+
+/* Tablas con columna ECLOSE en dos columnas */
+.compacta .tbl.ttab{font-size:17px;} .compacta .tbl.ttab th, .compacta .tbl.ttab td{padding:5px 8px;}
+
+/* Las mayúsculas decorativas no deben convertir ε en Ε */
+.kicker .lc, .head .lc, .tbl th .lc{text-transform:none; letter-spacing:0;}

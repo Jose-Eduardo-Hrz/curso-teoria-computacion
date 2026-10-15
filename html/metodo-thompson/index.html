@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Método de Thompson</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="afd.css">
+<link rel="stylesheet" href="afn.css">
+<link rel="stylesheet" href="thompson.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     BLOQUE A · MOTIVACIÓN E INTUICIÓN
+     ===================================================================== -->
+
+<!-- 1 · PORTADA -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Teoría de la computación · Conversiones</div>
+  <h1 class="center" style="font-size:58px;margin-top:18px;line-height:1.08">Del lenguaje al autómata</h1>
+  <p class="center" style="font-family:var(--serif);font-size:36px;color:var(--navy);margin-top:6px">el método de Thompson</p>
+  <p class="sub" style="font-size:23px;margin-top:8px">Cómo transformar una expresión regular en un AFN-ε, paso a paso.</p>
+  <div class="ctrl" style="margin-top:26px;gap:18px;flex-wrap:nowrap" data-claim="T:(0+1)1" data-inv data-re="(0+1)1">
+    <div class="exprbox" style="background:var(--code-bg,#14202b);color:#ffd479;border:2.5px solid var(--navy);border-radius:12px;box-shadow:5px 5px 0 var(--navy);padding:10px 22px;font-size:34px">\((0+1)1\)</div>
+    <i class="fa-solid fa-arrow-right-long" style="font-size:34px;color:var(--accent)" aria-hidden="true"></i>
+    <div class="panel" style="padding:6px 10px"><div class="diag" data-thompson="(0+1)1" data-escala=".9"></div></div>
+  </div>
+  <aside class="notes">Bienvenida. Hoy unimos dos temas: las expresiones regulares (que describen lenguajes) y los autómatas (que los reconocen). El método de Thompson es una receta para pasar de la primera a la segunda, pieza por pieza.</aside>
+</section>
+
+<!-- 2 · EL PROBLEMA -->
+<section data-transition="convex" id="problema">
+  <div class="kicker">A · Motivación</div>
+  <div class="route" data-on="1"></div>
+  <h2>El problema</h2>
+  <div class="q"><i class="fa-solid fa-circle-question"></i><p>Tenemos la expresión \((0+1)1\). ¿Cómo construimos una máquina que reconozca <b>exactamente</b> sus cadenas?</p></div>
+  <div class="split" style="grid-template-columns:330px 1fr;margin-top:26px;align-items:center">
+    <div class="panel center" data-rx="(0+1)1" data-rx-exact="01,11">
+      <div style="font-size:44px">\((0+1)1\)</div>
+      <div class="hint mt8">describe el lenguaje</div>
+      <div class="strs mt8" style="justify-content:center"><span class="str si">01</span><span class="str si">11</span></div>
+    </div>
+    <div class="panel" style="min-height:250px;display:grid;place-items:center">
+      <div class="col-c" style="grid-area:1/1"><i class="fa-solid fa-gears" style="font-size:60px;color:#b9c2ca"></i><span class="hint">¿qué máquina reconoce estas cadenas?</span></div>
+      <div class="fragment" style="grid-area:1/1;background:#fff;width:100%"><div class="diag" data-thompson="(0+1)1" data-escala=".95"></div></div>
+    </div>
+  </div>
+  <aside class="notes">Deja que propongan máquinas a mano. Funciona para expresiones pequeñas, pero ¿y para expresiones grandes? Necesitamos un método que funcione SIEMPRE: eso es Thompson. Al avanzar aparece la máquina que construiremos hoy.</aside>
+</section>
+
+<!-- 3 · ANALOGÍA DE LOS BLOQUES -->
+<section data-transition="slide" id="bloques">
+  <div class="kicker">A · Intuición</div>
+  <div class="route" data-on="1"></div>
+  <h2>Como construir con bloques de juguete</h2>
+  <p class="lead center mt8">Cada símbolo y cada operación nos da una <b>pieza pequeña</b>. Las piezas se conectan para formar una máquina grande.</p>
+  <div class="piezas">
+    <div class="panel fragment fade-up"><i class="fa-solid fa-cube big-i"></i><h3>Pieza símbolo</h3><div class="hint">lee un símbolo: 0 o 1</div></div>
+    <div class="panel fragment fade-up"><i class="fa-solid fa-code-fork big-i"></i><h3>Pieza unión</h3><div class="hint">elige un camino u otro</div></div>
+    <div class="panel fragment fade-up"><i class="fa-solid fa-link big-i"></i><h3>Pieza concatenación</h3><div class="hint">una pieza detrás de otra</div></div>
+    <div class="panel fragment fade-up"><i class="fa-solid fa-rotate big-i"></i><h3>Pieza estrella</h3><div class="hint">repetir cero o más veces</div></div>
+  </div>
+  <div class="def hl mt24 fragment fade-up">
+    <div class="head"><i class="fa-solid fa-plug"></i> La regla de oro</div>
+    <div class="body lead">Cada pieza tiene <b>un enchufe de entrada</b> y <b>uno de salida</b>. Las piezas se unen con cables especiales que no gastan símbolos: las flechas \(\varepsilon\).</div>
+  </div>
+  <aside class="notes">La analogía ayuda a recordar que todas las piezas tienen la misma forma "de afuera": una entrada y una salida. Por eso cualquier pieza se puede conectar con cualquier otra.</aside>
+</section>
+
+<!-- 4 · RECORDATORIO DE EXPRESIONES -->
+<section data-transition="convex" id="recordatorio">
+  <div class="kicker">A · Recordatorio</div>
+  <div class="route" data-on="1"></div>
+  <h2>Recordatorio: las expresiones regulares</h2>
+  <div class="rx4">
+    <div class="panel" data-rx="0" data-rx-in="0" data-rx-out="ε,1,00"><div class="expr">\(0\)</div><div class="hint">la cadena 0</div>
+      <div class="strs"><span class="str si">0</span></div><div class="strs"><span class="str nop eps">ε</span><span class="str nop">1</span><span class="str nop">00</span></div></div>
+    <div class="panel fragment fade-up" data-rx="0+1" data-rx-in="0,1" data-rx-out="ε,01"><div class="expr">\(0+1\)</div><div class="hint">elegir 0 <b>o</b> 1</div>
+      <div class="strs"><span class="str si">0</span><span class="str si">1</span></div><div class="strs"><span class="str nop eps">ε</span><span class="str nop">01</span></div></div>
+    <div class="panel fragment fade-up" data-rx="01" data-rx-in="01" data-rx-out="0,10"><div class="expr">\(01\)</div><div class="hint">primero 0, <b>después</b> 1</div>
+      <div class="strs"><span class="str si">01</span></div><div class="strs"><span class="str nop">0</span><span class="str nop">10</span></div></div>
+    <div class="panel fragment fade-up" data-rx="0*" data-rx-in="ε,0,00,000" data-rx-out="1,01"><div class="expr">\(0^*\)</div><div class="hint">cero o más ceros</div>
+      <div class="strs"><span class="str si eps">ε</span><span class="str si">0</span><span class="str si">00</span><span class="str si">000</span></div><div class="strs"><span class="str nop">1</span><span class="str nop">01</span></div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-info"></i><span>En esta clase \(+\) es la <b>unión</b> de la teoría de lenguajes (no la sintaxis de JavaScript o Python), la concatenación se escribe juntando expresiones, y \(\varnothing\) (sin cadenas) no es lo mismo que \(\varepsilon\) (la cadena vacía).</span></div>
+  <aside class="notes">Tres operaciones: unión, concatenación, estrella. Thompson tiene exactamente una regla por cada una, más la regla de los símbolos. Precedencia: estrella, luego concatenación, luego unión.</aside>
+</section>
+
+<!-- 5 · ¿QUÉ ES UN AFN-ε? -->
+<section data-transition="slide" id="afn-eps">
+  <div class="kicker">A · Repaso de AFN-<span class="lc">ε</span></div>
+  <div class="route" data-on="1"></div>
+  <h2>¿Qué es un AFN-ε?</h2>
+  <div class="split" style="grid-template-columns:1fr 470px;margin-top:16px">
+    <div>
+      <div class="sim" data-t="ε0" data-w="0">
+        <div class="sim-diag"></div>
+        <div class="sim-cinta"></div>
+        <div class="sim-ctrl mt8"></div>
+        <div class="sim-estado"></div>
+      </div>
+    </div>
+    <div class="list" style="gap:14px" data-claim="T:ε0" data-acc="0" data-rej="ε,00" data-w="0" data-sets="q0,q1,q2;q3">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-map"></i> Un mapa de estados</div>
+        <div class="body small">Un autómata es como un recorrido por un mapa: leer un símbolo nos lleva por una flecha con ese símbolo.</div>
+      </div>
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-person-running"></i> Flecha <span class="lc">ε</span></div>
+        <div class="body small">Una flecha \(\varepsilon\) permite cambiar de estado <b>sin leer</b> ningún símbolo: la cinta no avanza.</div>
+      </div>
+      <div class="note" style="margin-top:0"><i class="fa-solid fa-triangle-exclamation"></i><span>\(\varepsilon\) <b>nunca</b> aparece en la cadena de entrada: no es un símbolo del alfabeto \(\Sigma=\{0,1\}\).</span></div>
+    </div>
+  </div>
+  <aside class="notes">Este es el autómata de Thompson para la expresión ε0 (que describe lo mismo que 0). Antes de leer nada, la máquina ya puede estar en q0, q1 y q2 gracias a las flechas ε. Aceptación: al menos un camino termina en el estado final tras leer toda la cadena.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE B · LAS REGLAS DE THOMPSON
+     ===================================================================== -->
+
+<!-- 6 · LA RECETA -->
+<section data-transition="concave" id="receta">
+  <div class="kicker">B · Las reglas de Thompson</div>
+  <div class="route" data-on="2"></div>
+  <h2>La receta de Thompson</h2>
+  <div class="flujo">
+    <div class="pz fragment fade-up"><div class="sq"><i class="fa-solid fa-cube"></i></div><div class="t">1. Un fragmento por símbolo</div><div class="d">dos estados y una flecha</div></div>
+    <div class="fl fragment fade-up" aria-hidden="true">→</div>
+    <div class="pz fragment fade-up"><div class="sq"><i class="fa-solid fa-sitemap"></i></div><div class="t">2. Identificar las operaciones</div><div class="d">árbol de la expresión</div></div>
+    <div class="fl fragment fade-up" aria-hidden="true">→</div>
+    <div class="pz fragment fade-up"><div class="sq"><i class="fa-solid fa-puzzle-piece"></i></div><div class="t">3. Combinar con las reglas</div><div class="d">unión, concatenación, estrella</div></div>
+    <div class="fl fragment fade-up" aria-hidden="true">→</div>
+    <div class="pz fragment fade-up"><div class="sq"><i class="fa-solid fa-flag-checkered"></i></div><div class="t">4. Marcar inicio y final</div><div class="d">uno de cada uno</div></div>
+    <div class="fl fragment fade-up" aria-hidden="true">→</div>
+    <div class="pz fragment fade-up"><div class="sq"><i class="fa-solid fa-list-check"></i></div><div class="t">5. Comprobar</div><div class="d">probar cadenas</div></div>
+  </div>
+  <div class="def hl mt24 fragment fade-up">
+    <div class="head"><i class="fa-solid fa-lightbulb"></i> La idea clave</div>
+    <div class="body">Se construye de <b>abajo hacia arriba</b>: primero las piezas más pequeñas (los símbolos) y después las operaciones que las contienen, siguiendo la estructura de la expresión.</div>
+  </div>
+  <aside class="notes">Esta receta se repite en todos los ejercicios del día. En el bloque D la escribimos como algoritmo.</aside>
+</section>
+
+<!-- 7 · REGLA DEL SÍMBOLO -->
+<section data-transition="slide" id="regla-simbolo">
+  <div class="kicker">B · Regla 1 · Símbolo</div>
+  <div class="route" data-on="2"></div>
+  <h2>Regla para un símbolo</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-cube"></i> Fragmento de un símbolo \(a\)</div>
+    <div class="body">Dos estados <b>nuevos</b>: una entrada y una salida, unidos por una flecha con \(a\). La máquina pasa de la entrada a la salida <b>leyendo</b> \(a\).</div>
+  </div>
+  <div class="two" style="margin-top:22px">
+    <div class="panel col-c" data-claim="T:0" data-inv data-acc="0" data-rej="ε,1,00"><h3>Fragmento de \(0\)</h3><div class="diag" data-thompson="0" data-escala="1.15"></div><div class="hint">acepta solo la cadena 0</div></div>
+    <div class="panel col-c fragment fade-left" data-claim="T:1" data-inv data-acc="1" data-rej="ε,0,11"><h3>Fragmento de \(1\)</h3><div class="diag" data-thompson="1" data-escala="1.15"></div><div class="hint">acepta solo la cadena 1</div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-info"></i><span>La flecha de entrada marca la <b>entrada</b> del fragmento y el doble círculo su <b>salida</b>. Cada vez que aparece un símbolo en la expresión se crea un fragmento con estados <b>nuevos</b>.</span></div>
+  <aside class="notes">En la expresión 0(1+0) hay dos ceros: cada uno tiene su propio fragmento con estados distintos. Los nombres q0, q1, … se asignan en el orden en que se crean.</aside>
+</section>
+
+<!-- 8 · CONECTAR FRAGMENTOS -->
+<section data-transition="slide" id="conectar">
+  <div class="kicker">B · Entradas y salidas</div>
+  <div class="route" data-on="2"></div>
+  <h2>¿Cómo se conectan los fragmentos?</h2>
+  <div class="panel mt16"><div class="diag" data-thompson="01" data-etapa="1" data-escala="1.3"></div>
+    <div class="hint center">Dos fragmentos independientes: cada uno con su entrada (flecha) y su salida (doble círculo).</div></div>
+  <div class="three" style="margin-top:20px">
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-right-to-bracket"></i></div><div><div class="t">Una entrada</div><div class="v">por ahí empieza a leer la pieza</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-right-from-bracket"></i></div><div><div class="t">Una salida</div><div class="v">ahí termina la pieza</div></div></div>
+    <div class="item fragment fade-up"><div class="sq">ε</div><div><div class="t">Se unen con ε</div><div class="v">salida de una → entrada de otra</div></div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-triangle-exclamation"></i><span>No reutilices un estado de un fragmento cuando la regla pide uno <b>nuevo</b>: al combinar piezas, las entradas y salidas de los fragmentos internos dejan de ser el inicio y el final del todo.</span></div>
+  <aside class="notes">Al conectar, la salida de q1 deja de ser final y la entrada de q2 deja de ser inicial: solo el resultado completo tiene un inicio y un final.</aside>
+</section>
+
+<!-- 9 · REGLA DE CONCATENACIÓN -->
+<section data-transition="convex" id="regla-concat">
+  <div class="kicker">B · Regla 2 · Concatenación</div>
+  <div class="route" data-on="2"></div>
+  <h2>Concatenación: \(01\)</h2>
+  <div class="def hl mt8">
+    <div class="head"><i class="fa-solid fa-link"></i> Regla de concatenación \(rs\)</div>
+    <div class="body small">Una flecha \(\varepsilon\) de la <b>salida</b> de \(r\) a la <b>entrada</b> de \(s\). La entrada de \(r\) es la nueva entrada y la salida de \(s\) es la nueva salida. No se crean estados.</div>
+  </div>
+  <div class="mt16" data-construccion="01" data-escala="1.25" data-claim="T:01" data-inv data-acc="01" data-rej="ε,0,1,10"></div>
+  <aside class="notes">Cuatro clics: fragmento de 0, fragmento de 1, conexión ε, autómata completo. La máquina no puede llegar a la salida de 1 sin haber leído antes el 0.</aside>
+</section>
+
+<!-- 10 · REGLA DE UNIÓN -->
+<section data-transition="slide" id="regla-union">
+  <div class="kicker">B · Regla 3 · Unión</div>
+  <div class="route" data-on="2"></div>
+  <h2>Unión: \(0+1\)</h2>
+  <div class="def hl mt8">
+    <div class="head"><i class="fa-solid fa-code-fork"></i> Regla de unión \(r+s\)</div>
+    <div class="body small">Un nuevo inicio con flechas \(\varepsilon\) hacia las entradas de \(r\) y de \(s\), y un nuevo final con flechas \(\varepsilon\) desde sus salidas. Así la máquina <b>elige</b> una alternativa.</div>
+  </div>
+  <div class="split" style="grid-template-columns:1fr 330px;margin-top:10px;align-items:start">
+    <div data-construccion="0+1" data-escala="1.05"></div>
+    <div class="panel" data-claim="T:0+1" data-inv data-acc="0,1" data-rej="ε,00,01" data-re="0+1">
+      <h3>Comprobación</h3>
+      <div data-pruebas="T:0+1" data-ws="0,1,00,01,ε"></div>
+    </div>
+  </div>
+  <aside class="notes">Se crean exactamente dos estados nuevos (inicio y final) y cuatro flechas ε. ε se rechaza: desde el inicio solo hay flechas ε hacia las entradas de los fragmentos, y para llegar al final hay que leer un símbolo.</aside>
+</section>
+
+<!-- 11 · REGLA DE ESTRELLA -->
+<section data-transition="slide" id="regla-estrella">
+  <div class="kicker">B · Regla 4 · Estrella de Kleene</div>
+  <div class="route" data-on="2"></div>
+  <h2>Estrella de Kleene: \(0^*\)</h2>
+  <div class="def hl mt8">
+    <div class="head"><i class="fa-solid fa-rotate"></i> Regla de estrella \(r^*\)</div>
+    <div class="body small">Nuevos inicio y final. Flechas \(\varepsilon\): <b>entrar</b> a \(r\), <b>repetir</b> (de la salida de \(r\) a su entrada), <b>saltar</b> (del inicio al final: cero veces) y <b>salir</b> de \(r\) al final.</div>
+  </div>
+  <div class="split" style="grid-template-columns:1fr 320px;margin-top:6px;align-items:start">
+    <div>
+      <div data-construccion="0*" data-escala=".98"></div>
+      <div class="leyenda"><span><i class="l" style="border-color:var(--amber)"></i><span class="rp">repite</span>: otra vuelta</span><span><i class="l" style="border-color:var(--blue)"></i><span class="sl2">salto</span>: cero repeticiones</span></div>
+    </div>
+    <div class="panel" data-claim="T:0*" data-inv data-acc="ε,0,00,000" data-rej="1,01,10" data-re="0*">
+      <h3>Comprobación</h3>
+      <div data-pruebas="T:0*" data-ws="ε,0,00,000,1"></div>
+    </div>
+  </div>
+  <aside class="notes">La flecha azul (salto) permite aceptar ε sin leer nada; la ámbar (repite) permite volver a leer 0 cuantas veces se quiera. Sin el salto, ε no se aceptaría; sin el regreso, 00 no se aceptaría.</aside>
+</section>
+
+<!-- 12 · COMPARACIÓN DE LAS TRES REGLAS -->
+<section data-transition="convex" id="comparacion">
+  <div class="kicker">B · Las tres reglas</div>
+  <div class="route" data-on="2"></div>
+  <h2>Las tres reglas, lado a lado</h2>
+  <div class="reglas3">
+    <div class="panel"><h3><span class="tag am">unión</span> \(r+s\)</h3><div class="diag" data-thompson="0+1" data-escala=".72"></div><div class="frase">Dos caminos en paralelo entre un inicio y un final nuevos.</div><div class="hint">ej.: \(0+1\)</div></div>
+    <div class="panel fragment fade-up"><h3><span class="tag ac">concatenación</span> \(rs\)</h3><div class="diag" data-thompson="01" data-escala=".72"></div><div class="frase">Un fragmento detrás de otro, unidos por una flecha ε.</div><div class="hint">ej.: \(01\)</div></div>
+    <div class="panel fragment fade-up"><h3><span class="tag" style="color:#14518f;background:var(--blue-l);border-color:var(--blue)">estrella</span> \(r^*\)</h3><div class="diag" data-thompson="0*" data-escala=".72"></div><div class="frase">Un fragmento con un regreso y un salto ε.</div><div class="hint">ej.: \(0^*\)</div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-eye"></i><span>Pista visual: <b>en paralelo</b> → unión · <b>en fila</b> → concatenación · <b>con un arco de regreso</b> → estrella.</span></div>
+  <aside class="notes">Pide a los alumnos que, viendo solo la forma, digan qué operación representa cada diagrama.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE C · CONSTRUCCIÓN GUIADA
+     ===================================================================== -->
+
+<!-- 13 · PRIMER EJERCICIO: PREDICCIÓN -->
+<section data-transition="concave" id="ejercicio-01">
+  <div class="kicker">C · Construcción guiada · Ejercicio 1</div>
+  <div class="route" data-on="3"></div>
+  <h2>Nuestro primer ejercicio: \(01\)</h2>
+  <div class="q"><i class="fa-solid fa-circle-question"></i><p>Antes de construir: ¿cuántos fragmentos de símbolo necesitamos? ¿Qué regla los une? ¿Cuántos estados tendrá el resultado?</p></div>
+  <div class="three" style="margin-top:24px" data-claim="T:01" data-inv>
+    <div class="reto fragment fade-up"><div class="head"><i class="fa-solid fa-cube"></i> Fragmentos</div><div class="qtext"><b>Dos</b>: uno para 0 y otro para 1.</div></div>
+    <div class="reto fragment fade-up"><div class="head"><i class="fa-solid fa-link"></i> Regla</div><div class="qtext"><b>Concatenación</b>: 0 y después 1.</div></div>
+    <div class="reto fragment fade-up"><div class="head"><i class="fa-solid fa-hashtag"></i> Estados</div><div class="qtext"><b>Cuatro</b>: 2 + 2; la concatenación no crea estados.</div></div>
+  </div>
+  <aside class="notes">Deja que voten antes de cada respuesta. Regla para contar: 2 estados por cada símbolo, unión y estrella; 0 por cada concatenación.</aside>
+</section>
+
+<!-- 14 · CONSTRUCCIÓN COMPLETA DE 01 -->
+<section data-transition="slide" id="completo-01">
+  <div class="kicker">C · Construcción guiada · Ejercicio 1</div>
+  <div class="route" data-on="3"></div>
+  <h2>El autómata de \(01\) en acción</h2>
+  <div class="split" style="grid-template-columns:1fr 340px;margin-top:10px">
+    <div class="sim" data-t="01" data-w="01">
+      <div class="sim-diag"></div>
+      <div class="sim-cinta"></div>
+      <div class="sim-ctrl mt8"></div>
+      <div class="sim-estado"></div>
+      <div class="sim-sets"></div>
+    </div>
+    <div class="panel" data-claim="T:01" data-acc="01" data-rej="0,1,00,10" data-w="01" data-sets="q0;q1,q2;q3" data-re="01">
+      <h3>Otras cadenas</h3>
+      <div data-pruebas="T:01" data-ws="0,1,00,10"></div>
+    </div>
+  </div>
+  <aside class="notes">Avanza paso a paso: tras leer 0 la máquina está en q1 y, gracias a la flecha ε, también en q2; tras leer 1 llega a q3, el final. Las demás cadenas se rechazan: ningún camino termina en q3 después de leerlas completas.</aside>
+</section>
+
+<!-- 15 · SEGUNDO EJERCICIO: 0+1 -->
+<section data-transition="slide" id="ejercicio-union">
+  <div class="kicker">C · Construcción guiada · Ejercicio 2</div>
+  <div class="route" data-on="3"></div>
+  <h2>Segundo ejercicio: \(0+1\)</h2>
+  <div class="split" style="grid-template-columns:1fr 360px;margin-top:10px">
+    <div class="sim" data-t="0+1" data-w="0" data-ws="0,1,ε,01">
+      <div class="sim-elegir-w elegir-w"></div>
+      <div class="sim-diag"></div>
+      <div class="sim-ctrl mt8"></div>
+      <div class="sim-estado"></div>
+      <div class="sim-sets"></div>
+    </div>
+    <div class="list" style="gap:12px">
+      <div class="reto"><div class="head"><i class="fa-solid fa-circle-question"></i> Operación principal</div><div class="qtext">¿Qué operación está «más arriba» en \(0+1\)?</div>
+        <div class="ans fragment" style="font-size:18px">La <b>unión</b>: se construyen los fragmentos de 0 y de 1 y se aplica la regla de unión.</div></div>
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="T:0+1" data-acc="0,1" data-rej="ε,01"><i class="fa-solid fa-list-check"></i><span>Acepta 0 y 1; rechaza \(\varepsilon\) y 01. Pruébalas con los botones.</span></div>
+    </div>
+  </div>
+  <aside class="notes">Con 01: tras el 0 un camino llega al final, pero queda un 1 por leer y desde el final no sale ninguna flecha: se rechaza.</aside>
+</section>
+
+<!-- 16 · TERCER EJERCICIO: 0* -->
+<section data-transition="slide" id="ejercicio-estrella">
+  <div class="kicker">C · Construcción guiada · Ejercicio 3</div>
+  <div class="route" data-on="3"></div>
+  <h2>Tercer ejercicio: \(0^*\)</h2>
+  <div class="split" style="grid-template-columns:1fr 340px;margin-top:10px">
+    <div class="sim" data-t="0*" data-w="" data-ws="ε,0,00,1">
+      <div class="sim-elegir-w elegir-w"></div>
+      <div class="sim-diag"></div>
+      <div class="sim-ctrl mt8"></div>
+      <div class="sim-estado"></div>
+      <div class="sim-sets"></div>
+    </div>
+    <div class="list" style="gap:12px">
+      <div class="reto"><div class="head"><i class="fa-solid fa-circle-question"></i> Piensa</div><div class="qtext">¿Qué significa «cero o más veces»? ¿Cómo acepta la máquina \(\varepsilon\) sin leer nada?</div>
+        <div class="ans fragment" style="font-size:18px">Con la flecha de <b>salto</b>: \(\mathrm{ECLOSE}(q_2)\) ya contiene el final \(q_3\).</div></div>
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="T:0*" data-acc="ε,0,00" data-rej="1" data-w="" data-sets="q2,q0,q3"><i class="fa-solid fa-list-check"></i><span>Antes de leer, los activos son \(\{q_0,q_2,q_3\}\): \(\varepsilon\) se acepta. Con 1 no hay flecha: se rechaza.</span></div>
+    </div>
+  </div>
+  <aside class="notes">La numeración sale del orden de creación: q0 y q1 son el fragmento de 0; q2 y q3 los añade la estrella.</aside>
+</section>
+
+<!-- 17 · EJERCICIO COMBINADO: 0(1+0) -->
+<section data-transition="convex" id="combinado">
+  <div class="kicker">C · Construcción guiada · Combinado</div>
+  <div class="route" data-on="3"></div>
+  <h2>Ejercicio combinado: \(0(1+0)\)</h2>
+  <div class="split" style="grid-template-columns:1fr 300px;margin-top:10px;align-items:start">
+    <div data-construccion="0(1+0)" data-escala=".9"></div>
+    <div class="panel" data-claim="T:0(1+0)" data-inv data-re="0(1+0)" data-acc="01,00" data-rej="0,1,10,11">
+      <h3>Comprobación</h3>
+      <div data-pruebas="T:0(1+0)" data-ws="01,00,0,1,10,11"></div>
+    </div>
+  </div>
+  <aside class="notes">Orden: símbolo 0 (q0,q1), símbolo 1 (q2,q3), símbolo 0 (q4,q5), unión 1+0 (q6,q7), y concatenación del primer 0 con la unión. Solo se aceptan 01 y 00: un 0 seguido de exactamente un símbolo.</aside>
+</section>
+
+<!-- 18 · (0+1)1 -->
+<section data-transition="slide" id="union-concat">
+  <div class="kicker">C · Construcción guiada · Más compleja</div>
+  <div class="route" data-on="3"></div>
+  <h2>Una expresión más compleja: \((0+1)1\)</h2>
+  <div class="split" style="grid-template-columns:1fr 300px;margin-top:10px;align-items:start">
+    <div data-construccion="(0+1)1" data-escala=".9"></div>
+    <div class="panel" data-claim="T:(0+1)1" data-inv data-re="(0+1)1" data-acc="01,11" data-rej="ε,0,1,10,011">
+      <h3>Comprobación</h3>
+      <div data-pruebas="T:(0+1)1" data-ws="01,11,1,10,011"></div>
+      <div class="hint mt8">Exactamente dos cadenas: <b>01</b> y <b>11</b>.</div>
+    </div>
+  </div>
+  <aside class="notes">Primero la unión (dentro del paréntesis), después el segundo símbolo 1, y al final la concatenación. Lenguaje finito: L = {01, 11}, verificado contra la expresión.</aside>
+</section>
+
+<!-- 19 · 0*1 -->
+<section data-transition="slide" id="estrella-concat">
+  <div class="kicker">C · Construcción guiada · Estrella y concatenación</div>
+  <div class="route" data-on="3"></div>
+  <h2>Construcción de \(0^*1\)</h2>
+  <div class="split" style="grid-template-columns:1fr 300px;margin-top:10px;align-items:start">
+    <div data-construccion="0*1" data-escala=".9"></div>
+    <div class="panel" data-claim="T:0*1" data-inv data-re="0*1" data-acc="1,01,001,0001" data-rej="ε,0,10">
+      <h3>Comprobación</h3>
+      <div data-pruebas="T:0*1" data-ws="1,01,001,0001,ε,0,10"></div>
+    </div>
+  </div>
+  <aside class="notes">Cero o más ceros y después exactamente un 1. 10 se rechaza: tras el 1 ya no hay flechas para leer el 0.</aside>
+</section>
+
+<!-- 20 · ¿QUÉ REGLA PRIMERO? -->
+<section data-transition="convex" id="orden">
+  <div class="kicker">C · Estructura de la expresión</div>
+  <div class="route" data-on="3"></div>
+  <h2>¿Cómo sabemos qué regla aplicar primero?</h2>
+  <div class="split" style="grid-template-columns:360px 1fr;margin-top:18px">
+    <div class="list" style="gap:12px">
+      <div class="steps small">
+        <div class="step"><b>Paréntesis</b>: agrupan</div>
+        <div class="step"><b>Estrella</b> \(^*\)</div>
+        <div class="step"><b>Concatenación</b></div>
+        <div class="step"><b>Unión</b> \(+\)</div>
+      </div>
+      <div class="note" style="margin-top:4px"><i class="fa-solid fa-sitemap"></i><span>La operación de la <b>raíz</b> del árbol es la <b>última</b> que se aplica. Se construye de las hojas hacia la raíz.</span></div>
+    </div>
+    <div class="panel col-c">
+      <h3>Árbol de \((0+1)1\)</h3>
+      <div data-ast="(0+1)1"></div>
+      <div class="hint">Los números indican el orden de construcción: ① símbolo 0, ② símbolo 1, ③ unión, ④ símbolo 1, ⑤ concatenación.</div>
+    </div>
+  </div>
+  <aside class="notes">El árbol lo dibuja el mismo motor que construye el autómata, y la numeración coincide con las etapas de la diapositiva anterior de (0+1)1.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE D · PROCEDIMIENTO SISTEMÁTICO
+     ===================================================================== -->
+
+<!-- 21 · EL ALGORITMO -->
+<section data-transition="concave" id="algoritmo">
+  <div class="kicker">D · Procedimiento sistemático</div>
+  <div class="route" data-on="4"></div>
+  <h2>El algoritmo, paso a paso</h2>
+  <div class="split" style="grid-template-columns:1fr 520px;margin-top:16px">
+    <div class="steps small">
+      <div class="step fragment fade-right">Analizar la expresión (precedencia y paréntesis).</div>
+      <div class="step fragment fade-right">Identificar sus subexpresiones: el árbol.</div>
+      <div class="step fragment fade-right">Construir los fragmentos de los símbolos.</div>
+      <div class="step fragment fade-right">Aplicar la regla de cada operador, de las hojas a la raíz.</div>
+      <div class="step fragment fade-right">Conectar los fragmentos con transiciones ε.</div>
+      <div class="step fragment fade-right">Obtener un único inicio y un único final.</div>
+      <div class="step fragment fade-right">Verificar el autómata con cadenas de prueba.</div>
+    </div>
+    <div class="term fragment fade-left">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; pseudocódigo</div>
+<pre><span class="c">// devuelve un fragmento (entrada, salida)</span>
+<span class="p">thompson</span>(r):
+  si r es un símbolo a:
+      crear i, f;  i --a--> f
+  si r = s + t:
+      A, B = thompson(s), thompson(t)
+      crear i, f
+      i --ε--> A.i,  i --ε--> B.i
+      A.f --ε--> f,  B.f --ε--> f
+  si r = s t:
+      A, B = thompson(s), thompson(t)
+      A.f --ε--> B.i;   <span class="c">// sin estados nuevos</span>
+      devolver (A.i, B.f)
+  si r = s*:
+      A = thompson(s);  crear i, f
+      i --ε--> A.i,  A.f --ε--> A.i
+      i --ε--> f,    A.f --ε--> f
+  devolver (i, f)</pre>
+    </div>
+  </div>
+  <aside class="notes">El pseudocódigo es recursivo, como la definición de las expresiones regulares: un caso base (el símbolo) y un caso por cada operación. Es exactamente lo que hace el motor de la presentación.</aside>
+</section>
+
+<!-- 22 · ÁRBOL Y CONSTRUCCIÓN -->
+<section data-transition="slide" id="arbol-construccion">
+  <div class="kicker">D · Del árbol al autómata</div>
+  <div class="route" data-on="4"></div>
+  <h2>Árbol sintáctico y construcción de \(0(1+0)\)</h2>
+  <div class="split" style="grid-template-columns:340px 1fr;margin-top:16px">
+    <div class="panel col-c"><div data-ast="0(1+0)"></div><div class="hint">cada nodo → un fragmento</div></div>
+    <div>
+      <div data-tabla-pasos="0(1+0)" data-claim="T:0(1+0)" data-inv></div>
+      <div class="hint mt8">Estados totales: 2 por cada símbolo (3), 2 por la unión, 0 por la concatenación = <b>8</b>.</div>
+    </div>
+  </div>
+  <aside class="notes">La tabla se genera desde la construcción real: cada fila es un nodo del árbol en el orden en que se construye.</aside>
+</section>
+
+<!-- 23 · LA IMPORTANCIA DE ε -->
+<section data-transition="slide" id="importancia-eps">
+  <div class="kicker">D · La importancia de <span class="lc">ε</span></div>
+  <div class="route" data-on="4"></div>
+  <h2>¿Por qué conectar con flechas ε?</h2>
+  <div class="consumo">
+    <div class="panel">
+      <h3>Flecha con <b>0</b>: consume</h3>
+      <div class="cinta"><span class="c leido">0</span><span class="c actual">1</span></div>
+      <div class="hint center">Al recorrerla, la cabeza avanza: el 0 queda leído.</div>
+    </div>
+    <div class="panel fragment fade-left">
+      <h3>Flecha con <b>ε</b>: no consume</h3>
+      <div class="cinta"><span class="c leido">0</span><span class="c actual">1</span></div>
+      <div class="hint center">Al recorrerla, la cabeza <b>se queda</b> sobre el 1.</div>
+    </div>
+  </div>
+  <div class="def hl mt24 fragment fade-up">
+    <div class="head"><i class="fa-solid fa-plug"></i> Por eso son el «pegamento»</div>
+    <div class="body">Una flecha ε une dos piezas <b>sin cambiar el lenguaje</b>: no añade ni quita símbolos a ninguna cadena. Si conectáramos con un 0 o un 1, la máquina exigiría un símbolo que la expresión no pide.</div>
+  </div>
+  <aside class="notes">Compara: en la concatenación de 01, si la conexión fuera una flecha con 0, la máquina reconocería 001 en lugar de 01.</aside>
+</section>
+
+<!-- 24 · ERRORES FRECUENTES (I) -->
+<section data-transition="convex" id="errores-1">
+  <div class="kicker">D · Errores frecuentes · 1 de 2</div>
+  <div class="route" data-on="4"></div>
+  <h2>Errores frecuentes con diagramas</h2>
+  <div class="errores">
+    <div class="panel" data-claim="errUnion" data-acc="01" data-rej="0,1"><h3><i class="fa-solid fa-bug"></i> Unión dibujada como concatenación (\(0+1\))</h3>
+      <div class="diag" data-erroneo="errUnion" data-escala=".6"></div>
+      <div class="falla">Acepta 01 y rechaza 0 y 1: describe \(01\), no \(0+1\).</div><div class="fx">Las alternativas van <b>en paralelo</b>, entre un inicio y un final nuevos.</div></div>
+    <div class="panel" data-claim="errSinSalto" data-rej="ε" data-acc="0,00"><h3><i class="fa-solid fa-bug"></i> Estrella sin salto (\(0^*\))</h3>
+      <div class="diag" data-erroneo="errSinSalto" data-escala=".6"></div>
+      <div class="falla">Rechaza \(\varepsilon\), que sí pertenece a \(L(0^*)\).</div><div class="fx">Falta la flecha ε del inicio al final: permite cero repeticiones.</div></div>
+    <div class="panel" data-claim="errSinRegreso" data-rej="00" data-acc="ε,0"><h3><i class="fa-solid fa-bug"></i> Estrella sin regreso (\(0^*\))</h3>
+      <div class="diag" data-erroneo="errSinRegreso" data-escala=".6"></div>
+      <div class="falla">Rechaza 00: solo permite cero o una repetición.</div><div class="fx">Falta la flecha ε de la salida del fragmento a su entrada.</div></div>
+    <div class="panel" data-claim="errSinNuevos" data-acc="10" data-rx="0*1*" data-rx-out="10"><h3><i class="fa-solid fa-bug"></i> Estrellas sin estados nuevos (\(0^*1^*\))</h3>
+      <div class="diag" data-erroneo="errSinNuevos" data-escala=".55"></div>
+      <div class="falla">Acepta 10, que no pertenece a \(L(0^*1^*)\).</div><div class="fx">Cada estrella necesita su <b>propio</b> inicio y final nuevos.</div></div>
+  </div>
+  <aside class="notes">Cada error está verificado por el motor: el autómata incorrecto acepta o rechaza cadenas que no debería. El último es sutil: al compartir el estado m, desde el final de la segunda estrella se puede regresar a la primera.</aside>
+</section>
+
+<!-- 25 · ERRORES FRECUENTES (II) -->
+<section data-transition="slide" id="errores-2">
+  <div class="kicker">D · Errores frecuentes · 2 de 2</div>
+  <div class="route" data-on="4"></div>
+  <h2>Más errores que debemos evitar</h2>
+  <div class="two tight" style="gap:14px 22px;margin-top:20px">
+    <div class="list tight">
+      <div class="note fragment fade-up" style="margin-top:0"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>Olvidar las flechas ε.</b> Si dos fragmentos no se conectan, la máquina queda partida y no puede llegar al final.</span></div>
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="T:01" data-inv><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>Dejar varios finales.</b> En esta variante el resultado tiene <b>un solo</b> final: las salidas internas dejan de ser finales al conectarse.</span></div>
+    </div>
+    <div class="list tight">
+      <div class="note fragment fade-up" style="margin-top:0" data-claim="T:(0+1)1" data-rej="0,1,10" data-re="(0+1)1"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>Aceptar cadenas de más.</b> Pruébalo: el autómata de \((0+1)1\) debe rechazar 0, 1 y 10.</span></div>
+      <div class="note fragment fade-up" style="margin-top:0" data-rx="0+10" data-rx-paren="0+(10)"><i class="fa-solid fa-bug" style="color:var(--red)"></i><span><b>Ignorar la estructura.</b> \(0+10\) es \(0+(10)\): primero se concatena 10 y después se une con 0, no \((0+1)0\).</span></div>
+    </div>
+  </div>
+  <aside class="notes">Para cada error, pide a los alumnos que digan qué cadena delataría el problema.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE E · PRÁCTICA Y EVALUACIÓN
+     ===================================================================== -->
+
+<!-- 26 · ACTIVIDAD 1+0 -->
+<section data-transition="concave" id="actividad-1">
+  <div class="kicker">E · Práctica · Actividad 1</div>
+  <div class="route" data-on="5"></div>
+  <h2>Actividad: construye el AFN-ε de \(1+0\)</h2>
+  <div class="split" style="grid-template-columns:400px 1fr;margin-top:18px">
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-pencil"></i></div><div><div class="t">Dibuja los fragmentos</div><div class="v">¿cuántos y de qué símbolos?</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-code-fork"></i></div><div><div class="t">Aplica la regla</div><div class="v">¿cuál es la operación principal?</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-hashtag"></i></div><div><div class="t">Cuenta los estados</div><div class="v">y numéralos en orden de creación</div></div></div>
+    </div>
+    <div>
+      <button class="ans-btn" aria-expanded="false" aria-controls="sol-1" style="margin-top:0"><i class="fa-solid fa-eye"></i> Ver la solución</button>
+      <div class="ans" id="sol-1" hidden data-claim="T:1+0" data-inv data-re="1+0" data-acc="1,0" data-rej="ε,10,01">
+        <span class="lbl-ans">Solución</span>
+        <div class="diag" data-thompson="1+0" data-escala=".95"></div>
+        <div class="small">Unión de los fragmentos de 1 (q0, q1) y de 0 (q2, q3) con nuevo inicio q4 y nuevo final q5: <b>6 estados</b>. Acepta 1 y 0; rechaza ε, 10 y 01.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Da un minuto antes de abrir la solución. Compara con 0+1: mismo lenguaje, misma forma, pero los fragmentos se crean en otro orden.</aside>
+</section>
+
+<!-- 27 · ACTIVIDAD 10* -->
+<section data-transition="slide" id="actividad-2">
+  <div class="kicker">E · Práctica · Actividad 2</div>
+  <div class="route" data-on="5"></div>
+  <h2>Actividad: construye el AFN-ε de \(10^*\)</h2>
+  <div class="split" style="grid-template-columns:400px 1fr;margin-top:18px">
+    <div class="list tight">
+      <div class="reto"><div class="head"><i class="fa-solid fa-circle-question"></i> Antes de construir</div><div class="qtext" style="font-size:19px">¿La estrella se aplica a <b>10</b> o solo al <b>0</b>? ¿Cuál es la operación principal?</div>
+        <div class="ans fragment" style="font-size:17px">Solo al 0 (la estrella va primero). La operación principal es la <b>concatenación</b> de 1 con \(0^*\): \(1(0^*)\).</div></div>
+    </div>
+    <div>
+      <button class="ans-btn" aria-expanded="false" aria-controls="sol-2" style="margin-top:0"><i class="fa-solid fa-eye"></i> Ver la solución</button>
+      <div class="ans" id="sol-2" hidden data-claim="T:10*" data-inv data-re="10*" data-acc="1,10,100" data-rej="ε,0,01">
+        <span class="lbl-ans">Solución</span>
+        <div class="diag" data-thompson="10*" data-escala=".82"></div>
+        <div class="small">Primero se lee un 1 y después cero o más ceros. Acepta 1, 10, 100; rechaza ε, 0 y 01.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Error típico: aplicar la estrella a 10 completo, lo que daría (10)*, que acepta ε y 1010.</aside>
+</section>
+
+<!-- 28 · RETO (0+1)* -->
+<section data-transition="zoom" id="reto">
+  <div class="kicker">E · Práctica · Reto</div>
+  <div class="route" data-on="5"></div>
+  <h2>Reto: \((0+1)^*\)</h2>
+  <p class="lead center mt8" style="font-size:20px">Todas las cadenas finitas sobre \(\{0,1\}\), incluida \(\varepsilon\). Primero la unión, después la estrella sobre <b>todo</b> el fragmento.</p>
+  <div class="split" style="grid-template-columns:1fr 290px;margin-top:6px;align-items:start">
+    <div data-construccion="(0+1)*" data-escala=".72"></div>
+    <div class="panel" data-claim="T:(0+1)*" data-inv data-re="(0+1)*" data-acc="ε,0,1,01,10,1100,10101">
+      <h3>Comprobación</h3>
+      <div data-pruebas="T:(0+1)*" data-ws="ε,0,1,01,10,1100,10101" data-compacto></div>
+      <div class="hint mt8">Todas terminan con el final \(q_7\) entre sus estados activos.</div>
+    </div>
+  </div>
+  <aside class="notes">Pide que lo intenten antes de avanzar. El resultado tiene 8 estados: 2+2 de los símbolos, 2 de la unión y 2 de la estrella. Acepta todas las cadenas: L((0+1)*) = Σ*.</aside>
+</section>
+
+<!-- 29 · LABORATORIO -->
+<section data-transition="zoom" id="laboratorio">
+  <div class="kicker">E · Práctica · Laboratorio</div>
+  <div class="route" data-on="5"></div>
+  <h2>Laboratorio: Thompson con cualquier expresión</h2>
+  <div class="lab">
+    <div class="ctrl">
+      <label for="lab-re" class="hint">Expresión:</label><input id="lab-re" type="text" value="0(1+0)*" autocomplete="off" spellcheck="false">
+      <button class="btn sym" data-ins="+">+</button><button class="btn sym" data-ins="*">*</button><button class="btn sym" data-ins="(">(</button><button class="btn sym" data-ins=")">)</button>
+      <span class="hint" style="margin-left:10px">Cadena:</span><input id="lab-w" type="text" value="0110" autocomplete="off" spellcheck="false" style="width:150px" placeholder="ε">
+    </div>
+    <div class="msg center mt8" id="lab-msg" aria-live="polite"></div>
+    <div class="lab-diag mt8" id="lab-diag"></div>
+    <div class="ctrl mt8">
+      <button class="btn" id="lab-atras"><i class="fa-solid fa-backward-step"></i> Etapa anterior</button>
+      <span class="mono" id="lab-etapa" style="font-size:17px;min-width:120px;text-align:center"></span>
+      <button class="btn" id="lab-sig"><i class="fa-solid fa-forward-step"></i> Etapa siguiente</button>
+      <button class="btn" id="lab-fin"><i class="fa-solid fa-forward-fast"></i> Completo</button>
+    </div>
+    <div class="estado-sim" id="lab-paso" aria-live="polite"></div>
+    <div class="estado-sim" id="lab-res" aria-live="polite"></div>
+  </div>
+  <aside class="notes">Escribe expresiones de la clase o nuevas (símbolos 0 y 1). Avanza etapa por etapa y comprueba cadenas: la respuesta la da la simulación del AFN-ε construido, con ε-clausura.</aside>
+</section>
+
+<!-- 30 · ¿CÓMO COMPROBAMOS? -->
+<section data-transition="slide" id="comprobar">
+  <div class="kicker">E · Comprobación</div>
+  <div class="route" data-on="5"></div>
+  <h2>¿Cómo comprobamos el resultado?</h2>
+  <div class="split" style="grid-template-columns:400px 1fr;margin-top:16px">
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-play"></i></div><div><div class="t">¿Un único inicio?</div><div class="v">y no le llega ninguna flecha</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-regular fa-circle-dot"></i></div><div><div class="t">¿Un único final?</div><div class="v">y no sale ninguna flecha de él</div></div></div>
+      <div class="item"><div class="sq">01</div><div><div class="t">¿Flechas de símbolo correctas?</div><div class="v">una por cada símbolo de la expresión</div></div></div>
+      <div class="item"><div class="sq">ε</div><div><div class="t">¿Flechas ε bien conectadas?</div><div class="v">según la regla de cada operación</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-list-check"></i></div><div><div class="t">¿Acepta y rechaza lo esperado?</div><div class="v">cadenas dentro y fuera del lenguaje</div></div></div>
+    </div>
+    <div>
+      <div data-checklist="01,0+1,0*,0(1+0),(0+1)1,0*1,1+0,10*,(0+1)*"></div>
+      <div class="note" style="margin-top:12px"><i class="fa-solid fa-scale-balanced"></i><span>Unas cuantas pruebas ayudan a encontrar errores, pero <b>no demuestran</b> la equivalencia. La garantía viene de que cada regla de Thompson es correcta (se demuestra por inducción sobre la expresión).</span></div>
+    </div>
+  </div>
+  <aside class="notes">La tabla la calcula el motor en vivo para cada autómata de la clase. La última columna compara con la expresión todas las cadenas de longitud ≤ 8: es una comprobación exhaustiva hasta esa longitud, no una demostración.</aside>
+</section>
+
+<!-- 31 · CONCLUSIONES Y LO QUE SIGUE -->
+<section data-transition="zoom" id="conclusiones">
+  <div class="kicker">Conclusiones y lo que sigue</div>
+  <h2>Lo que aprendimos hoy</h2>
+  <div class="two tight" style="gap:10px 22px;margin-top:14px">
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-scroll"></i></div><div><div class="t">Las expresiones describen lenguajes</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-puzzle-piece"></i></div><div><div class="t">Thompson: una pieza por operación</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-code-fork"></i></div><div><div class="t">Unión, concatenación y estrella</div><div class="v">cada una con su regla</div></div></div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq">ε</div><div><div class="t">Las flechas ε son el pegamento</div><div class="v">conectan sin consumir símbolos</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-equals"></i></div><div><div class="t">Mismo lenguaje</div><div class="v">el AFN-ε reconoce exactamente L(r)</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-flag-checkered"></i></div><div><div class="t">Un inicio y un final</div></div></div>
+    </div>
+  </div>
+  <div class="tuberia fragment fade-up" data-claim="T:(0+1)1" data-nsub="5">
+    <div class="et"><div class="t">Expresión regular</div><div class="d">\((0+1)1\)</div></div>
+    <div class="fl"><i class="fa-solid fa-arrow-right"></i><span>Thompson</span></div>
+    <div class="et hl"><div class="t">AFN-ε</div><div class="d">8 estados</div></div>
+    <div class="fl"><i class="fa-solid fa-arrow-right"></i><span>subconjuntos</span></div>
+    <div class="et"><div class="t">AFD</div><div class="d">5 estados (incluido ∅)</div></div>
+  </div>
+  <div class="hint center mt8 fragment fade-up">Thompson <b>no</b> da directamente un AFD: produce un AFN-ε, que después se convierte con la construcción de subconjuntos (próximo tema).</div>
+  <aside class="notes">Para (0+1)1, la construcción de subconjuntos aplicada al AFN-ε de Thompson da 5 estados alcanzables, uno de ellos el conjunto vacío ∅, que funciona como estado trampa (verificado por el motor).</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/math/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="motor-regex.js"></script>
+<script src="afn.js"></script>
+<script src="thompson.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>

@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autómatas finitos deterministas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="afd.css">
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     BLOQUE I · ¿QUÉ ES UN AUTÓMATA?
+     ===================================================================== -->
+
+<!-- 1 · PORTADA -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Teoría de la computación · Autómatas</div>
+  <h1 class="center" style="font-size:64px;margin-top:20px;line-height:1.08">Autómatas finitos</h1>
+  <p class="center" style="font-family:var(--serif);font-size:36px;color:var(--navy);margin-top:6px">máquinas que siguen reglas</p>
+  <p class="sub" style="font-size:23px;margin-top:8px">Aprendamos a construir máquinas que reconocen patrones.</p>
+  <div class="ctrl" style="margin-top:30px;gap:20px;flex-wrap:nowrap" data-claim="termina1" data-acc="101">
+    <div class="col-c"><div class="cinta" style="padding-top:0"><span class="c">1</span><span class="c">0</span><span class="c">1</span></div><span class="hint">entra una cadena</span></div>
+    <i class="fa-solid fa-arrow-right-long" style="font-size:34px;color:var(--accent)" aria-hidden="true"></i>
+    <div class="panel col-c" style="padding:6px 10px"><div class="diag" data-diagram="termina1" data-escala=".78" data-marca="q1:ok"></div><span class="hint">cambia de estado con cada símbolo</span></div>
+    <i class="fa-solid fa-arrow-right-long" style="font-size:34px;color:var(--accent)" aria-hidden="true"></i>
+    <div class="col-c"><span class="tag ac" style="font-size:20px;padding:6px 16px"><i class="fa-solid fa-circle-check"></i> acepta</span><span class="hint">o rechaza</span></div>
+  </div>
+  <aside class="notes">Bienvenida. Hoy vamos a construir máquinas muy sencillas: reciben una cadena, la leen símbolo por símbolo cambiando de estado y al final dicen "acepto" o "rechazo". La de la portada acepta las cadenas que terminan en 1; al final de la clase podrán explicar por qué acepta 101.</aside>
+</section>
+
+<!-- 2 · MÁQUINA EXPENDEDORA -->
+<section data-transition="convex" id="expendedora">
+  <div class="kicker">I · ¿Qué es un autómata?</div>
+  <div class="route" data-on="1"></div>
+  <h2>Una máquina que toma decisiones</h2>
+  <div class="q" style="margin-top:16px"><i class="fa-solid fa-circle-question"></i><p>Un dulce cuesta $10 y la máquina solo acepta monedas de $5. ¿Cómo «sabe» cuándo entregarlo?</p></div>
+  <div class="diag mt16" data-diagram="expendedora"></div>
+  <div class="two tight" style="margin-top:10px">
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-brain"></i></div><div><div class="t">Recuerda cuánto dinero lleva</div><div class="v">eso es su estado: $0, $5 o $10</div></div></div>
+    <div class="item fragment fade-up"><div class="sq"><i class="fa-solid fa-scale-balanced"></i></div><div><div class="t">No actúa al azar</div><div class="v">cada moneda la lleva a un estado según una regla</div></div></div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-info"></i><span>Es solo una <b>analogía</b>. Los autómatas de la clase leen <b>símbolos</b> (como 0 y 1) en lugar de monedas y tienen un número <b>finito</b> de estados.</span></div>
+  <aside class="notes">Pregunta: ¿qué pasa si mete una moneda de $5 cuando ya tiene $10? Aquí no lo hemos definido: un autómata de verdad debe decir qué hacer en TODOS los casos. Volveremos a esta idea con las reglas de un AFD.</aside>
+</section>
+
+<!-- 3 · EJEMPLOS COTIDIANOS -->
+<section data-transition="slide" id="cotidianos">
+  <div class="kicker">I · ¿Qué es un autómata?</div>
+  <div class="route" data-on="1"></div>
+  <h2>¿Dónde encontramos ideas parecidas?</h2>
+  <div class="split" style="grid-template-columns:1fr 420px;margin-top:20px">
+    <div class="list tight">
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-lock"></i></div><div><div class="t">Cerradura de combinación</div><div class="v">espera los números en el orden correcto</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-traffic-light"></i></div><div><div class="t">Semáforo</div><div class="v">verde → amarillo → rojo → verde</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-cookie-bite"></i></div><div><div class="t">Máquina expendedora</div><div class="v">cambia según las monedas que recibe</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-barcode"></i></div><div><div class="t">Revisar el formato de un código</div><div class="v">¿empieza con letra? ¿tiene 5 dígitos?</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-gamepad"></i></div><div><div class="t">Videojuego</div><div class="v">caminando → saltando → cayendo</div></div></div>
+    </div>
+    <div>
+      <div class="def hl fragment fade-left">
+        <div class="head"><i class="fa-solid fa-lightbulb"></i> Lo que tienen en común</div>
+        <div class="body">Están en una <b>situación</b> (estado) y, según lo que reciben, pasan a <b>otra</b> siguiendo reglas fijas.</div>
+      </div>
+      <div class="note fragment fade-up"><i class="fa-solid fa-triangle-exclamation"></i><span>Ayudan a entender la idea de <b>estado</b>, pero no todos funcionan exactamente como un AFD (por ejemplo, el semáforo cambia por tiempo, no por símbolos que lee).</span></div>
+    </div>
+  </div>
+  <aside class="notes">Pide más ejemplos: elevador, lavadora, reproductor de música (pausa/reproduce). Pregunta qué "recuerda" cada máquina: eso es su estado.</aside>
+</section>
+
+<!-- 4 · LAS PIEZAS -->
+<section data-transition="convex" id="piezas">
+  <div class="kicker">I · ¿Qué es un autómata?</div>
+  <div class="route" data-on="1"></div>
+  <h2>Las cinco piezas de nuestra máquina</h2>
+  <div class="split" style="grid-template-columns:540px 1fr;margin-top:26px">
+    <div class="panel"><div class="diag" data-diagram="termina1"></div><div class="hint center mt8">Los círculos, flechas y etiquetas se iluminan con cada pieza.</div></div>
+    <div class="list tight">
+      <div class="pieza fragment fade-left" data-hl="estados"><span class="ic"><i class="fa-regular fa-circle"></i></span><div><div class="t">Estados</div><div class="v">los círculos: \(q_0\) y \(q_1\)</div></div></div>
+      <div class="pieza fragment fade-left" data-hl="alfabeto"><span class="ic">01</span><div><div class="t">Alfabeto de entrada</div><div class="v">los símbolos que puede leer: 0 y 1</div></div></div>
+      <div class="pieza fragment fade-left" data-hl="transiciones"><span class="ic"><i class="fa-solid fa-arrow-right"></i></span><div><div class="t">Transiciones</div><div class="v">las flechas con un símbolo</div></div></div>
+      <div class="pieza fragment fade-left" data-hl="inicial"><span class="ic"><i class="fa-solid fa-play"></i></span><div><div class="t">Estado inicial</div><div class="v">la flecha que entra «de la nada»</div></div></div>
+      <div class="pieza fragment fade-left" data-hl="final"><span class="ic"><i class="fa-regular fa-circle-dot"></i></span><div><div class="t">Estados finales (de aceptación)</div><div class="v">el doble círculo</div></div></div>
+    </div>
+  </div>
+  <aside class="notes">Con cada clic se ilumina la pieza en el diagrama. Esta misma máquina (cadenas que terminan en 1) nos acompañará toda la clase.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE II · APRENDER A LEER DIAGRAMAS
+     ===================================================================== -->
+
+<!-- 5 · ESTADO -->
+<section data-transition="concave" id="estado">
+  <div class="kicker">II · Leer diagramas</div>
+  <div class="route" data-on="2"></div>
+  <h2>¿Qué es un estado?</h2>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-regular fa-circle"></i> Estado</div>
+    <div class="body lead">Un <b>estado</b> es la situación en la que se encuentra la máquina: lo que <b>necesita recordar</b> de lo que ha leído.</div>
+  </div>
+  <div class="diag" style="margin-top:28px" data-diagram="cerradura"></div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-memory"></i><span>Un estado no tiene que ser algo físico (una puerta abierta). Es <b>información</b>: «ya vi un 1», «llevo un número par de unos»… Como hay un número <b>finito</b> de estados, la máquina tiene una memoria limitada.</span></div>
+  <aside class="notes">La cerradura solo necesita distinguir dos situaciones. No le importa cuántas veces lo intentaste antes, solo si ya reconoció el código. Esa es la gran idea: recordar solo lo indispensable.</aside>
+</section>
+
+<!-- 6 · TRANSICIÓN -->
+<section data-transition="slide" id="transicion">
+  <div class="kicker">II · Leer diagramas</div>
+  <div class="route" data-on="2"></div>
+  <h2>¿Qué es una transición?</h2>
+  <div class="split" style="grid-template-columns:540px 1fr;margin-top:26px">
+    <div class="panel"><div class="diag" data-diagram="termina1"></div></div>
+    <div class="list" style="gap:16px">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-arrow-right"></i> Transición</div>
+        <div class="body">Una flecha de un estado a otro con un símbolo: «si estoy <b>aquí</b> y leo <b>este símbolo</b>, voy <b>allá</b>».</div>
+      </div>
+      <div class="pieza fragment fade-left" data-hl="una"><span class="ic">1</span><div><div class="t">De \(q_0\) a \(q_1\) con el símbolo 1</div><div class="v">si estoy en q0 y leo 1, paso a q1</div></div></div>
+      <div class="pieza fragment fade-left" data-hl="transiciones"><span class="ic"><i class="fa-solid fa-rotate-right"></i></span><div><div class="t">Los lazos también son transiciones</div><div class="v">en q0, leer 0 me deja en q0</div></div></div>
+    </div>
+  </div>
+  <aside class="notes">Lee cada flecha en voz alta con la fórmula "si estoy en ... y leo ..., voy a ...". Cuenta las flechas: hay cuatro, una por cada pareja (estado, símbolo).</aside>
+</section>
+
+<!-- 7 · INICIAL Y FINAL -->
+<section data-transition="slide" id="inicial-final">
+  <div class="kicker">II · Leer diagramas</div>
+  <div class="route" data-on="2"></div>
+  <h2>Estado inicial y estados finales</h2>
+  <div class="split" style="grid-template-columns:540px 1fr;margin-top:24px">
+    <div class="panel"><div class="diag" data-diagram="termina1"></div></div>
+    <div class="list" style="gap:14px">
+      <div class="pieza fragment fade-left" data-hl="inicial"><span class="ic"><i class="fa-solid fa-play"></i></span><div><div class="t">Inicial: flecha de entrada</div><div class="v">ahí comienza la lectura (siempre uno)</div></div></div>
+      <div class="pieza fragment fade-left" data-hl="final"><span class="ic"><i class="fa-regular fa-circle-dot"></i></span><div><div class="t">Final: doble círculo</div><div class="v">puede haber varios, o ninguno</div></div></div>
+      <div class="def hl fragment fade-up">
+        <div class="head"><i class="fa-solid fa-gavel"></i> Regla de aceptación</div>
+        <div class="body">Una cadena se <b>acepta</b> si, <b>después de leer todos sus símbolos</b>, la máquina queda en un estado final.</div>
+      </div>
+    </div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-triangle-exclamation"></i><span>Pasar por un estado final <b>a mitad</b> de la cadena no basta: la máquina no se detiene ahí, debe leer <b>toda</b> la entrada. Solo cuenta dónde termina.</span></div>
+  <aside class="notes">Ejemplo: con 10 la máquina pasa por q1 después del primer símbolo, pero termina en q0: se rechaza.</aside>
+</section>
+
+<!-- 8 · PROCESAR UNA CADENA -->
+<section data-transition="convex" id="procesar">
+  <div class="kicker">II · Leer diagramas · Simulación</div>
+  <div class="route" data-on="2"></div>
+  <h2>Cómo se procesa una cadena</h2>
+  <p class="lead center mt8">Un símbolo a la vez, de izquierda a derecha, siguiendo <b>exactamente una</b> flecha por símbolo.</p>
+  <div class="sim mt8" data-afd="termina1" data-w="101">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-camino"></div>
+  </div>
+  <aside class="notes">Pulsa "Paso" y pide a los alumnos que digan antes a qué estado irá la máquina. La flecha amarilla marca la transición tomada; la celda amarilla de la cinta, el símbolo que se lee.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE III · LA MATEMÁTICA DETRÁS DE LA MÁQUINA
+     ===================================================================== -->
+
+<!-- 9 · ALFABETO -->
+<section data-transition="concave" id="alfabeto">
+  <div class="kicker">III · La matemática</div>
+  <div class="route" data-on="3"></div>
+  <h2>¿Qué es un alfabeto?</h2>
+  <div class="big mt24">\(\Sigma=\{0,1\}\)</div>
+  <div class="def hl mt16">
+    <div class="head"><i class="fa-solid fa-shapes"></i> Alfabeto</div>
+    <div class="body lead">El <b>alfabeto</b> \(\Sigma\) («sigma») es el conjunto de símbolos que la máquina puede leer. Una <b>cadena</b> es una sucesión finita de esos símbolos.</div>
+  </div>
+  <div class="ctrl mt24" style="gap:16px">
+    <span class="hint">Cadenas sobre \(\Sigma\):</span>
+    <span class="cinta" style="padding-top:0"><span class="c">0</span></span>
+    <span class="cinta" style="padding-top:0"><span class="c">1</span></span>
+    <span class="cinta" style="padding-top:0"><span class="c">0</span><span class="c">1</span></span>
+    <span class="cinta" style="padding-top:0"><span class="c">1</span><span class="c">0</span><span class="c">1</span></span>
+    <span class="cinta" style="padding-top:0"><span class="c vacia">ε</span></span>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-circle-info"></i><span>\(\varepsilon\) es la <b>cadena vacía</b> (cero símbolos). \(\Sigma^*\) es el conjunto de <b>todas</b> las cadenas sobre \(\Sigma\), incluida \(\varepsilon\). Un símbolo fuera de \(\Sigma\), como 2, no es una entrada válida.</span></div>
+  <aside class="notes">Repaso del tema anterior. Lo nuevo: el alfabeto es una de las cinco piezas del autómata.</aside>
+</section>
+
+<!-- 10 · DEFINICIÓN FORMAL -->
+<section data-transition="slide" id="definicion">
+  <div class="kicker">III · La matemática · Definición formal</div>
+  <div class="route" data-on="3"></div>
+  <h2>La definición matemática de un AFD</h2>
+  <div class="big mt8">\(M=(Q,\Sigma,\delta,q_0,F)\)</div>
+  <div class="split" style="grid-template-columns:1fr 360px;margin-top:16px">
+    <div class="comp" data-claim="termina1" data-q="q0,q1" data-q0="q0" data-f="q1">
+      <span class="sym">\(Q\)</span><span class="qué">conjunto <b>finito</b> de estados</span><span class="val fragment fade-left">\(\{q_0,q_1\}\)</span>
+      <span class="sym">\(\Sigma\)</span><span class="qué">alfabeto de entrada</span><span class="val fragment fade-left">\(\{0,1\}\)</span>
+      <span class="sym">\(\delta\)</span><span class="qué">función de transición</span><span class="val fragment fade-left">la tabla <i class="fa-solid fa-arrow-right"></i></span>
+      <span class="sym">\(q_0\)</span><span class="qué">estado inicial, \(q_0\in Q\)</span><span class="val fragment fade-left">\(q_0\)</span>
+      <span class="sym">\(F\)</span><span class="qué">estados finales, \(F\subseteq Q\)</span><span class="val fragment fade-left">\(\{q_1\}\)</span>
+    </div>
+    <div class="panel fragment fade-left"><h3>\(\delta\) de nuestro ejemplo</h3><div data-table="termina1"></div><div class="ttab-leyenda">→ inicial · * final</div></div>
+  </div>
+  <aside class="notes">AFD = autómata finito determinista. Cada pieza del dibujo tiene su nombre matemático. La tabla se genera desde la misma definición que el diagrama, así que siempre coinciden.</aside>
+</section>
+
+<!-- 11 · FUNCIÓN DE TRANSICIÓN -->
+<section data-transition="slide" id="delta">
+  <div class="kicker">III · La matemática · Función de transición</div>
+  <div class="route" data-on="3"></div>
+  <h2>La función de transición \(\delta\)</h2>
+  <div class="big mt8">\(\delta:Q\times\Sigma\rightarrow Q\)</div>
+  <p class="lead center mt8">Recibe el <b>estado actual</b> y el <b>símbolo leído</b>; devuelve <b>exactamente un</b> estado siguiente.</p>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:18px">
+    <div class="panel"><div class="diag" data-diagram="termina1" data-escala=".95"></div></div>
+    <div class="calc" data-claim="termina1" data-delta="q0,0,q0;q0,1,q1;q1,0,q0;q1,1,q1">
+      <div class="ln fin"><span class="n">↗</span><span>\(\delta(q_0,1)=q_1\)<small>en \(q_0\), al leer 1, pasamos a \(q_1\)</small></span></div>
+      <div class="ln fragment fade-up"><span class="n">↻</span><span>\(\delta(q_0,0)=q_0\)</span></div>
+      <div class="ln fragment fade-up"><span class="n">↙</span><span>\(\delta(q_1,0)=q_0\)</span></div>
+      <div class="ln fragment fade-up"><span class="n">↻</span><span>\(\delta(q_1,1)=q_1\)</span></div>
+    </div>
+  </div>
+  <div class="note fragment fade-up"><i class="fa-solid fa-table-cells"></i><span>\(Q\times\Sigma\) son todas las parejas (estado, símbolo): aquí \(2\times 2=4\) parejas, y por eso hay <b>4 flechas</b>, una por pareja.</span></div>
+  <aside class="notes">Cada flecha del diagrama es un valor de la función, y cada casilla de la tabla también. Tres maneras de escribir lo mismo: diagrama, tabla y fórmulas.</aside>
+</section>
+
+<!-- 12 · REGLAS DE UN AFD -->
+<section data-transition="convex" id="reglas">
+  <div class="kicker">III · La matemática · Condiciones</div>
+  <div class="route" data-on="3"></div>
+  <h2>Las reglas que debe cumplir un AFD</h2>
+  <div class="split" style="grid-template-columns:1fr 430px;margin-top:20px">
+    <div class="steps reglas">
+      <div class="step fragment fade-right">Un conjunto <b>finito</b> de estados \(Q\).</div>
+      <div class="step fragment fade-right">Un <b>alfabeto</b> \(\Sigma\) definido.</div>
+      <div class="step fragment fade-right">Exactamente <b>un</b> estado inicial \(q_0\in Q\).</div>
+      <div class="step fragment fade-right">Para <b>cada</b> estado y <b>cada</b> símbolo, <b>exactamente una</b> transición.</div>
+      <div class="step fragment fade-right">Un conjunto de finales \(F\subseteq Q\) (puede ser \(\varnothing\)).</div>
+    </div>
+    <div class="list" style="gap:14px">
+      <div class="def fragment fade-left" style="border-color:var(--red);box-shadow:5px 5px 0 var(--red)">
+        <div class="head" style="border-color:var(--red);color:var(--red-t)"><i class="fa-solid fa-code-branch"></i> Prohibido: dos flechas</div>
+        <div class="body small">Desde un estado no puede haber dos flechas distintas con el <b>mismo</b> símbolo: la máquina no sabría cuál tomar. Eso es lo que significa <b>determinista</b>.</div>
+      </div>
+      <div class="def fragment fade-left" style="border-color:var(--amber);box-shadow:5px 5px 0 var(--amber)">
+        <div class="head" style="border-color:var(--amber);color:var(--pend)"><i class="fa-solid fa-circle-minus"></i> Prohibido: que falte</div>
+        <div class="body small">En un AFD <b>completo</b> no puede faltar ninguna flecha: la máquina debe saber qué hacer con cualquier símbolo, en cualquier estado.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">La regla 4 es la que más se olvida. Comprobación práctica: cuenta las flechas que salen de cada estado; debe haber una por símbolo del alfabeto. Si F = ∅, el autómata no acepta ninguna cadena, pero sigue siendo un AFD válido.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE IV · CONSTRUCCIÓN Y SIMULACIÓN
+     ===================================================================== -->
+
+<!-- 13 · TERMINAN EN 1 -->
+<section data-transition="concave" id="termina-1">
+  <div class="kicker">IV · Construir y simular · Primer ejemplo</div>
+  <div class="route" data-on="4"></div>
+  <h2>Cadenas que terminan en 1</h2>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:18px">
+    <div class="list" style="gap:12px">
+      <div class="pieza"><span class="ic">\(q_0\)</span><div><div class="t">«la cadena es vacía o terminó en 0»</div><div class="v">estado inicial · no final</div></div></div>
+      <div class="pieza"><span class="ic">\(q_1\)</span><div><div class="t">«el último símbolo fue 1»</div><div class="v">estado final</div></div></div>
+      <div class="panel fragment fade-up"><div class="diag" data-diagram="termina1" data-escala=".9"></div></div>
+    </div>
+    <div class="list" style="gap:14px">
+      <div class="panel fragment fade-left"><h3>Tabla de transición</h3><div data-table="termina1"></div><div class="ttab-leyenda">→ inicial · * final</div></div>
+      <div class="def hl fragment fade-left">
+        <div class="head"><i class="fa-solid fa-lightbulb"></i> ¿Por qué estas flechas?</div>
+        <div class="body small">Solo importa el <b>último</b> símbolo leído. Al leer 1, sin importar dónde estemos, el último pasa a ser 1: vamos a \(q_1\). Al leer 0, vamos a \(q_0\).</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Método: (1) decidir qué hay que recordar; (2) un estado por cada situación; (3) para cada estado y símbolo, preguntarse a qué situación se pasa; (4) marcar como finales las situaciones que aceptamos.</aside>
+</section>
+
+<!-- 14 · CADENA ACEPTADA -->
+<section data-transition="slide" id="aceptada">
+  <div class="kicker">IV · Construir y simular · Cadena aceptada</div>
+  <div class="route" data-on="4"></div>
+  <h2>Simulación de una cadena aceptada: 101</h2>
+  <div class="big mt8" data-claim="termina1" data-w="101" data-path="q0,q1,q0,q1" data-acc="101">\(q_0\xrightarrow{1}q_1\xrightarrow{0}q_0\xrightarrow{1}q_1\)</div>
+  <div class="sim" data-afd="termina1" data-w="101">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+  </div>
+  <div class="note fragment fade-up" style="margin-top:10px"><i class="fa-solid fa-circle-check" style="color:var(--ok)"></i><span>Después de leer los tres símbolos la máquina está en \(q_1\), y \(q_1\in F\): la cadena <b>se acepta</b>.</span></div>
+  <aside class="notes">Avanza paso a paso y deja que digan el estado siguiente antes de cada clic.</aside>
+</section>
+
+<!-- 15 · CADENA RECHAZADA -->
+<section data-transition="slide" id="rechazada">
+  <div class="kicker">IV · Construir y simular · Cadena rechazada</div>
+  <div class="route" data-on="4"></div>
+  <h2>Simulación de una cadena rechazada: 100</h2>
+  <div class="big mt8" data-claim="termina1" data-w="100" data-path="q0,q1,q0,q0" data-rej="100">\(q_0\xrightarrow{1}q_1\xrightarrow{0}q_0\xrightarrow{0}q_0\)</div>
+  <div class="sim" data-afd="termina1" data-w="100">
+    <div class="sim-diag"></div>
+    <div class="sim-cinta"></div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+  </div>
+  <div class="note fragment fade-up" style="margin-top:10px"><i class="fa-solid fa-circle-xmark" style="color:var(--red)"></i><span>Termina en \(q_0\notin F\): <b>se rechaza</b>. Pasó por \(q_1\) después del primer símbolo, pero solo cuenta el estado <b>al terminar</b> de leer.</span></div>
+  <aside class="notes">Compara con la anterior: comparten el inicio 10; la diferencia está en el último símbolo.</aside>
+</section>
+
+<!-- 16 · CADENA VACÍA -->
+<section data-transition="convex" id="vacia">
+  <div class="kicker">IV · Construir y simular · Caso especial</div>
+  <div class="route" data-on="4"></div>
+  <h2>¿Qué sucede con la cadena vacía?</h2>
+  <div class="split" style="grid-template-columns:1fr 520px;margin-top:20px">
+    <div class="list" style="gap:14px">
+      <div class="def hl">
+        <div class="head"><i class="fa-regular fa-square"></i> Cero símbolos, cero pasos</div>
+        <div class="body">\(\varepsilon\) no tiene símbolos: la máquina <b>no hace ninguna transición</b> y se queda en el estado inicial.</div>
+      </div>
+      <div class="formula fragment fade-up" data-claim="termina1" data-ext="q0|ε|q0" data-rej="ε">\(\delta^*(q_0,\varepsilon)=q_0\notin F\)<br><span class="tag rj" style="font-size:16px"><i class="fa-solid fa-circle-xmark"></i> \(\varepsilon\) se rechaza</span></div>
+      <div class="note fragment fade-up" style="margin-top:0"><i class="fa-solid fa-not-equal"></i><span><b>No confundir:</b> \(\varepsilon\) es una <b>cadena</b> (se le puede dar a la máquina); \(\varnothing\) es un <b>conjunto</b> sin elementos, no una entrada.</span></div>
+      <div class="hint fragment fade-up" data-claim="par1" data-acc="ε">¿Y si el estado inicial también fuera final? Entonces \(\varepsilon\) se aceptaría (lo veremos con «número par de unos»).</div>
+    </div>
+    <div class="sim" data-afd="termina1" data-w="">
+      <div class="sim-diag"></div>
+      <div class="sim-cinta"></div>
+      <div class="sim-ctrl mt8"></div>
+      <div class="sim-estado"></div>
+    </div>
+  </div>
+  <aside class="notes">La cadena vacía siempre termina en el estado inicial. Por eso ε ∈ L(M) si y solo si q0 ∈ F.</aside>
+</section>
+
+<!-- 17 · δ* -->
+<section data-transition="slide" id="delta-ext">
+  <div class="kicker">IV · Construir y simular · Función extendida</div>
+  <div class="route" data-on="4"></div>
+  <h2>De un símbolo a una cadena completa: \(\delta^*\)</h2>
+  <div class="big mt8">\(\delta^*:Q\times\Sigma^*\rightarrow Q\)</div>
+  <p class="lead center">\(\delta\) procesa <b>un</b> símbolo; \(\delta^*\) procesa una <b>cadena entera</b> y dice dónde termina la máquina.</p>
+  <div class="two" style="margin-top:16px;gap:30px">
+    <div class="list" style="gap:12px">
+      <div class="def hl">
+        <div class="head">Regla 1 · cadena vacía</div>
+        <div class="body"><div class="formula" style="font-size:26px">\(\delta^*(q,\varepsilon)=q\)</div><div class="hint center">sin símbolos, no se mueve</div></div>
+      </div>
+      <div class="def hl fragment fade-up" data-fragment-index="2">
+        <div class="head">Regla 2 · un símbolo más</div>
+        <div class="body"><div class="formula" style="font-size:26px">\(\delta^*(q,wa)=\delta\big(\delta^*(q,w),a\big)\)</div><div class="hint center">procesa \(w\) y después da un paso con el último símbolo \(a\)</div></div>
+      </div>
+    </div>
+    <div class="calc" data-claim="termina1" data-ext="q0|ε|q0;q0|1|q1;q0|10|q0">
+      <div class="ln fragment fade-up" data-fragment-index="1"><span class="n">1</span><span>\(\delta^*(q_0,\varepsilon)=q_0\)<small>regla 1</small></span></div>
+      <div class="ln fragment fade-up" data-fragment-index="3"><span class="n">2</span><span>\(\delta^*(q_0,1)=\delta\big(\delta^*(q_0,\varepsilon),1\big)=\delta(q_0,1)=q_1\)</span></div>
+      <div class="ln fin fragment fade-up" data-fragment-index="4"><span class="n">3</span><span>\(\delta^*(q_0,10)=\delta\big(\delta^*(q_0,1),0\big)=\delta(q_1,0)=q_0\)</span></div>
+    </div>
+  </div>
+  <aside class="notes">Es una definición recursiva, como en el tema de recursividad: el caso base es la cadena vacía, y cada cadena wa se reduce a una más corta, w. Se calcula de izquierda a derecha, igual que la simulación.</aside>
+</section>
+
+<!-- 18 · LENGUAJE RECONOCIDO -->
+<section data-transition="slide" id="lenguaje">
+  <div class="kicker">IV · Construir y simular · Lenguaje</div>
+  <div class="route" data-on="4"></div>
+  <h2>¿Qué lenguaje reconoce nuestro autómata?</h2>
+  <div class="big mt8">\(L(M)=\{\,w\in\Sigma^*\mid\delta^*(q_0,w)\in F\,\}\)</div>
+  <p class="lead center">Todas las cadenas que dejan a la máquina en un estado final.</p>
+  <div class="two" style="margin-top:20px">
+    <div class="panel" data-claim="termina1" data-acc="1,01,11,101,0011">
+      <h3 class="yes-t"><i class="fa-solid fa-circle-check"></i> En \(L(M)\)</h3>
+      <div class="strs" style="justify-content:center"><span class="str si">1</span><span class="str si">01</span><span class="str si">11</span><span class="str si">101</span><span class="str si">0011</span></div>
+    </div>
+    <div class="panel fragment fade-left" data-claim="termina1" data-rej="ε,0,10,100,110">
+      <h3 class="no-t"><i class="fa-solid fa-circle-xmark"></i> Fuera de \(L(M)\)</h3>
+      <div class="strs" style="justify-content:center"><span class="str nop eps">ε</span><span class="str nop">0</span><span class="str nop">10</span><span class="str nop">100</span><span class="str nop">110</span></div>
+    </div>
+  </div>
+  <div class="def hl mt24 fragment fade-up" data-claim="termina1" data-re="(0+1)*1">
+    <div class="head"><i class="fa-solid fa-box"></i> En palabras</div>
+    <div class="body lead">\(L(M)\) es el conjunto de cadenas binarias que <b>terminan en 1</b>.</div>
+  </div>
+  <aside class="notes">"La máquina acepta w" y "w pertenece a L(M)" significan lo mismo. Esta afirmación está verificada: el lenguaje del autómata coincide con el de la expresión (0+1)*1 en todas las cadenas de hasta 8 símbolos.</aside>
+</section>
+
+<!-- 19 · LABORATORIO -->
+<section data-transition="zoom" id="laboratorio">
+  <div class="kicker">IV · Construir y simular · Laboratorio</div>
+  <div class="route" data-on="4"></div>
+  <h2>Laboratorio: simula cualquier cadena</h2>
+  <div class="sim" data-afd="termina1" data-w="0110" data-edit data-select="termina1,alMenosUn1,par1,empieza1,contiene11">
+    <div class="sim-elegir ctrl mt8"></div>
+    <div class="split" style="grid-template-columns:1fr 330px;margin-top:6px;align-items:center">
+      <div><div class="sim-diag"></div><div class="sim-cinta"></div></div>
+      <div class="sim-tabla"></div>
+    </div>
+    <div class="sim-ctrl mt8"></div>
+    <div class="sim-estado"></div>
+    <div class="sim-camino"></div>
+  </div>
+  <aside class="notes">Elige un autómata, escribe una cadena y avanza paso a paso. La casilla de la tabla que se usa en cada paso también se resalta: diagrama, tabla y δ son lo mismo. El simulador usa la función de transición, nunca respuestas escritas a mano.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE V · CONSTRUIR AUTÓMATAS A PARTIR DE PROBLEMAS
+     ===================================================================== -->
+
+<!-- 20 · AL MENOS UN 1 -->
+<section data-transition="concave" id="al-menos-uno">
+  <div class="kicker">V · Construir autómatas · Ejemplo</div>
+  <div class="route" data-on="5"></div>
+  <h2>Cadenas que contienen al menos un 1</h2>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:16px">
+    <div class="list" style="gap:10px">
+      <div class="pieza"><span class="ic">\(q_0\)</span><div><div class="t">todavía no hemos leído ningún 1</div><div class="v">inicial</div></div></div>
+      <div class="pieza"><span class="ic">\(q_1\)</span><div><div class="t">ya leímos al menos un 1</div><div class="v">final · de aquí ya no se sale</div></div></div>
+      <div class="panel"><div class="diag" data-diagram="alMenosUn1" data-escala=".9"></div></div>
+      <div data-table="alMenosUn1"></div>
+    </div>
+    <div class="panel" data-claim="alMenosUn1" data-acc="1,010,0001" data-rej="ε,0,00" data-re="0*1(0+1)*">
+      <h3>Pruebas</h3>
+      <div data-pruebas="alMenosUn1" data-ws="ε,0,1,00,010,0001"></div>
+    </div>
+  </div>
+  <aside class="notes">Una vez que aparece un 1, la condición ya se cumplió para siempre: por eso q1 tiene un lazo con 0 y con 1. Pide a los alumnos que predigan cada prueba antes de mostrarla.</aside>
+</section>
+
+<!-- 21 · PAR DE UNOS -->
+<section data-transition="slide" id="par">
+  <div class="kicker">V · Construir autómatas · Dificultad intermedia</div>
+  <div class="route" data-on="5"></div>
+  <h2>Cadenas con un número par de unos</h2>
+  <div class="split" style="grid-template-columns:520px 1fr;margin-top:16px">
+    <div class="list" style="gap:10px">
+      <div class="note" style="margin-top:0"><i class="fa-solid fa-brain"></i><span>No hace falta contar los unos: basta recordar si van <b>pares</b> o <b>impares</b>.</span></div>
+      <div class="panel"><div class="diag" data-diagram="par1" data-escala=".9"></div></div>
+      <div data-table="par1"></div>
+      <div class="hint">\(q_P\): par (inicial <b>y</b> final) · \(q_I\): impar. Con 0 se conserva; con 1 se cambia.</div>
+    </div>
+    <div class="panel" data-claim="par1" data-acc="ε,0,11,101,1100" data-rej="1" data-re="0*(10*10*)*">
+      <h3>Pruebas</h3>
+      <div data-pruebas="par1" data-ws="ε,0,1,11,101,1100"></div>
+      <div class="hint mt8">Cero unos es una cantidad par: por eso \(\varepsilon\) y 0 se aceptan.</div>
+    </div>
+  </div>
+  <aside class="notes">Pregunta trampa: ¿101 se acepta? Sí: tiene dos unos (par); los ceros no cuentan. Solo "1" se rechaza en esta lista. La aceptación depende únicamente de la paridad de unos, porque es lo único que distinguen los estados. Las pruebas las calcula el motor con la función δ.</aside>
+</section>
+
+<!-- 22 · EMPIEZA CON 1 -->
+<section data-transition="slide" id="empieza-1">
+  <div class="kicker">V · Construir autómatas · De la descripción al autómata</div>
+  <div class="route" data-on="5"></div>
+  <h2>Problema: cadenas que empiezan con 1</h2>
+  <div class="split" style="grid-template-columns:1fr 480px;margin-top:16px">
+    <div class="calc">
+      <div class="ln fragment fade-up"><span class="n">1</span><span>¿Qué debe recordar? <b>Solo cómo empezó</b><small>después del primer símbolo, lo demás no importa</small></span></div>
+      <div class="ln fragment fade-up"><span class="n">2</span><span>Tres situaciones: aún no leo nada \((q_0)\), empezó con 1 \((q_1)\), empezó con 0 \((q_t)\)</span></div>
+      <div class="ln fragment fade-up"><span class="n">3</span><span>Desde \(q_1\) y \(q_t\) cualquier símbolo nos deja donde estamos</span></div>
+      <div class="ln fin fragment fade-up"><span class="n">4</span><span>Final: solo \(q_1\). \(\;\varepsilon\) se rechaza (no empieza con 1)</span></div>
+      <div class="note fragment fade-up" style="margin-top:4px"><i class="fa-solid fa-dungeon"></i><span>\(q_t\) es un <b>estado trampa</b>: si la cadena empezó con 0, ninguna continuación puede corregirlo. Se entra y no se sale, y no es final.</span></div>
+    </div>
+    <div class="list" style="gap:10px">
+      <div class="panel"><div class="diag" data-diagram="empieza1" data-escala=".9"></div></div>
+      <div data-table="empieza1" data-claim="empieza1" data-re="1(0+1)*" data-acc="1,10,111" data-rej="ε,0,01"></div>
+    </div>
+  </div>
+  <aside class="notes">El estado trampa completa el AFD: sin él, a q0 le faltaría la flecha con 0 y el autómata sería incompleto.</aside>
+</section>
+
+<!-- =====================================================================
+     BLOQUE VI · ACTIVIDADES Y CONCLUSIÓN
+     ===================================================================== -->
+
+<!-- 23 · DETECTIVES -->
+<section data-transition="concave" id="detectives">
+  <div class="kicker">VI · Actividades · Detectives de autómatas</div>
+  <div class="route" data-on="6"></div>
+  <h2>¿Se acepta o se rechaza?</h2>
+  <div class="split" style="grid-template-columns:620px 1fr;margin-top:16px">
+    <div>
+      <div class="panel"><div class="diag" data-diagram="contiene11"></div></div>
+      <div class="hint center mt8">Sigue las flechas con el dedo antes de pulsar la tarjeta.</div>
+    </div>
+    <div>
+      <div class="strs" id="det" data-det="contiene11" style="gap:12px;justify-content:center">
+        <button class="str q" data-w="11">11</button><button class="str q" data-w="101">101</button><button class="str q" data-w="0110">0110</button>
+        <button class="str q eps" data-w="">ε</button><button class="str q" data-w="1">1</button><button class="str q" data-w="10101">10101</button><button class="str q" data-w="0011">0011</button>
+      </div>
+      <div class="camino mt16" id="det-camino" aria-live="polite">Pulsa una tarjeta para ver su recorrido.</div>
+      <div class="ctrl mt16"><button class="btn" id="det-todo"><i class="fa-solid fa-eye"></i> Revelar todas</button><button class="btn r" id="det-ocultar"><i class="fa-solid fa-eye-slash"></i> Ocultar</button></div>
+      <div class="def mt16 fragment fade-up" data-claim="contiene11" data-re="(0+1)*11(0+1)*">
+        <div class="head"><i class="fa-solid fa-magnifying-glass"></i> ¿Qué lenguaje es?</div>
+        <div class="body small">Las cadenas que contienen <b>dos unos seguidos</b>: \(q_1\) recuerda «el último fue 1» y \(q_2\), «ya vi 11».</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Las respuestas y recorridos los calcula el motor del autómata al pulsar. Pide primero que voten aceptada o rechazada. Pregunta final: ¿qué lenguaje reconoce? Se revela al avanzar.</aside>
+</section>
+
+<!-- 24 · ENCUENTRA EL ERROR -->
+<section data-transition="slide" id="error">
+  <div class="kicker">VI · Actividades · Encuentra el error</div>
+  <div class="route" data-on="6"></div>
+  <h2>Este diagrama no es un AFD. ¿Por qué?</h2>
+  <div class="split" style="grid-template-columns:540px 1fr;margin-top:16px">
+    <div>
+      <div class="panel"><div class="diag" data-diagram="conError" data-escala=".82"></div></div>
+      <div class="fragment fade-up mt8" data-fragment-index="3"><div data-table="conError"></div></div>
+      <div class="note fragment fade-up" data-fragment-index="4" style="margin-top:10px;font-size:17px"><i class="fa-solid fa-circle-info"></i><span>Un AFD <b>incompleto</b> (parcial) omite flechas; se completa enviándolas a un <b>estado trampa</b>. Un AFD <b>completo</b> tiene todas. Con las dos correcciones obtenemos el autómata de «termina en 1».</span></div>
+
+    </div>
+    <div class="list" style="gap:12px" data-claim="conError" data-errores="2">
+      <div class="reto"><div class="head"><i class="fa-solid fa-circle-question"></i> Piensa</div><div class="qtext" style="font-size:20px">Cuenta las flechas que salen de cada estado con cada símbolo.</div></div>
+      <div class="def fragment fade-left" data-fragment-index="1" style="border-color:var(--red);box-shadow:5px 5px 0 var(--red)">
+        <div class="head" style="border-color:var(--red);color:var(--red-t)"><i class="fa-solid fa-code-branch"></i> Error 1 · dos flechas con 1</div>
+        <div class="body small">Desde \(q_0\), el 1 lleva a \(q_0\) <b>y</b> a \(q_1\): \(\delta(q_0,1)\) no es un único estado. <b>Corrección:</b> quitar el 1 del lazo de \(q_0\).</div>
+      </div>
+      <div class="def fragment fade-left" data-fragment-index="2" style="border-color:var(--amber);box-shadow:5px 5px 0 var(--amber)">
+        <div class="head" style="border-color:var(--amber);color:var(--pend)"><i class="fa-solid fa-circle-minus"></i> Error 2 · falta una flecha</div>
+        <div class="body small">Desde \(q_1\) no sale ninguna flecha con 0: \(\delta(q_1,0)\) no está definida. <b>Corrección:</b> añadir \(q_1\xrightarrow{0}q_0\).</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">El motor confirma que este diagrama tiene exactamente dos errores: δ(q0,1) con dos destinos y δ(q1,0) sin definir. La tabla (último clic) los marca en rojo.</aside>
+</section>
+
+<!-- 25 · RETO -->
+<section data-transition="zoom" id="reto">
+  <div class="kicker">VI · Actividades · Reto final</div>
+  <div class="route" data-on="6"></div>
+  <h2>Reto: un AFD para las cadenas que terminan en 0</h2>
+  <div class="split" style="grid-template-columns:450px minmax(0,1fr);margin-top:16px">
+    <div>
+      <div class="small muted" style="margin-bottom:6px">Entrega:</div>
+      <div class="list tight">
+        <div class="item"><div class="sq"><i class="fa-solid fa-square-root-variable"></i></div><div><div class="t">Definición formal \((Q,\Sigma,\delta,q_0,F)\)</div></div></div>
+        <div class="item"><div class="sq"><i class="fa-solid fa-diagram-project"></i></div><div><div class="t">Diagrama de estados</div></div></div>
+        <div class="item"><div class="sq"><i class="fa-solid fa-table"></i></div><div><div class="t">Tabla de transición</div></div></div>
+        <div class="item"><div class="sq"><i class="fa-solid fa-list-check"></i></div><div><div class="t">3 cadenas aceptadas y 3 rechazadas</div></div></div>
+        <div class="item"><div class="sq"><i class="fa-solid fa-comment"></i></div><div><div class="t">Explica cuándo se acepta</div></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="list tight">
+        <div class="pieza fragment fade-left"><span class="ic"><i class="fa-solid fa-1"></i></span><div><div class="t">Pista 1</div><div class="v">¿qué necesita recordar? (compáralo con «termina en 1»)</div></div></div>
+        <div class="pieza fragment fade-left"><span class="ic"><i class="fa-solid fa-2"></i></span><div><div class="t">Pista 2</div><div class="v">dos estados: «el último fue 0» y «no»</div></div></div>
+        <div class="pieza fragment fade-left"><span class="ic"><i class="fa-solid fa-3"></i></span><div><div class="t">Pista 3</div><div class="v">¿cuál es inicial? ¿se acepta ε?</div></div></div>
+      </div>
+      <button class="ans-btn" aria-expanded="false" aria-controls="sol-reto"><i class="fa-solid fa-eye"></i> Ver una solución</button>
+      <div class="ans" id="sol-reto" hidden data-claim="termina0" data-acc="0,10,110" data-rej="ε,1,01" data-re="(0+1)*0" data-q="q0,q1" data-q0="q0" data-f="q1">
+        <span class="lbl-ans">Una solución</span>
+        <div class="two" style="margin-top:0;gap:12px;align-items:center">
+          <div class="diag" data-diagram="termina0" data-escala=".62"></div>
+          <div><div style="font-size:18px">\(Q=\{q_0,q_1\},\ F=\{q_1\}\)</div><div data-table="termina0"></div></div>
+        </div>
+        <div class="small">Acepta: 0, 10, 110 · Rechaza: ε, 1, 01. Se acepta si el <b>último</b> símbolo es 0.</div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">Es "termina en 1" con los papeles de 0 y 1 intercambiados. La solución se verifica automáticamente: es un AFD completo y su lenguaje coincide con (0+1)*0.</aside>
+</section>
+
+<!-- 26 · RELACIÓN CON LAS EXPRESIONES REGULARES -->
+<section data-transition="convex" id="regex">
+  <div class="kicker">VI · Hacia el siguiente tema</div>
+  <div class="route" data-on="6"></div>
+  <h2>Autómatas y expresiones regulares</h2>
+  <div class="split" style="grid-template-columns:1fr 520px;margin-top:18px" data-claim="termina1" data-re="(0+1)*1">
+    <div class="list" style="gap:14px">
+      <div class="def hl">
+        <div class="head"><i class="fa-solid fa-equals"></i> El mismo lenguaje, dos miradas</div>
+        <div class="body">La expresión \((0+1)^*1\) <b>describe</b> las cadenas que terminan en 1; el autómata las <b>reconoce</b>: \(L(M)=L\big((0+1)^*1\big)\).</div>
+      </div>
+      <div class="pieza fragment fade-up"><span class="ic" style="width:auto;padding:0 8px;font-size:15px">\((0+1)^*\)</span><div><div class="t">cualquier cosa antes</div><div class="v">la máquina va y viene entre q0 y q1</div></div></div>
+      <div class="pieza fragment fade-up"><span class="ic">1</span><div><div class="t">un 1 al final</div><div class="v">el último paso la deja en q1, el estado final</div></div></div>
+      <div class="note fragment fade-up" style="margin-top:0"><i class="fa-solid fa-forward"></i><span>Todo lenguaje descrito por una expresión regular lo reconoce algún AFD, y al revés: son los <b>lenguajes regulares</b>. Cómo convertir uno en otro se estudiará en la siguiente presentación.</span></div>
+    </div>
+    <div class="panel"><div class="diag" data-diagram="termina1"></div></div>
+  </div>
+  <aside class="notes">Esta equivalencia (teorema de Kleene) solo se enuncia; su demostración y los métodos de conversión quedan para otra clase.</aside>
+</section>
+
+<!-- 27 · RESUMEN -->
+<section data-transition="zoom" id="resumen">
+  <div class="kicker">Resumen</div>
+  <h2>Lo que aprendimos hoy</h2>
+  <div class="two tight" style="gap:10px 22px;margin-top:14px">
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-regular fa-circle"></i></div><div><div class="t">Estado</div><div class="v">lo que la máquina recuerda</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-shapes"></i></div><div><div class="t">Alfabeto \(\Sigma\)</div><div class="v">los símbolos que puede leer</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-arrow-right"></i></div><div><div class="t">Transición</div><div class="v">estado + símbolo → estado</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-play"></i></div><div><div class="t">Estado inicial \(q_0\)</div><div class="v">donde empieza la lectura</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-regular fa-circle-dot"></i></div><div><div class="t">Estados finales \(F\)</div><div class="v">doble círculo</div></div></div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq"><i class="fa-solid fa-table-cells"></i></div><div><div class="t">Función \(\delta\) y \(\delta^*\)</div><div class="v">un símbolo · una cadena completa</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-circle-check"></i></div><div><div class="t">Cadena aceptada</div><div class="v">termina en un estado final</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-box"></i></div><div><div class="t">Lenguaje reconocido \(L(M)\)</div><div class="v">todas las cadenas aceptadas</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-square-root-variable"></i></div><div><div class="t">\(M=(Q,\Sigma,\delta,q_0,F)\)</div><div class="v">la definición formal</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-code-branch"></i></div><div><div class="t">Determinista y completo</div><div class="v">exactamente una flecha por estado y símbolo</div></div></div>
+    </div>
+  </div>
+  <p class="quote fragment zoom-in"><i class="fa-solid fa-quote-left"></i>Un autómata es una máquina sencilla que, siguiendo reglas precisas, puede reconocer patrones muy interesantes.</p>
+  <aside class="notes">Cierra con la portada: ya pueden explicar por qué la máquina acepta 101.</aside>
+</section>
+
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/math/math.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.1.0/plugin/notes/notes.min.js"></script>
+<script src="afd.js"></script>
+<script src="motor-regex.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>

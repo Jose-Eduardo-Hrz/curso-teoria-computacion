@@ -1,0 +1,142 @@
+/* =====================================================================
+   AUTÓMATAS FINITOS · Complemento de tema-redes.css + mate.css
+   Orden de carga: tema-redes.css → mate.css → este.
+   El diagrama reutiliza .fa-svg (.st .sl .ed .el .sh) del tema; aquí solo
+   se añaden: resaltados de simulación, piezas del AFD, tabla de
+   transición, cinta, simulador, detectives y piezas de texto.
+   Ojo: el tema define clases globales cortas (.a .r .b .ac .ok .no .lbl
+   .cell .S …); aquí no se reutilizan con otro sentido.
+   ===================================================================== */
+
+:root{ --pend:#8a5a00; }
+.reveal .katex{white-space:nowrap;}
+
+/* ---------- Diagrama: complementos ---------- */
+.fa-svg.afd .state.final .st:not(.in){stroke-width:2.5;}
+.fa-svg .cap-st{font-family:var(--sans); font-size:15px; fill:var(--muted); text-anchor:middle; dominant-baseline:central;}
+.fa-svg .sb{font-size:13px;}
+.diag{display:flex; justify-content:center;}
+/* Resaltado de simulación */
+.fa-svg .state.on .st{fill:var(--amber-l); stroke:var(--amber); stroke-width:4;}
+.fa-svg .state.on .st.in{fill:none;}
+.fa-svg .ed.on{stroke:var(--amber); stroke-width:4.5;}
+.fa-svg .sh.on{fill:var(--amber);}
+.fa-svg .el.on{fill:var(--pend);}
+.fa-svg .state.ok .st{fill:var(--ok-l); stroke:var(--ok); stroke-width:4;}
+.fa-svg .state.ok .st.in{fill:none;}
+.fa-svg .state.bad .st{fill:var(--red-l); stroke:var(--red); stroke-width:4;}
+.fa-svg .state.bad .st.in{fill:none;}
+/* Resaltado de piezas (diapositiva de las piezas, inicial/final, transición) */
+.hl-estados .state .st{stroke:var(--accent); stroke-width:4; fill:var(--accent-l);}
+.hl-estados .state .st.in{fill:none;}
+.hl-transiciones .ed{stroke:var(--accent); stroke-width:4;} .hl-transiciones .sh{fill:var(--accent);}
+.hl-alfabeto .el{fill:var(--accent); font-size:23px;}
+.hl-inicial .start .ed{stroke:var(--accent); stroke-width:5;} .hl-inicial .start .sh{fill:var(--accent);} .hl-inicial .state.initial .st{stroke:var(--accent); stroke-width:4;}
+.hl-final .state.final .st{stroke:var(--accent); stroke-width:4; fill:var(--accent-l);} .hl-final .state.final .st.in{fill:none;}
+.hl-una .ed[data-k="q0>q1"]{stroke:var(--amber); stroke-width:5;} .hl-una .sh.e-q0\>q1{fill:var(--amber);} .hl-una .el[data-k="q0>q1"]{fill:var(--pend); font-size:23px;}
+.fa-svg .ed, .fa-svg .sh, .fa-svg .st, .fa-svg .el{transition:stroke .25s, fill .25s, stroke-width .25s;}
+/* Diagrama con errores */
+.fa-svg .err-ring{fill:none; stroke:var(--red); stroke-width:3; stroke-dasharray:7 6;}
+.fa-svg .err-txt{font-family:var(--mono); font-size:14px; font-weight:600; fill:var(--red-t); text-anchor:middle; paint-order:stroke; stroke:var(--bg); stroke-width:6px;}
+
+/* ---------- Tabla de transición (reutiliza .tbl del tema) ---------- */
+.tbl.ttab{width:auto; margin:0 auto; font-size:21px;}
+.tbl.ttab th, .tbl.ttab td{text-align:center; padding:7px 14px; white-space:nowrap;}
+.tbl.ttab td.S{text-align:left; white-space:nowrap;}
+.tbl.ttab .mk{display:inline-block; width:18px; color:var(--accent-d); font-weight:600;}
+.tbl.ttab tr.fin td{background:var(--accent-l);}
+.tbl.ttab td.bad{color:var(--red-t); background:var(--red-l); font-weight:600; border:2px dashed var(--red);}
+.tbl.ttab sub, .trace sub, .camino sub{font-size:.7em;}
+.tbl.ttab td.on{outline:3px solid var(--amber); outline-offset:-3px; background:var(--amber-l);}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);}
+.ans .tbl.ttab{font-size:17px;} .ans .tbl.ttab th, .ans .tbl.ttab td{padding:3px 10px;}
+.ttab-leyenda{font-size:15px; color:var(--muted); text-align:center; margin-top:6px;}
+
+/* ---------- Cinta de entrada ---------- */
+.cinta{display:flex; justify-content:center; gap:0; margin:4px auto 0; position:relative; padding-top:30px;}
+.cinta .c{width:54px; height:54px; border:2.5px solid var(--navy); margin-left:-2.5px; background:#fff; display:grid; place-items:center;
+  font:600 26px var(--mono); color:var(--navy); position:relative;}
+.cinta .c:first-child{margin-left:0; border-radius:10px 0 0 10px;}
+.cinta .c:last-child{border-radius:0 10px 10px 0;}
+.cinta .c:only-child{border-radius:10px;}
+.cinta .c.leido{background:var(--accent-l); color:var(--accent-d);}
+.cinta .c.actual{background:var(--amber-l); outline:3px solid var(--amber); outline-offset:-3px; z-index:1;}
+.cinta .c.vacia{width:auto; padding:0 16px; font-family:var(--serif); font-style:italic; color:var(--accent-d); border-style:dashed;}
+.cinta .c.actual:before{content:"▼"; position:absolute; top:-30px; left:50%; transform:translateX(-50%); font-size:20px; color:var(--amber);}
+.cinta .cab{position:absolute; top:0; font-size:22px; color:var(--amber); transform:translateX(-50%); transition:left .3s;}
+.cinta .fin-c{width:auto; padding:0 10px; font-size:14px; font-family:var(--mono); color:var(--muted); border-style:dotted; border-radius:0 10px 10px 0;}
+
+/* ---------- Simulador ---------- */
+.sim .ctrl, .ctrl{display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center;}
+.btn{font:600 16px var(--mono); letter-spacing:.03em; color:var(--accent-d); background:var(--accent-l); border:2px solid var(--accent-d); border-radius:10px;
+  padding:6px 13px; cursor:pointer; box-shadow:3px 3px 0 var(--accent-d); display:inline-flex; gap:8px; align-items:center;}
+.btn:hover{background:#fff;}
+.btn:active{transform:translate(2px,2px); box-shadow:1px 1px 0 var(--accent-d);}
+.btn:focus-visible, .sim input:focus-visible, .sim select:focus-visible{outline:3px solid var(--blue); outline-offset:3px;}
+.btn:disabled{opacity:.45; cursor:default;}
+.btn.r{color:var(--red-t); background:var(--red-l); border-color:var(--red); box-shadow:3px 3px 0 var(--red);}
+.btn.sel{background:var(--accent-d); color:#fff;}
+.sim input, .sim select{font:600 22px var(--mono); color:var(--navy); background:#fff; border:2.5px solid var(--navy); border-radius:10px; padding:5px 12px; box-shadow:3px 3px 0 var(--navy);}
+.sim input{width:200px;}
+.sim select{font-size:17px; font-family:var(--sans);}
+.estado-sim{font-size:20px; text-align:center; min-height:32px; margin-top:8px;}
+.estado-sim .res{display:inline-flex; align-items:center; gap:8px; font-weight:600; border-radius:999px; padding:3px 14px; border:2px solid;}
+.estado-sim .res.si{color:var(--ok); background:var(--ok-l); border-color:var(--ok);}
+.estado-sim .res.nop{color:var(--red-t); background:var(--red-l); border-color:var(--red); border-style:dashed;}
+.camino{font-family:var(--mono); font-size:20px; text-align:center; color:var(--navy); min-height:30px; margin-top:4px;}
+.camino .ar{display:inline-flex; flex-direction:column; align-items:center; margin:0 6px; color:var(--accent); font-size:14px; line-height:1; vertical-align:middle;}
+.camino .ar b{font-size:13px; color:var(--pend);}
+.camino .qs.fin{color:var(--accent-d); font-weight:600;}
+
+/* ---------- Piezas del AFD ---------- */
+.pieza{display:flex; align-items:center; gap:12px; background:#fff; border:2px solid var(--navy); border-radius:12px; padding:7px 12px; box-shadow:3px 3px 0 var(--navy); font-size:19px;}
+.pieza .ic{width:40px; height:40px; border-radius:9px; background:var(--accent-l); color:var(--accent-d); border:2px solid var(--accent-d); display:grid; place-items:center; flex:none; font-size:18px;}
+.pieza .t{font-weight:600; color:var(--navy);}
+.pieza .v{font-size:16px; color:var(--muted);}
+
+/* Componentes de la definición formal */
+.comp{display:grid; grid-template-columns:70px 1fr 1fr; gap:10px 16px; align-items:center;}
+.comp .sym{font-size:28px; text-align:center;}
+.comp .qué{font-size:19px;}
+.comp .val{font-size:22px; background:var(--accent-l); border:2px solid var(--accent-d); border-radius:10px; padding:3px 12px; text-align:center;}
+
+/* Pasos de cálculo */
+.calc{display:flex; flex-direction:column; gap:10px;}
+.calc .ln{display:grid; grid-template-columns:44px 1fr; gap:12px; align-items:center; background:#fff; border:2px solid var(--navy); border-radius:12px;
+  box-shadow:3px 3px 0 var(--navy); padding:6px 14px; font-size:22px;}
+.calc .ln .n{font-family:var(--mono); font-weight:600; font-size:18px; color:var(--accent-d); width:36px; height:36px; border:2.5px solid var(--accent-d);
+  border-radius:9px; display:grid; place-items:center; background:var(--accent-l);}
+.calc .ln.fin{border-color:var(--accent-d); box-shadow:0 0 0 5px var(--accent-l), 3px 3px 0 var(--accent-d);}
+.calc .ln.fin .n{background:var(--accent-d); color:#fff;}
+.calc .ln small{display:block; font-size:16px; color:var(--muted); line-height:1.3;}
+
+/* Cadenas aceptadas / rechazadas */
+.str{display:inline-flex; align-items:center; gap:6px; font:600 20px var(--mono); color:var(--navy); background:#fff; border:2px solid var(--navy);
+  border-radius:8px; padding:2px 11px; white-space:nowrap; line-height:1.4;}
+.str.eps{font-family:var(--serif); font-style:italic; color:var(--accent-d);}
+.str.si{color:var(--ok); background:var(--ok-l); border-color:var(--ok);} .str.si:before{content:"✓";}
+.str.nop{color:var(--red-t); background:var(--red-l); border-color:var(--red); border-style:dashed;} .str.nop:before{content:"✗";}
+.strs{display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+button.str{cursor:pointer; box-shadow:2px 2px 0 var(--navy);}
+button.str.q:after{content:"?"; font-size:14px; color:var(--muted);}
+button.str.si, button.str.nop{box-shadow:none;}
+button.str:focus-visible{outline:3px solid var(--blue); outline-offset:3px;}
+.prueba{display:grid; grid-template-columns:88px 1fr auto; gap:10px; align-items:center; padding:4px 0; border-bottom:1px dashed #cfd6dc; font-size:18px;}
+.prueba:last-child{border-bottom:0;}
+.prueba .camino{font-size:17px; text-align:left; margin:0; min-height:0;}
+
+/* Reglas del AFD */
+.reglas .step{font-size:20px;}
+.chk{color:var(--ok); margin-right:6px;}
+
+/* Utilidades */
+.big{font-size:34px; text-align:center;}
+.mid{font-size:26px;}
+.hint{font-size:17px; color:var(--muted);}
+.tag{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.04em; padding:2px 10px; border-radius:999px; border:2px solid; white-space:nowrap; display:inline-flex; gap:6px; align-items:center;}
+.tag.ac{color:var(--accent-d); background:var(--accent-l); border-color:var(--accent-d);}
+.tag.am{color:var(--pend); background:var(--amber-l); border-color:var(--amber);}
+.tag.rj{color:var(--red-t); background:var(--red-l); border-color:var(--red);}
+.quote{font-family:var(--serif); font-style:italic; font-weight:600; font-size:27px; color:var(--navy); text-align:center; margin-top:22px;}
+.quote i{color:var(--accent); font-style:normal; margin-right:8px;}
+.mostrar-todo .ans[hidden]{display:block;}
