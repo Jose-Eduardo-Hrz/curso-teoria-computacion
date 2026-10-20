@@ -16,6 +16,7 @@ Cada presentación es **autocontenida**: trae dentro de su carpeta `lib/` todo l
 | `metodo-thompson` | Método de Thompson: expresión regular → AFN-ε | 31 |
 | `detector-101` | Ejercicio resuelto en Python: detector de la secuencia 101 | 23 |
 | `validador-identificadores` | Ejercicio resuelto en Python: validador de identificadores | 23 |
+| `notacion-posfija` | Notación posfija: de la expresión regular a la posfija con una pila (antes de Thompson) | 21 (+2 verticales) |
 
 Cada presentación se abre en `http://<servidor>:<puerto>/<carpeta>/`, por ejemplo `http://localhost:3070/automatas-finitos/`.
 
