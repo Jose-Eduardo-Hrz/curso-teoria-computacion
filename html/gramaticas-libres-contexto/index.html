@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gramáticas libres de contexto</title>
+<link rel="stylesheet" href="lib/reveal/reveal.min.css">
+<link rel="stylesheet" href="lib/fontawesome/css/all.min.css">
+<link href="lib/fuentes/fuentes.css" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="glc.css">
+</head>
+<body>
+<!--
+  Todo lo que se dibuja sale de glc.js y se comprueba en verificar.mjs y con ?verificar:
+    data-f="aSb"                       forma sentencial con fichas de colores
+    data-gram="S→aS|b"                 gramática (data-separadas: una regla por línea)
+    data-deriv="S;aS;ab" data-g="…"    derivación: cada paso debe aplicar UNA regla a UNA variable
+                                       (data-modo="tabla", data-reglas, data-indice, data-sin-fragmentos, data-cadena)
+    data-arbol="S;aSb;ab" data-g="…"   árbol de derivación (data-crece, data-plantilla, data-lectura, data-cadena)
+    data-arcos="…" data-g="…"          cadena con arcos entre las parejas que puso la misma regla
+    data-pertenece="S→…"               las fichas .cad de dentro se generan; las .cad.fuera, no
+                                       (o filas con data-cad + data-res="si|no")
+    data-lenguaje="a^n b^n" data-g="…" L(G) coincide con esa descripción (hasta longitud 8)
+-->
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     BLOQUE A · DE LO QUE YA SABEMOS A LAS GRAMÁTICAS
+     ===================================================================== -->
+
+<!-- 1 · PORTADA -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Teoría de la computación · Después de las expresiones regulares</div>
+  <h1 class="center" style="font-size:62px;margin-top:14px;line-height:1.08">Gramáticas libres de contexto</h1>
+  <p class="sub" style="font-size:25px;margin-top:10px">Aprendamos a crear cadenas siguiendo reglas</p>
+  <div class="portada-esc" aria-hidden="true">
+    <span class="letra flota" style="left:20px;top:300px;--delay:.3s"><span class="forma" data-f="a"></span></span>
+    <span class="letra flota" style="left:470px;top:270px;--delay:1s"><span class="forma" data-f="S"></span></span>
+    <span class="letra flota" style="left:1090px;top:30px;--delay:.6s"><span class="forma" data-f="b"></span></span>
+    <span class="letra flota" style="left:1060px;top:250px;--delay:1.3s"><span class="forma" data-f="ε"></span></span>
+    <div class="gram-card hl" style="left:110px;top:40px">
+      <span class="etq">Reglas</span>
+      <div class="prods md" data-gram="S→aSb|ε"></div>
+    </div>
+    <div class="deriv sm" style="left:40px;top:200px" data-g="S→aSb|ε" data-deriv="S;aSb;aaSbb;aabb" data-sin-fragmentos data-sin-marcas></div>
+    <i class="fa-solid fa-arrow-right-long flecha-p" style="left:572px;top:186px"></i>
+    <div style="position:absolute;left:650px;top:-8px" data-g="S→aSb|ε" data-arbol="S;aSb;aaSbb;aabb" data-lectura data-dy="62"></div>
+    <div class="arbol-cap" style="position:absolute;left:650px;top:346px;width:342px"><i class="fa-solid fa-tree ac"></i> árbol de derivación de <span class="mono">aabb</span></div>
+  </div>
+  <aside class="notes">Pregunta de arranque: ¿cuántas cadenas distintas puede fabricar este par de reglas? (Infinitas: ε, ab, aabb…)</aside>
+</section>
+
+<!-- 2 · RECORDEMOS -->
+<section data-transition="convex" id="recordemos">
+  <div class="kicker">Repaso rápido</div>
+  <h2>Recordemos lo que ya sabemos</h2>
+  <div class="three" style="margin-top:22px;gap:24px">
+    <div class="caja fragment fade-up">
+      <h3><i class="fa-solid fa-shapes"></i> Alfabeto y cadenas</h3>
+      <p class="formula" style="font-size:28px">\(\Sigma = \{a, b\}\)</p>
+      <p class="small">Con estos <b>símbolos</b> formamos <b>cadenas</b>:</p>
+      <div class="chips-cad mt8"><span class="cad">a</span><span class="cad">b</span><span class="cad">ab</span><span class="cad">ba</span><span class="cad">aab</span><span class="cad">ε</span></div>
+      <p class="small muted mt8">\(\varepsilon\) es la cadena vacía: cero símbolos.</p>
+    </div>
+    <div class="caja fragment fade-up" data-pertenece="S→aS|b">
+      <h3><i class="fa-solid fa-font"></i> Expresión regular</h3>
+      <p class="center" style="font-family:var(--mono);font-size:40px;font-weight:600;color:var(--navy);margin:2px 0">a*b</p>
+      <p class="small"><b>Describe</b> un conjunto de cadenas: varias <span class="mono">a</span> (o ninguna) y una <span class="mono">b</span> al final.</p>
+      <div class="chips-cad mt8"><span class="cad">b</span><span class="cad">ab</span><span class="cad">aab</span><span class="cad">aaab</span><span class="cad muted-c">…</span></div>
+    </div>
+    <div class="caja fragment fade-up">
+      <h3><i class="fa-solid fa-diagram-project"></i> Autómata finito</h3>
+      <svg class="mini-af" viewBox="0 0 300 130" width="300" height="130" role="img" aria-label="AFD que reconoce a*b">
+        <path class="ed" d="M8 78 L42 78"/><path d="M42 73 l9 5 l-9 5 z" fill="var(--navy)"/>
+        <path class="ed" d="M62 52 C40 8 104 8 82 52"/><path d="M80 44 l3 9 l5 -8 z" fill="var(--navy)"/><text class="el" x="72" y="20">a</text>
+        <path class="ed" d="M98 78 L192 78"/><path d="M192 73 l9 5 l-9 5 z" fill="var(--navy)"/><text class="el" x="146" y="68">b</text>
+        <circle class="st" cx="72" cy="78" r="24"/><text class="lb" x="72" y="78">q0</text>
+        <circle class="st fin" cx="228" cy="78" r="26"/><circle class="st fin" cx="228" cy="78" r="20"/><text class="lb" x="228" y="78">q1</text>
+        <text class="cap2" x="150" y="122">lee aab → termina en q1 → acepta</text>
+      </svg>
+      <p class="small"><b>Reconoce</b> cadenas: decide si una cadena pertenece al lenguaje.</p>
+    </div>
+  </div>
+  <div class="q fragment zoom-in" style="margin-top:28px"><i class="fa-solid fa-circle-question"></i><p>¿Cómo describiríamos cadenas con <b>paréntesis bien anidados</b>, como <span class="mono">(()())</span>?</p></div>
+  <aside class="notes">No responder todavía. Dejar que el grupo intente con expresiones regulares; retomamos la pregunta en la diapositiva 10.</aside>
+</section>
+
+<!-- 3 · LA FÁBRICA DE PALABRAS -->
+<section data-transition="slide" id="fabrica">
+  <div class="kicker">La gran idea</div>
+  <h2>Imagina una fábrica de palabras</h2>
+  <div class="two" style="margin-top:16px;grid-template-columns:470px 1fr;gap:30px;align-items:center">
+    <div class="gram-card hl" style="align-items:stretch">
+      <span class="etq"><i class="fa-solid fa-book"></i> Manual de instrucciones</span>
+      <div class="prods md" data-gram="S→aS|b" data-separadas></div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq"><span class="forma md" data-f="S"></span></div><div><div class="t">Instrucción pendiente</div><div class="v">todavía hay que reemplazarla</div></div></div>
+      <div class="item"><div class="sq" style="background:var(--blue-l);border-color:var(--blue)"><span class="forma md" data-f="a"></span></div><div><div class="t">Pieza terminada</div><div class="v">a y b se quedan en el resultado</div></div></div>
+    </div>
+  </div>
+  <div class="fabrica mt24">
+    <div class="maquina"><i class="fa-solid fa-industry"></i><span>FÁBRICA</span></div>
+    <div class="banda"><div class="deriv lg" data-g="S→aS|b" data-deriv="S;aS;aaS;aab" data-reglas data-indice="1" data-cadena="aab"></div></div>
+  </div>
+  <div class="note fragment" data-fragment-index="4" style="margin-top:20px"><i class="fa-solid fa-lightbulb"></i><span>Empezamos con <span class="forma sm" data-f="S"></span> y en cada paso cambiamos <b>una</b> <span class="forma sm" data-f="S"></span> siguiendo una instrucción del manual. La ficha ámbar es la que se reemplaza; las de halo verde, las que acaban de aparecer.</span></div>
+  <div class="note fragment" data-fragment-index="5" style="margin-top:12px;background:var(--ok-l);border-color:var(--ok);color:#14532d"><i class="fa-solid fa-circle-check" style="color:var(--ok)"></i><span>Cuando ya no queda ninguna instrucción pendiente, el producto está listo: <span class="forma sm" data-f="aab"></span>.</span></div>
+</section>
+
+<!-- 4 · ¿QUÉ ES UNA GLC? -->
+<section data-transition="convex" id="definicion">
+  <div class="kicker">Definición</div>
+  <h2>¿Qué es una gramática libre de contexto?</h2>
+  <p class="lead center mt8">Es un <b>conjunto de reglas</b> que dice cómo <b>reemplazar variables</b> por símbolos y otras variables para <b>construir cadenas</b>.</p>
+  <div class="center" style="margin-top:14px">
+    <div class="caja hl" style="display:inline-flex;align-items:center;gap:22px;padding:10px 26px">
+      <span class="etq">Formalmente</span><span style="font-size:40px">\(G = (V,\ \Sigma,\ P,\ S)\)</span>
+      <span class="small muted" style="max-width:300px;line-height:1.3">un «paquete» de <b>cuatro</b> cosas, en este orden</span>
+    </div>
+  </div>
+  <div class="four" style="margin-top:24px;gap:16px">
+    <div class="comp fragment fade-up"><div class="big">V</div><div class="nom">Variables</div><div class="dice">o <b>no terminales</b>: instrucciones que todavía se reemplazan</div><div class="ejm">\(V = \{S\}\)</div></div>
+    <div class="comp fragment fade-up"><div class="big">Σ</div><div class="nom">Terminales</div><div class="dice">el <b>alfabeto</b>: símbolos que quedan en la cadena final</div><div class="ejm">\(\Sigma = \{a, b\}\)</div></div>
+    <div class="comp fragment fade-up"><div class="big">P</div><div class="nom">Producciones</div><div class="dice">las <b>reglas</b> de reemplazo</div><div class="ejm">\(P = \{S \to aS,\ S \to b\}\)</div></div>
+    <div class="comp hl fragment fade-up"><div class="big">S</div><div class="nom">Símbolo inicial</div><div class="dice">la variable con la que <b>siempre</b> se empieza</div><div class="ejm">\(S\), una de las variables</div></div>
+  </div>
+  <div class="note fragment" style="margin-top:20px"><i class="fa-solid fa-circle-info"></i><span>Ejemplo: la fábrica <span class="forma xs" data-gram="S→aS|b"></span>. Variables y terminales <b>no comparten</b> ningún símbolo: \(V \cap \Sigma = \varnothing\) (\(\cap\) = «lo que tienen en común», \(\varnothing\) = «nada»). Así nunca dudamos si un símbolo se reemplaza o se queda.</span></div>
+</section>
+
+<!-- 5 · TERMINALES Y NO TERMINALES -->
+<section data-transition="slide" id="terminales">
+  <div class="kicker">Los personajes</div>
+  <h2>Terminales y no terminales</h2>
+  <div class="center mt8"><div class="gram-card"><div class="prods lg" data-gram="S→aSb|ε"></div></div></div>
+  <div class="three" style="margin-top:22px;gap:22px">
+    <div class="tarjeta tv fragment fade-up"><span class="forma" data-f="S"></span><div class="t">No terminal</div><div class="d">Una <b>instrucción</b> que todavía puede reemplazarse. Nunca aparece en la cadena final.</div></div>
+    <div class="tarjeta tt fragment fade-up"><span class="forma"><span class="sy sy-t">a</span><span class="sy sy-t">b</span></span><div class="t">Terminales</div><div class="d">Los <b>símbolos</b> del alfabeto: ya no se reemplazan y aparecen en la cadena final.</div></div>
+    <div class="tarjeta te fragment fade-up"><span class="forma" data-f="ε"></span><div class="t">Épsilon: la cadena vacía</div><div class="d">Una cadena <b>sin símbolos</b>. <span class="forma xs" data-f="S"></span> → <span class="forma xs" data-f="ε"></span> significa «borra la S».</div></div>
+  </div>
+  <div class="caja fragment fade-up" style="margin-top:22px;padding:10px 18px">
+    <div class="longs">
+      <div class="long"><div class="caj"><span class="hueco-e"></span></div><span class="n">ε · longitud 0</span></div>
+      <div class="long"><div class="caj"><span class="sy sy-t" style="font-size:24px">a</span></div><span class="n">a · longitud 1</span></div>
+      <div class="long"><div class="caj"><span class="esp">␣</span></div><span class="n">un espacio · longitud 1</span></div>
+      <p class="small" style="max-width:420px;align-self:center;margin:0"><b>ε no es</b> la letra <span class="mono">a</span> <b>ni</b> un espacio: el espacio también es un símbolo. ε es «nada»: \(|\varepsilon| = 0\).</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · REGLA DE PRODUCCIÓN -->
+<section data-transition="slide" id="regla">
+  <div class="kicker">Las instrucciones</div>
+  <h2>¿Qué es una regla de producción?</h2>
+  <div class="two" style="margin-top:14px;grid-template-columns:430px 1fr;gap:30px;align-items:center">
+    <div>
+      <div class="center"><div class="prods xl" data-gram="S→aS"></div></div>
+      <div class="llave" style="gap:10px;margin-top:4px">
+        <div style="width:90px"><div class="br" style="width:60px"></div><span class="lt">esto…</span></div>
+        <div style="width:60px"><span class="lt" style="color:var(--muted)">se cambia</span></div>
+        <div style="width:150px"><div class="br" style="width:130px"></div><span class="lt">…por aquello</span></div>
+      </div>
+      <p class="lead center mt16">La flecha <b>→</b> dice: «<b>puedes reemplazar</b> esto por aquello».</p>
+    </div>
+    <div class="caja">
+      <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Aplicamos <span class="forma sm" data-gram="S→aS"></span> a <span class="forma sm" data-f="aaS"></span></h3>
+      <div class="reemplazo mt8">
+        <div class="lado"><span class="etq">Antes</span><span class="forma lg"><span class="sy sy-t quieto">a</span><span class="sy sy-t quieto">a</span><span class="sy sy-v marca fija">S</span></span></div>
+        <div class="flecha"><i class="fa-solid fa-arrow-right-long"></i></div>
+        <div class="lado fragment"><span class="etq">Después</span><span class="forma lg"><span class="sy sy-t quieto">a</span><span class="sy sy-t quieto">a</span><span class="sy sy-t nuevo">a</span><span class="sy sy-v nuevo">S</span></span></div>
+      </div>
+      <p class="small mt16 fragment"><b>Solo</b> cambia la <span class="forma xs" data-f="S"></span> (ámbar). Las dos <span class="mono">a</span> de la izquierda (pálidas) <b>se quedan igual</b>; lo verde es lo que puso la regla.</p>
+    </div>
+  </div>
+  <div class="reglas-ej fragment" style="margin-top:20px">
+    <div class="regla-ej"><div class="prods" data-gram="S→aS"></div><div class="d">pon una a y sigue</div></div>
+    <div class="regla-ej"><div class="prods" data-gram="S→b"></div><div class="d">pon una b y termina</div></div>
+    <div class="regla-ej"><div class="prods" data-gram="S→aSb"></div><div class="d">pon una a y una b alrededor</div></div>
+    <div class="regla-ej"><div class="prods" data-gram="S→ε"></div><div class="d">borra la S</div></div>
+  </div>
+  <div class="note fragment" style="margin-top:18px"><i class="fa-solid fa-code-branch"></i><span>Una misma variable puede tener <b>varias reglas</b>. En cada paso <b>eliges una</b>; por eso una gramática fabrica muchas cadenas distintas.</span></div>
+</section>
+
+<!-- 7 · NUESTRA PRIMERA GRAMÁTICA -->
+<section data-transition="convex" id="primera">
+  <div class="kicker">Manos a la obra</div>
+  <h2>Nuestra primera gramática</h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:400px 1fr;gap:28px">
+    <div>
+      <div class="gram-card hl" style="width:100%;box-sizing:border-box"><div class="prods lg" data-gram="S→aS|b" data-g="S→aS|b" data-lenguaje="a^n b"></div></div>
+      <p class="small mt16">La barra <b>|</b> se lee «<b>o</b>»: separa alternativas. Es una abreviatura de dos reglas:</p>
+      <div class="center mt8"><div class="prods sm" data-gram="S→aS|b" data-separadas></div></div>
+    </div>
+    <div class="pilas" style="gap:10px">
+      <div class="caja fragment fade-left" style="padding:8px 14px"><div class="deriv sm" data-g="S→aS|b" data-deriv="S;b" data-sin-fragmentos data-sin-marcas></div></div>
+      <div class="caja fragment fade-left" style="padding:8px 14px"><div class="deriv sm" data-g="S→aS|b" data-deriv="S;aS;ab" data-sin-fragmentos data-sin-marcas></div></div>
+      <div class="caja fragment fade-left" style="padding:8px 14px"><div class="deriv sm" data-g="S→aS|b" data-deriv="S;aS;aaS;aab" data-sin-fragmentos data-sin-marcas></div></div>
+      <div class="caja fragment fade-left" style="padding:8px 14px"><div class="deriv sm" data-g="S→aS|b" data-deriv="S;aS;aaS;aaaS;aaab" data-sin-fragmentos data-sin-marcas></div></div>
+      <p class="center fragment" style="font-family:var(--serif);font-size:25px;font-weight:600;color:var(--navy);margin:2px 0"><i class="fa-solid fa-magnifying-glass ac"></i> ¿Qué patrón observas?</p>
+    </div>
+  </div>
+  <div class="caja hl fragment" style="margin-top:16px;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;padding:10px 20px">
+    <div style="font-size:30px">\(L(G) = \{\, a^n b \mid n \ge 0 \,\}\)</div>
+    <div class="small" style="line-height:1.4"><b>Cero o más</b> letras <span class="mono">a</span> seguidas de <b>una</b> <span class="mono">b</span>. \(L(G)\): todas las cadenas que fabrica \(G\). \(a^n\): la <span class="mono">a</span> escrita \(n\) veces (\(a^0 = \varepsilon\), \(a^3 = aaa\)); \(n\) cuenta las <span class="mono">a</span> antes de la <span class="mono">b</span>. <span class="muted">Ojo: dentro de las llaves, \(\mid\) se lee «tal que».</span></div>
+  </div>
+</section>
+
+<!-- 8 · ¿CÓMO SE DERIVA UNA CADENA? -->
+<section data-transition="slide" id="derivar">
+  <div class="kicker">Paso a paso</div>
+  <h2>¿Cómo se deriva una cadena?</h2>
+  <p class="center mt8"><b>Derivar</b> es aplicar reglas, una por paso, hasta que solo queden <b>terminales</b>. El símbolo <b>⇒</b> se lee «se convierte en».</p>
+  <div class="two" style="margin-top:14px;grid-template-columns:760px 1fr;gap:26px">
+    <div class="tabla-caja">
+      <table class="tbl dertab" data-g="S→aS|b" data-deriv="S;aS;aaS;aaaS;aaab" data-modo="tabla" data-indice="1" data-cadena="aaab"
+        data-notas="Empezamos con el símbolo inicial.|Primera a; la S sigue pendiente.|Otra a; la S se recorre a la derecha.|Tercera a.|Elegimos terminar: ya no queda ninguna variable."></table>
+    </div>
+    <div class="pilas fragment" data-fragment-index="5">
+      <div class="item"><div class="sq"><i class="fa-solid fa-book"></i></div><div><div class="t">La gramática</div><div class="v">el manual: S → aS | b</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-shoe-prints"></i></div><div><div class="t">Una derivación</div><div class="v">el camino: S ⇒ aS ⇒ … ⇒ aaab</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-box"></i></div><div><div class="t">La cadena</div><div class="v">el producto final: aaab</div></div></div>
+    </div>
+  </div>
+  <div class="leyenda" style="margin-top:14px"><span><span class="forma"><span class="sy sy-v marca fija">S</span></span> se reemplaza en el siguiente paso</span><span><span class="forma"><span class="sy sy-t nuevo">a</span></span> acaba de aparecer</span></div>
+</section>
+
+<!-- 9 · GRAMÁTICA RECURSIVA -->
+<section data-transition="slide" id="recursiva">
+  <div class="kicker">Repetir sin escribir infinitas reglas</div>
+  <h2>¿Qué es una gramática recursiva?</h2>
+  <div class="two" style="margin-top:16px;gap:24px">
+    <div class="tarjeta tv fragment fade-up" style="align-items:flex-start;text-align:left">
+      <div class="t"><i class="fa-solid fa-rotate ac"></i> Regla recursiva</div>
+      <div class="prods md" data-gram="S→aS"></div>
+      <div class="d">La <span class="forma xs" data-f="S"></span> vuelve a aparecer a la derecha: cada vez que la usamos, <b>agrega otra a</b> y deja la S lista para repetir.</div>
+    </div>
+    <div class="tarjeta tt fragment fade-up" style="align-items:flex-start;text-align:left">
+      <div class="t"><i class="fa-solid fa-flag-checkered" style="color:var(--ok)"></i> Caso base</div>
+      <div class="prods md" data-gram="S→b"></div>
+      <div class="d">No tiene <span class="forma xs" data-f="S"></span> a la derecha: <b>termina</b> la construcción.</div>
+    </div>
+  </div>
+  <div class="center fragment" style="margin-top:26px">
+    <div class="nido"><span class="rot">S</span><span class="sy sy-t">a</span>
+      <div class="nido"><span class="rot">S</span><span class="sy sy-t">a</span>
+        <div class="nido"><span class="rot">S</span><span class="sy sy-t">a</span>
+          <div class="nido base"><span class="rot">S</span><span class="sy sy-t">b</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="small muted mt8">Cada caja es una S: por dentro tiene una <span class="mono">a</span> y otra S más pequeña… hasta la última, que se cierra con <span class="mono">b</span>.</p>
+  </div>
+  <div class="note fragment" style="margin-top:14px"><i class="fa-solid fa-triangle-exclamation"></i><span>Sin el caso base nunca terminaríamos: \(S \Rightarrow aS \Rightarrow aaS \Rightarrow \cdots\) siempre quedaría una S pendiente y no obtendríamos ninguna cadena.</span></div>
+</section>
+
+<!-- 10 · REPETIR O ANIDAR -->
+<section data-transition="convex" id="anidar">
+  <div class="kicker">Volvamos a la pregunta</div>
+  <h2>¿Y si queremos anidar cosas?</h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:520px 1fr;gap:28px">
+    <div>
+      <div class="caja" data-pertenece="S→(S)S|ε">
+        <h3><i class="fa-solid fa-check ok-i"></i> Paréntesis bien anidados</h3>
+        <div class="chips-cad"><span class="cad">ε</span><span class="cad">()</span><span class="cad">(())</span><span class="cad">()()</span><span class="cad">(()())</span></div>
+        <h3 class="mt16"><i class="fa-solid fa-xmark no-i"></i> Mal anidados</h3>
+        <div class="chips-cad"><span class="cad fuera">)(</span><span class="cad fuera">(()</span><span class="cad fuera">())(</span></div>
+      </div>
+      <p class="small mt16">Una estructura puede <b>contener otra del mismo tipo</b>: dentro de un par de paréntesis cabe otro grupo de paréntesis bien anidados… y así sin límite.</p>
+      <div class="fragment" data-fragment-index="3">
+        <p class="small muted mt8" style="margin-bottom:4px">Cada arco une los dos paréntesis que puso la misma regla:</p>
+        <div data-g="S→(S)S|ε" data-arcos="S;(S)S;((S)S)S;(()S)S;(()(S)S)S;(()()S)S;(()())S;(()())"></div>
+      </div>
+    </div>
+    <div>
+      <div class="center fragment" data-fragment-index="1"><div class="gram-card hl" data-g="S→(S)S|ε" data-lenguaje="parentesis">
+        <div class="anotada">
+          <div><span class="forma lg" data-f="S"></span></div><div class="fl">→</div>
+          <div><span class="forma lg" data-f="("></span><span class="lt">abre</span></div>
+          <div><span class="forma lg" data-f="S"></span><span class="lt">adentro</span></div>
+          <div><span class="forma lg" data-f=")"></span><span class="lt">cierra</span></div>
+          <div><span class="forma lg" data-f="S"></span><span class="lt">después</span></div>
+          <div class="fl" style="color:var(--muted)">|</div>
+          <div><span class="forma lg" data-f="ε"></span><span class="lt">termina</span></div>
+        </div>
+      </div></div>
+      <div class="list tight mt16 fragment" data-fragment-index="2">
+        <div class="item"><div class="sq"><i class="fa-solid fa-box-open"></i></div><div><div class="t"><span class="forma xs" data-gram="S→(S)S"></span></div><div class="v">crea un par ( ) con algo adentro y deja lugar para más después</div></div></div>
+        <div class="item"><div class="sq"><i class="fa-solid fa-flag-checkered"></i></div><div><div class="t"><span class="forma xs" data-gram="S→ε"></span></div><div class="v">termina: esa parte queda vacía</div></div></div>
+      </div>
+      <div class="note fragment" data-fragment-index="4" style="margin-top:14px;font-size:17px"><i class="fa-solid fa-circle-info"></i><span>No toda gramática libre de contexto es recursiva: <span class="forma xs" data-gram="S→ab"></span> también lo es, pero solo fabrica <span class="mono">ab</span>. La recursión es lo que permite fabricar <b>infinitas</b> cadenas.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · PARÉNTESIS PASO A PASO -->
+<section data-transition="slide" id="parentesis-paso">
+  <div class="kicker">Con la misma gramática</div>
+  <h2>Generemos paréntesis paso a paso: <span class="prods md" data-gram="S→(S)S|ε" style="vertical-align:middle"></span></h2>
+  <div class="two" style="margin-top:14px;grid-template-columns:500px 1fr;gap:24px">
+    <div>
+      <p class="center small"><b>Cadena</b> <span class="forma sm" data-f="()"></span></p>
+      <div class="tabla-caja mt8"><table class="tbl dertab compacta" data-g="S→(S)S|ε" data-deriv="S;(S)S;()S;()" data-modo="tabla" data-indice="1" data-cadena="()"></table></div>
+    </div>
+    <div>
+      <p class="center small"><b>Cadena</b> <span class="forma sm" data-f="()()"></span></p>
+      <div class="tabla-caja mt8"><table class="tbl dertab compacta" data-g="S→(S)S|ε" data-deriv="S;(S)S;()S;()(S)S;()()S;()()" data-modo="tabla" data-indice="4" data-cadena="()()"></table></div>
+    </div>
+  </div>
+  <div class="note fragment" data-fragment-index="9" style="margin-top:14px"><i class="fa-solid fa-lightbulb"></i><span>Las dos derivaciones empiezan <b>igual</b>; cambian cuando la última <span class="forma xs" data-f="S"></span> elige <span class="forma xs" data-gram="S→ε"></span> (termina) o <span class="forma xs" data-gram="S→(S)S"></span> (otro par). Con la misma gramática obtenemos cadenas distintas, todas bien anidadas.</span></div>
+</section>
+
+<!-- 12 · ÁRBOL DE DERIVACIÓN -->
+<section data-transition="zoom" id="arbol">
+  <div class="kicker">Ver la estructura</div>
+  <h2>¿Qué es un árbol de derivación?</h2>
+  <div class="two" style="margin-top:10px;grid-template-columns:470px 1fr;gap:28px">
+    <div>
+      <div class="center"><div class="gram-card"><div class="prods md" data-gram="S→aSb|ε"></div></div></div>
+      <div class="deriv sm centro mt16" data-g="S→aSb|ε" data-deriv="S;aSb;aaSbb;aabb" data-indice="1"></div>
+      <div class="list tight" style="margin-top:18px">
+        <div class="item"><div class="sq"><i class="fa-solid fa-seedling"></i></div><div><div class="t">Raíz</div><div class="v">el símbolo inicial S, arriba</div></div></div>
+        <div class="item"><div class="sq"><span class="forma sm" data-f="S"></span></div><div><div class="t">Nodos internos</div><div class="v">variables: cada una se expande con una regla</div></div></div>
+        <div class="item"><div class="sq" style="background:var(--blue-l);border-color:var(--blue)"><span class="forma sm" data-f="a"></span></div><div><div class="t">Hojas</div><div class="v">terminales (o ε): ya no tienen hijos</div></div></div>
+      </div>
+    </div>
+    <div>
+      <div data-g="S→aSb|ε" data-arbol="S;aSb;aaSbb;aabb" data-crece data-indice="1" data-lectura="4" data-cadena="aabb" data-escala="1.12"></div>
+      <div class="note fragment" data-fragment-index="5" style="margin-top:6px;font-size:17px"><i class="fa-solid fa-sitemap"></i><span>Los <b>hijos</b> de un nodo son el <b>lado derecho</b> de la regla que se le aplicó: S tiene hijos <span class="mono">a S b</span> por <span class="forma xs" data-gram="S→aSb"></span>. Leídas de izquierda a derecha, las hojas forman <span class="mono">aabb</span> (ε no aporta nada). <b>No es un autómata:</b> no hay estados ni transiciones, solo la estructura de una cadena.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 · PALÍNDROMOS -->
+<section data-transition="slide" id="palindromos">
+  <div class="kicker">Cadenas simétricas</div>
+  <h2>Un lenguaje de cadenas espejo</h2>
+  <div class="two" style="margin-top:10px;grid-template-columns:560px 1fr;gap:26px">
+    <div>
+      <div class="gram-card hl"><div class="prods md" data-gram="S→aSa|bSb|a|b|ε" data-g="S→aSa|bSb|a|b|ε" data-lenguaje="palindromos"></div></div>
+      <div class="chips-cad mt16" style="justify-content:flex-start" data-pertenece="S→aSa|bSb|a|b|ε"><span class="cad">a</span><span class="cad">b</span><span class="cad">aa</span><span class="cad">aba</span><span class="cad">abba</span><span class="cad">baab</span><span class="cad fuera">ab</span><span class="cad fuera">abb</span></div>
+      <p class="small mt16">Se leen <b>igual</b> de izquierda a derecha que de derecha a izquierda: son <b>palíndromos</b> sobre \(\{a, b\}\), como «anilina» o «reconocer».</p>
+      <div class="deriv sm mt16" data-g="S→aSa|bSb|a|b|ε" data-deriv="S;aSa;abSba;abba" data-indice="1" data-reglas data-cadena="abba"></div>
+    </div>
+    <div>
+      <div class="fragment" data-fragment-index="4">
+        <p class="small muted center" style="margin-bottom:2px">Parejas que puso cada regla (el número es el paso):</p>
+        <div data-g="S→aSa|bSb|a|b|ε" data-arcos="S;aSa;abSba;abba" data-escala="1.3"></div>
+      </div>
+      <div class="list tight mt16">
+        <div class="item fragment" data-fragment-index="5"><div class="sq"><i class="fa-solid fa-left-right"></i></div><div><div class="t"><span class="forma xs" data-gram="S→aSa"></span> y <span class="forma xs" data-gram="S→bSb"></span></div><div class="v">ponen la MISMA letra en los dos extremos: espejo</div></div></div>
+        <div class="item fragment" data-fragment-index="6"><div class="sq"><i class="fa-solid fa-bullseye"></i></div><div><div class="t">a, b o ε forman el centro</div><div class="v">a o b → longitud impar · ε → longitud par</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     BLOQUE B · ¿QUÉ GANAMOS FRENTE A LO REGULAR?
+     ===================================================================== -->
+
+<!-- 14 · ER FRENTE A GLC -->
+<section data-transition="convex" id="comparacion">
+  <div class="kicker">Lo que sabíamos y lo nuevo</div>
+  <h2>Expresiones regulares frente a gramáticas</h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:780px 1fr;gap:22px;align-items:center">
+    <div class="tabla-caja">
+      <table class="tbl vs">
+        <thead><tr><th>Característica</th><th>Expresión regular / autómata finito</th><th>Gramática libre de contexto</th></tr></thead>
+        <tbody>
+          <tr class="fragment"><td>¿Qué describe o reconoce?</td><td>Lenguajes <b>regulares</b></td><td>Lenguajes <b>libres de contexto</b></td></tr>
+          <tr class="fragment"><td>Elemento principal</td><td>Patrones, o estados y transiciones</td><td>Variables y producciones</td></tr>
+          <tr class="fragment"><td>¿Cómo trabaja?</td><td>Coincide con un patrón o recorre estados</td><td>Aplica reglas: derivaciones</td></tr>
+          <tr class="fragment"><td>Ejemplo representativo</td><td><span class="mono" style="font-size:22px;font-weight:600">a*b</span></td><td><span class="prods xs" data-gram="S→aSb|ε"></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="fragment">
+      <svg class="venn" viewBox="0 0 360 290" width="350" height="282" role="img" aria-label="Los lenguajes regulares están dentro de los libres de contexto">
+        <ellipse class="c2" cx="180" cy="145" rx="175" ry="138"/>
+        <ellipse class="c1" cx="140" cy="172" rx="100" ry="76"/>
+        <text class="t2" x="180" y="40">Libres de contexto</text>
+        <text class="t1" x="140" y="148">Regulares</text>
+        <text class="ej" x="140" y="180">a*b</text>
+        <text class="ej" x="140" y="204">(a+b)*ab</text>
+        <text class="ej" x="292" y="150">aⁿbⁿ</text>
+        <text class="ej" x="292" y="180">(()())</text>
+      </svg>
+    </div>
+  </div>
+  <div class="two" style="margin-top:14px;gap:18px">
+    <div class="note fragment" style="margin-top:0;font-size:17.5px"><i class="fa-solid fa-equals"></i><span>Las ER y los autómatas finitos describen <b>exactamente</b> los lenguajes regulares. Y todo lenguaje regular tiene una GLC: <span class="mono">a*b</span> es el lenguaje de <span class="forma xs" data-gram="S→aS|b" data-g="S→aS|b" data-lenguaje="a^n b"></span>.</span></div>
+    <div class="note fragment" style="margin-top:0;font-size:17.5px;background:var(--accent-l);border-color:var(--accent-d);color:var(--accent-d)"><i class="fa-solid fa-arrow-up-right-dots" style="color:var(--accent-d)"></i><span>Pero no al revés: hay lenguajes libres de contexto que <b>no son regulares</b>, como \(\{a^n b^n \mid n \ge 0\}\). Lo vemos a continuación.</span></div>
+  </div>
+</section>
+
+<!-- 15 · UN EJEMPLO QUE UN AUTÓMATA FINITO NO PUEDE RESOLVER -->
+<section data-transition="slide" id="anbn">
+  <div class="kicker">Más allá de lo regular</div>
+  <h2>Un ejemplo que un autómata finito no puede resolver</h2>
+  <div class="two" style="margin-top:10px;grid-template-columns:540px 1fr;gap:28px">
+    <div>
+      <div class="gram-card hl"><div class="prods md" data-gram="S→aSb|ε" data-g="S→aSb|ε" data-lenguaje="a^n b^n"></div></div>
+      <div class="chips-cad mt16" style="justify-content:flex-start" data-pertenece="S→aSb|ε"><span class="cad">ε</span><span class="cad">ab</span><span class="cad">aabb</span><span class="cad">aaabbb</span><span class="cad">aaaabbbb</span></div>
+      <p class="mt16" style="font-size:28px">\(L = \{\, a^n b^n \mid n \ge 0 \,\}\)</p>
+      <p class="small">La <b>misma cantidad</b> de <span class="mono">a</span> al principio que de <span class="mono">b</span> al final, en ese orden.</p>
+      <div class="fragment">
+        <p class="small muted mt8" style="margin-bottom:2px">La gramática <b>no necesita contar</b>: cada <span class="forma xs" data-gram="S→aSb"></span> pone una <span class="mono">a</span> y su <span class="mono">b</span> pareja a la vez.</p>
+        <div data-g="S→aSb|ε" data-arcos="S;aSb;aaSbb;aaaSbbb;aaabbb" data-escala="1.15"></div>
+      </div>
+    </div>
+    <div>
+      <div class="caja fragment">
+        <h3><i class="fa-solid fa-hand"></i> Un autómata cuenta con los dedos</h3>
+        <svg class="mini-af" viewBox="0 0 520 132" width="100%" height="132" role="img" aria-label="AFD con cuatro estados que cuenta aes hasta tres">
+          <path class="ed" d="M2 70 L28 70"/><path d="M28 65 l9 5 l-9 5 z" fill="var(--navy)"/>
+          <path class="ed" d="M84 70 L148 70"/><path d="M148 65 l9 5 l-9 5 z" fill="var(--navy)"/><text class="el" x="118" y="60">a</text>
+          <path class="ed" d="M206 70 L270 70"/><path d="M270 65 l9 5 l-9 5 z" fill="var(--navy)"/><text class="el" x="240" y="60">a</text>
+          <path class="ed" d="M328 70 L392 70"/><path d="M392 65 l9 5 l-9 5 z" fill="var(--navy)"/><text class="el" x="362" y="60">a</text>
+          <path class="ed" d="M416 46 C396 0 462 0 442 46"/><path d="M440 38 l3 9 l5 -8 z" fill="var(--navy)"/><text class="el" x="429" y="16">a</text>
+          <circle class="st" cx="60" cy="70" r="24"/><text class="lb" x="60" y="70">q0</text>
+          <circle class="st" cx="182" cy="70" r="24"/><text class="lb" x="182" y="70">q1</text>
+          <circle class="st" cx="304" cy="70" r="24"/><text class="lb" x="304" y="70">q2</text>
+          <circle class="st lleno" cx="429" cy="70" r="24"/><text class="lb" x="429" y="70">q3</text>
+          <text class="cap2" x="60" y="114">0 aes</text><text class="cap2" x="182" y="114">1 a</text><text class="cap2" x="304" y="114">2 aes</text><text class="cap2" x="429" y="114">3 o más</text>
+        </svg>
+        <p class="small">Con 4 estados distingue 0, 1, 2 y «3 o más». Después de 3, <span class="mono">aaa</span> y <span class="mono">aaaa</span> lo dejan en el <b>mismo</b> estado: ya no sabe cuántas <span class="mono">b</span> esperar.</p>
+      </div>
+      <div class="note fragment" style="margin-top:14px;font-size:17.5px"><i class="fa-solid fa-infinity"></i><span>Un autómata finito <b>sí puede contar hasta un límite fijo</b>. Lo que no puede es contar <b>sin límite</b>: con \(k\) estados, la cadena \(a^{k} b^{k}\) ya tiene más <span class="mono">a</span> de las que puede recordar. Por eso \(\{a^n b^n\}\) <b>no es regular</b>.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 · ¿QUÉ SIGNIFICA «LIBRE DE CONTEXTO»? -->
+<section data-transition="convex" id="libre">
+  <div class="kicker">El nombre</div>
+  <h2>¿Qué significa «libre de contexto»?</h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:560px 1fr;gap:28px">
+    <div>
+      <div class="caja hl" style="padding:14px 18px">
+        <div class="forma-regla">
+          <div class="pz"><span class="gr v">A</span><span class="llave"><span class="lt">UNA sola variable</span></span></div>
+          <div class="pz"><span class="gr">→</span></div>
+          <div class="pz"><span class="gr">α</span><span class="llave"><span class="lt">cualquier cadena de terminales<br>y/o variables (puede ser ε)</span></span></div>
+        </div>
+        <p class="small center mt8">α (alfa) es solo un nombre para «lo que sea que vaya a la derecha».</p>
+      </div>
+      <div class="list tight mt16">
+        <div class="item fragment"><div class="sq"><i class="fa-solid fa-check ok-i"></i></div><div><div class="t"><span class="forma sm" data-gram="A→aB"></span></div><div class="v">α = aB: un terminal y una variable</div></div></div>
+        <div class="item fragment"><div class="sq"><i class="fa-solid fa-check ok-i"></i></div><div><div class="t"><span class="forma sm" data-gram="S→(S)S"></span></div><div class="v">α = (S)S: terminales y variables mezclados</div></div></div>
+        <div class="item fragment"><div class="sq"><i class="fa-solid fa-check ok-i"></i></div><div><div class="t"><span class="forma sm" data-gram="S→ε"></span></div><div class="v">α = ε: también se vale</div></div></div>
+        <div class="item fragment" style="border-color:var(--red);border-style:dashed;box-shadow:4px 4px 0 var(--red)"><div class="sq" style="background:var(--red-l);border-color:var(--red)"><i class="fa-solid fa-xmark no-i"></i></div><div><div class="t"><span class="forma sm"><span class="sy sy-t">a</span><span class="sy sy-v">S</span></span> → <span class="forma sm"><span class="sy sy-t">a</span><span class="sy sy-t">b</span></span></div><div class="v">dos símbolos a la izquierda: NO es libre de contexto</div></div></div>
+      </div>
+    </div>
+    <div class="caja fragment">
+      <h3><i class="fa-solid fa-people-group"></i> Los vecinos no importan</h3>
+      <p class="small">La regla <span class="forma xs" data-gram="S→ε"></span> se puede aplicar a la <span class="forma xs" data-f="S"></span> en las tres formas, sin mirar qué tiene alrededor:</p>
+      <div class="vecinos mt8">
+        <div class="vecino"><span class="forma md"><span class="sy sy-t quieto">a</span><span class="sy sy-v marca fija">S</span><span class="sy sy-t quieto">b</span></span><i class="fa-solid fa-arrow-right-long ac"></i><span class="forma md" data-f="ab"></span></div>
+        <div class="vecino"><span class="forma md"><span class="sy sy-t quieto">(</span><span class="sy sy-v marca fija">S</span><span class="sy sy-t quieto">)</span></span><i class="fa-solid fa-arrow-right-long ac"></i><span class="forma md" data-f="()"></span></div>
+        <div class="vecino"><span class="forma md"><span class="sy sy-v marca fija">S</span></span><i class="fa-solid fa-arrow-right-long ac"></i><span class="forma md" data-f="ε"></span></div>
+      </div>
+      <div class="note" style="font-size:17px;margin-top:16px"><i class="fa-solid fa-triangle-exclamation"></i><span>«Libre de contexto» <b>no</b> significa «sin condiciones»: una regla \(A \to \alpha\) solo se usa donde aparece <b>su</b> variable \(A\). Lo que no importa es el <b>contexto</b>: los símbolos que la rodean.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     BLOQUE C · ¿PARA QUÉ SIRVEN?
+     ===================================================================== -->
+
+<!-- 17 · APLICACIONES -->
+<section data-transition="zoom" id="aplicaciones">
+  <div class="kicker">En el mundo real</div>
+  <h2>¿Para qué sirven las gramáticas libres de contexto?</h2>
+  <div class="two" style="margin-top:14px;grid-template-columns:480px 1fr;gap:28px">
+    <div class="list tight">
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-calculator"></i></div><div><div class="t">Expresiones aritméticas</div><div class="v">describir su estructura</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-code"></i></div><div><div class="t">Lenguajes de programación</div><div class="v">definir su sintaxis</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-scale-balanced"></i></div><div><div class="t">Paréntesis y llaves</div><div class="v">analizar si están bien anidados</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-gears"></i></div><div><div class="t">Analizadores sintácticos</div><div class="v">construir parsers</div></div></div>
+      <div class="item fragment fade-right"><div class="sq"><i class="fa-solid fa-sitemap"></i></div><div><div class="t">Árboles sintácticos</div><div class="v">representar la estructura de un programa</div></div></div>
+    </div>
+    <div>
+      <div class="gram-card hl" style="width:100%;box-sizing:border-box;align-items:flex-start">
+        <span class="etq">Gramática de expresiones</span>
+        <div class="prods md" data-gram="E→E+T|T;T→T*F|F;F→(E)|id"></div>
+      </div>
+      <div class="three" style="margin-top:16px;gap:12px">
+        <div class="comp fragment" style="padding:8px"><div class="nom"><span class="forma sm" data-f="E"></span> expresión</div><div class="dice">sumas de términos</div></div>
+        <div class="comp fragment" style="padding:8px"><div class="nom"><span class="forma sm" data-f="T"></span> término</div><div class="dice">productos de factores</div></div>
+        <div class="comp fragment" style="padding:8px"><div class="nom"><span class="forma sm" data-f="F"></span> factor</div><div class="dice">un <span class="mono">id</span> o algo entre paréntesis</div></div>
+      </div>
+      <div class="note fragment" style="margin-top:14px;font-size:17px"><i class="fa-solid fa-circle-info"></i><span><span class="forma xs" data-f="E"></span>, <span class="forma xs" data-f="T"></span> y <span class="forma xs" data-f="F"></span> son <b>categorías</b> (variables). Los terminales son <span class="forma xs"><span class="sy sy-t">+</span><span class="sy sy-t">*</span><span class="sy sy-t">(</span><span class="sy sy-t">)</span><span class="sy sy-t">id</span></span>; <span class="mono">id</span> representa <b>cualquier</b> identificador (<span class="mono">x</span>, <span class="mono">precio</span>…). Aquí <b>+</b> es suma, no unión. Cómo se escriben exactamente las fichas puede variar de un lenguaje a otro.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 18 · ÁRBOL DE UNA EXPRESIÓN -->
+<section data-transition="slide" id="arbol-expresion">
+  <div class="kicker">La precedencia vive en la gramática</div>
+  <h2>El árbol de <span class="forma md" data-f="id+id*id"></span></h2>
+  <div class="two" style="margin-top:8px;grid-template-columns:580px 1fr;gap:24px">
+    <div>
+      <div class="gram-card" style="padding:8px 16px"><div class="prods sm" data-gram="E→E+T|T;T→T*F|F;F→(E)|id"></div></div>
+      <p class="small mt16">Una derivación (siempre reemplazando la variable de <b>más a la izquierda</b>):</p>
+      <div class="deriv xs mt8" data-g="E→E+T|T;T→T*F|F;F→(E)|id" data-deriv="E;E+T;T+T;F+T;id+T;id+T*F;id+F*F;id+id*F;id+id*id" data-sin-fragmentos data-sin-marcas data-cadena="id+id*id"></div>
+      <div class="note fragment" style="font-size:17px"><i class="fa-solid fa-layer-group"></i><span>El <b>*</b> queda <b>más abajo</b> que el <b>+</b>: <span class="mono">id*id</span> se agrupa primero, igual que en aritmética. La gramática obliga a respetar la precedencia.</span></div>
+      <div class="note fragment" style="font-size:17px;margin-top:12px;background:var(--accent-l);border-color:var(--accent-d);color:var(--accent-d)"><i class="fa-solid fa-link" style="color:var(--accent-d)"></i><span>Si recorres el árbol escribiendo primero los operandos y después el operador, obtienes <span class="mono"><b>id id id * +</b></span>: ¡la notación posfija de la clase anterior!</span></div>
+    </div>
+    <div data-g="E→E+T|T;T→T*F|F;F→(E)|id" data-arbol="E;E+T;T+T;F+T;id+T;id+T*F;id+F*F;id+id*F;id+id*id" data-lectura data-cadena="id+id*id" data-dy="68" data-escala="1.08"></div>
+  </div>
+</section>
+
+<!-- 19 · AMBIGÜEDAD -->
+<section data-transition="slide" id="ambigua">
+  <div class="kicker">Una advertencia</div>
+  <h2>Cuando una cadena tiene dos árboles</h2>
+  <div class="center mt8"><div class="gram-card" style="flex-direction:row;gap:16px;padding:8px 18px"><span class="etq">Otra gramática</span><div class="prods md" data-gram="E→E+E|E*E|id"></div></div></div>
+  <div class="two" style="margin-top:10px;gap:20px">
+    <div class="center">
+      <p class="small"><b>Árbol 1:</b> primero <span class="mono">id*id</span>, luego la suma</p>
+      <div data-g="E→E+E|E*E|id" data-arbol="E;E+E;id+E;id+E*E;id+id*E;id+id*id" data-cadena="id+id*id" data-dy="62"></div>
+    </div>
+    <div class="center fragment">
+      <p class="small"><b>Árbol 2:</b> primero <span class="mono">id+id</span>, luego el producto</p>
+      <div data-g="E→E+E|E*E|id" data-arbol="E;E*E;E+E*E;id+E*E;id+id*E;id+id*id" data-cadena="id+id*id" data-dy="62"></div>
+    </div>
+  </div>
+  <div class="note fragment" style="margin-top:8px"><i class="fa-solid fa-triangle-exclamation"></i><span>Una gramática es <b>ambigua</b> si alguna cadena tiene <b>dos árboles</b> distintos. Aquí <span class="mono">id+id*id</span> podría significar dos cosas. La gramática con <span class="forma xs" data-f="E"></span>, <span class="forma xs" data-f="T"></span> y <span class="forma xs" data-f="F"></span> evita el problema: da un solo árbol. Estudiaremos la ambigüedad más adelante.</span></div>
+</section>
+
+<!-- 20 · ANALIZADORES SINTÁCTICOS -->
+<section data-transition="convex" id="analizador">
+  <div class="kicker">Cómo se usa en un compilador</div>
+  <h2>¿Cómo se conecta con los analizadores sintácticos?</h2>
+  <div class="pipe" style="margin-top:26px;gap:4px">
+    <div class="stepc fragment fade-up" style="width:190px;padding:12px 6px"><div class="sq"><i class="fa-solid fa-file-code"></i></div><div class="t" style="font-size:17px">Código fuente</div><div class="d mono" style="font-size:16px;color:var(--navy)">x + y * z</div></div>
+    <div class="link fragment fade-up" style="width:84px"><i class="fa-solid fa-arrow-right-long"></i><span>análisis léxico</span></div>
+    <div class="stepc fragment fade-up" style="width:250px;padding:12px 6px"><div class="sq"><i class="fa-solid fa-tags"></i></div><div class="t" style="font-size:17px">Tokens</div><div class="d"><span class="forma xs" data-f="id+id*id"></span></div></div>
+    <div class="link fragment fade-up" style="width:94px"><i class="fa-solid fa-arrow-right-long"></i><span>análisis sintáctico</span></div>
+    <div class="stepc hl fragment fade-up" style="width:230px;padding:12px 6px"><div class="sq"><i class="fa-solid fa-sitemap"></i></div><div class="t" style="font-size:17px">Árbol sintáctico</div><div class="d">la estructura: + arriba, * abajo</div></div>
+  </div>
+  <div class="three" style="margin-top:28px;gap:18px">
+    <div class="caja fragment" style="padding:10px 14px"><h3 style="font-size:20px"><i class="fa-solid fa-font"></i> Expresiones regulares</h3><p class="small">describen el <b>patrón</b> de cada token, por ejemplo un identificador: <span class="mono">letra(letra+dígito)*</span>.</p></div>
+    <div class="caja fragment" style="padding:10px 14px"><h3 style="font-size:20px"><i class="fa-solid fa-diagram-project"></i> Autómatas finitos</h3><p class="small"><b>reconocen</b> esos patrones letra por letra y cortan el texto en tokens.</p></div>
+    <div class="caja hl fragment" style="padding:10px 14px"><h3 style="font-size:20px"><i class="fa-solid fa-sitemap"></i> Gramáticas libres de contexto</h3><p class="small">describen cómo se <b>organizan</b> los tokens: qué va dentro de qué.</p></div>
+  </div>
+  <div class="note fragment" style="margin-top:20px"><i class="fa-solid fa-puzzle-piece"></i><span>Una gramática <b>no reemplaza</b> a las expresiones regulares ni a los autómatas: son herramientas distintas que <b>se complementan</b>, cada una en su etapa.</span></div>
+</section>
+
+<!-- 21 · RESUMEN -->
+<section data-transition="zoom" id="resumen">
+  <div class="kicker">Resumen</div>
+  <h2>Todo en un mapa</h2>
+  <div class="stage cmap" style="height:540px;margin-top:4px">
+    <svg class="wires" viewBox="0 0 1168 540">
+      <line x1="584" y1="250" x2="190" y2="70"/><line x1="584" y1="250" x2="584" y2="60"/><line x1="584" y1="250" x2="978" y2="70"/>
+      <line x1="584" y1="250" x2="190" y2="440"/><line x1="584" y1="250" x2="584" y2="460"/><line x1="584" y1="250" x2="978" y2="440"/>
+      <text x="380" y="150">tiene</text><text x="606" y="150">tiene</text><text x="790" y="150">usa</text>
+      <text x="380" y="352">se ve en</text><text x="620" y="370">se dibuja en</text><text x="790" y="352">describe</text>
+    </svg>
+    <div class="nodec hl centro" style="left:584px;top:250px"><div class="t">Gramática libre de contexto</div><div class="d">un conjunto de reglas para construir cadenas<br>\(G = (V, \Sigma, P, S)\)</div></div>
+    <div class="nodec fragment" style="left:190px;top:70px"><div class="t"><span class="forma sm" data-f="ab"></span> Terminales</div><div class="d">aparecen en la cadena final</div></div>
+    <div class="nodec fragment" style="left:584px;top:60px"><div class="t"><span class="forma sm" data-f="S"></span> No terminales</div><div class="d">se sustituyen aplicando producciones</div></div>
+    <div class="nodec fragment" style="left:978px;top:70px"><div class="t">Producciones</div><div class="d"><span class="mono">A → α</span>: una variable a la izquierda</div></div>
+    <div class="nodec fragment" style="left:190px;top:440px"><div class="t">Derivación</div><div class="d">muestra cómo se genera una cadena<br><span class="mono">S ⇒ aSb ⇒ ab</span></div></div>
+    <div class="nodec fragment" style="left:584px;top:460px"><div class="t">Árbol de derivación</div><div class="d">muestra su estructura gráficamente</div></div>
+    <div class="nodec fragment" style="left:978px;top:440px;min-width:250px"><div class="t">Más que lo regular</div><div class="d">aⁿbⁿ y paréntesis anidados:<br>una ER sola no puede</div></div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     BLOQUE D · EJERCICIOS
+     ===================================================================== -->
+
+<!-- 22 · EJERCICIO 1 -->
+<section data-transition="zoom" id="ej1">
+  <div class="kicker">Ejercicio 1 · Identifica los componentes</div>
+  <h2>Mira la gramática con lupa</h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:470px 1fr;gap:26px">
+    <div class="enun">
+      <div class="head"><i class="fa-solid fa-pencil"></i> Considera</div>
+      <div class="center"><div class="prods lg" data-gram="S→aS|b"></div></div>
+      <ol>
+        <li>¿Cuál es el símbolo inicial?</li>
+        <li>¿Cuáles son los no terminales?</li>
+        <li>¿Cuáles son los terminales?</li>
+        <li>¿Cuáles son las producciones?</li>
+        <li>¿Se puede generar <span class="mono">aaab</span>?</li>
+        <li>¿Se puede generar <span class="mono">aaba</span>?</li>
+      </ol>
+    </div>
+    <div class="pilas" data-pertenece="S→aS|b">
+      <div class="note pista fragment" data-fragment-index="1"><i class="fa-solid fa-lightbulb"></i><span><b>Pista:</b> las mayúsculas son variables. Para 5 y 6, piensa: ¿qué regla pone la <span class="mono">b</span>? ¿Queda algo después de usarla?</span></div>
+      <div class="ans fragment" data-fragment-index="2"><span class="lbl-ans">Respuestas 1 a 4</span>
+        1. \(S\) &nbsp;·&nbsp; 2. \(V = \{S\}\) &nbsp;·&nbsp; 3. \(\Sigma = \{a, b\}\) &nbsp;·&nbsp; 4. dos: <span class="forma xs" data-gram="S→aS|b" data-separadas style="display:inline-flex;flex-direction:row;gap:14px"></span></div>
+      <div class="ans fragment" data-fragment-index="3"><span class="lbl-ans">5 · <span class="mono">aaab</span>: sí <i class="fa-solid fa-check ok-i"></i></span>
+        <div class="deriv sm mt8" data-g="S→aS|b" data-deriv="S;aS;aaS;aaaS;aaab" data-sin-fragmentos data-sin-marcas data-cadena="aaab"></div><span data-cad="aaab" data-res="si"></span></div>
+      <div class="ans fragment" data-fragment-index="4"><span class="lbl-ans">6 · <span class="mono">aaba</span>: no <i class="fa-solid fa-xmark no-i"></i></span>
+        La única forma de poner una <span class="mono">b</span> es <span class="forma xs" data-gram="S→b"></span>, y esa regla <b>borra la última S</b>: después ya no se puede agregar nada. La <span class="mono">b</span> siempre queda al final, y en <span class="mono">aaba</span> hay una <span class="mono">a</span> después de la <span class="mono">b</span>.<span data-cad="aaba" data-res="no"></span></div>
+      <div class="note fragment" data-fragment-index="5" style="margin-top:0;font-size:17px;background:var(--ok-l);border-color:var(--ok);color:#14532d"><i class="fa-solid fa-circle-check" style="color:var(--ok)"></i><span>Regla de oro: para decir «sí», muestra una derivación; para decir «no», explica qué propiedad tienen <b>todas</b> las cadenas generadas y que la tuya no cumple.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 23 · EJERCICIO 2 -->
+<section data-transition="slide" id="ej2">
+  <div class="kicker">Ejercicio 2 · Construye derivaciones</div>
+  <h2>Escribe cada paso</h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:400px 1fr;gap:26px">
+    <div class="pilas">
+      <div class="enun">
+        <div class="head"><i class="fa-solid fa-pencil"></i> Con la gramática</div>
+        <div class="center"><div class="prods md" data-gram="S→aSb|ε"></div></div>
+        <p class="small mt8">deriva, escribiendo <b>todas</b> las formas intermedias:</p>
+        <div class="chips-cad mt8" data-pertenece="S→aSb|ε"><span class="cad">ε</span><span class="cad">ab</span><span class="cad">aabb</span><span class="cad">aaabbb</span></div>
+      </div>
+      <div class="note pista fragment" data-fragment-index="1"><i class="fa-solid fa-lightbulb"></i><span><b>Pista:</b> cada <span class="forma xs" data-gram="S→aSb"></span> agrega una <span class="mono">a</span> a la izquierda y una <span class="mono">b</span> a la derecha de la S. ¿Cuántas veces la necesitas? Termina con <span class="forma xs" data-gram="S→ε"></span>.</span></div>
+    </div>
+    <div class="pilas" style="gap:12px">
+      <div class="ans fragment" data-fragment-index="2"><span class="lbl-ans">1 · <span class="lc">ε</span> (1 paso)</span><div class="deriv sm" data-g="S→aSb|ε" data-deriv="S;ε" data-sin-fragmentos data-reglas data-cadena="ε"></div></div>
+      <div class="ans fragment" data-fragment-index="3"><span class="lbl-ans">2 · <span class="mono">ab</span> (2 pasos)</span><div class="deriv sm" data-g="S→aSb|ε" data-deriv="S;aSb;ab" data-sin-fragmentos data-reglas data-cadena="ab"></div></div>
+      <div class="ans fragment" data-fragment-index="4"><span class="lbl-ans">3 · <span class="mono">aabb</span> (3 pasos)</span><div class="deriv sm" data-g="S→aSb|ε" data-deriv="S;aSb;aaSbb;aabb" data-sin-fragmentos data-reglas data-cadena="aabb"></div></div>
+      <div class="ans fragment" data-fragment-index="5"><span class="lbl-ans">4 · <span class="mono">aaabbb</span> (4 pasos)</span><div class="deriv sm" data-g="S→aSb|ε" data-deriv="S;aSb;aaSbb;aaaSbbb;aaabbb" data-sin-fragmentos data-reglas data-cadena="aaabbb"></div></div>
+      <div class="note fragment" data-fragment-index="6" style="margin-top:0;font-size:17px"><i class="fa-solid fa-calculator"></i><span>Para \(a^n b^n\) se usa \(n\) veces <span class="forma xs" data-gram="S→aSb"></span> y una vez <span class="forma xs" data-gram="S→ε"></span>: \(n + 1\) pasos.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 24 · EJERCICIO 3 -->
+<section data-transition="slide" id="ej3">
+  <div class="kicker">Ejercicio 3 · ¿Pertenece al lenguaje?</div>
+  <h2>¿Se puede generar con <span class="prods md" data-gram="S→aSb|ε" style="vertical-align:middle"></span>?</h2>
+  <div class="note pista fragment" data-fragment-index="1" style="margin-top:12px"><i class="fa-solid fa-lightbulb"></i><span><b>Pista:</b> revisa dos cosas. ① ¿Están <b>todas</b> las <span class="mono">a</span> antes que las <span class="mono">b</span>? ② ¿Hay la <b>misma cantidad</b> de cada una? Justifica cada respuesta.</span></div>
+  <div class="tabla-caja" style="margin-top:14px">
+    <table class="tbl ejer" data-pertenece="S→aSb|ε">
+      <thead><tr><th>Cadena</th><th>① <span class="lc">a</span> antes que <span class="lc">b</span></th><th>② #<span class="lc">a</span> = #<span class="lc">b</span></th><th>¿Se genera?</th><th>Justificación</th></tr></thead>
+      <tbody>
+        <tr data-cad="ab" data-res="si"><td><span class="cad">ab</span></td><td class="fragment" data-fragment-index="2"><i class="fa-solid fa-check ok-i"></i></td><td class="fragment" data-fragment-index="2">1 = 1</td><td class="fragment" data-fragment-index="2"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span></td><td class="just fragment" data-fragment-index="2"><span class="mono">S ⇒ aSb ⇒ ab</span></td></tr>
+        <tr data-cad="aabb" data-res="si"><td><span class="cad">aabb</span></td><td class="fragment" data-fragment-index="3"><i class="fa-solid fa-check ok-i"></i></td><td class="fragment" data-fragment-index="3">2 = 2</td><td class="fragment" data-fragment-index="3"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span></td><td class="just fragment" data-fragment-index="3"><span class="mono">S ⇒ aSb ⇒ aaSbb ⇒ aabb</span></td></tr>
+        <tr data-cad="aaabbb" data-res="si"><td><span class="cad">aaabbb</span></td><td class="fragment" data-fragment-index="4"><i class="fa-solid fa-check ok-i"></i></td><td class="fragment" data-fragment-index="4">3 = 3</td><td class="fragment" data-fragment-index="4"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span></td><td class="just fragment" data-fragment-index="4">tres veces <span class="mono">S → aSb</span> y luego <span class="mono">S → ε</span></td></tr>
+        <tr data-cad="aab" data-res="no"><td><span class="cad">aab</span></td><td class="fragment" data-fragment-index="5"><i class="fa-solid fa-check ok-i"></i></td><td class="fragment" data-fragment-index="5">2 ≠ 1</td><td class="fragment" data-fragment-index="5"><span class="verdict no"><i class="fa-solid fa-xmark"></i> no</span></td><td class="just fragment" data-fragment-index="5">cada regla pone una <span class="mono">a</span> <b>y</b> una <span class="mono">b</span>: nunca sobra una <span class="mono">a</span></td></tr>
+        <tr data-cad="abb" data-res="no"><td><span class="cad">abb</span></td><td class="fragment" data-fragment-index="6"><i class="fa-solid fa-check ok-i"></i></td><td class="fragment" data-fragment-index="6">1 ≠ 2</td><td class="fragment" data-fragment-index="6"><span class="verdict no"><i class="fa-solid fa-xmark"></i> no</span></td><td class="just fragment" data-fragment-index="6">sobra una <span class="mono">b</span> sin pareja</td></tr>
+        <tr data-cad="ba" data-res="no"><td><span class="cad">ba</span></td><td class="fragment" data-fragment-index="7"><i class="fa-solid fa-xmark no-i"></i></td><td class="fragment" data-fragment-index="7">1 = 1</td><td class="fragment" data-fragment-index="7"><span class="verdict no"><i class="fa-solid fa-xmark"></i> no</span></td><td class="just fragment" data-fragment-index="7">la <span class="mono">a</span> siempre queda a la izquierda de la S y la <span class="mono">b</span> a la derecha</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note fragment" data-fragment-index="8" style="margin-top:14px;background:var(--accent-l);border-color:var(--accent-d);color:var(--accent-d)"><i class="fa-solid fa-circle-check" style="color:var(--accent-d)"></i><span>Una cadena es válida solo si cumple <b>las dos</b> condiciones: todas las <span class="mono">a</span> antes que las <span class="mono">b</span> <b>y</b> la misma cantidad de ambas. <span class="mono">ba</span> muestra que contar no basta.</span></div>
+</section>
+
+<!-- 25 · EJERCICIO 4 -->
+<section data-transition="slide" id="ej4">
+  <div class="kicker">Ejercicio 4 · Crea una gramática</div>
+  <h2>Ahora tú diseñas la fábrica</h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:540px 1fr;gap:26px">
+    <div class="pilas">
+      <div class="enun">
+        <div class="head"><i class="fa-solid fa-trophy"></i> Reto</div>
+        <p style="font-size:20px">Diseña una gramática libre de contexto que genere todas las cadenas de <b>cero o más</b> letras <span class="mono">a</span> seguidas de <b>una</b> letra <span class="mono">b</span>.</p>
+        <div data-pertenece="S→aS|b">
+          <p class="small mt8"><i class="fa-solid fa-check ok-i"></i> <b>Válidas</b></p>
+          <div class="chips-cad" style="justify-content:flex-start"><span class="cad">b</span><span class="cad">ab</span><span class="cad">aab</span><span class="cad">aaab</span></div>
+          <p class="small mt8"><i class="fa-solid fa-xmark no-i"></i> <b>No válidas</b></p>
+          <div class="chips-cad" style="justify-content:flex-start"><span class="cad fuera">a</span><span class="cad fuera">ba</span><span class="cad fuera">abb</span></div>
+        </div>
+      </div>
+      <div class="note pista fragment" data-fragment-index="1" style="margin-top:0"><i class="fa-solid fa-lightbulb"></i><span><b>Pista:</b> piensa en una regla que permita <b>agregar otra a</b> y una regla que permita <b>terminar</b>.</span></div>
+    </div>
+    <div class="pilas">
+      <div class="ans fragment" data-fragment-index="2"><span class="lbl-ans">Una solución posible</span>
+        <div class="center mt8"><div class="prods lg" data-gram="S→aS|b" data-g="S→aS|b" data-lenguaje="a^n b"></div></div></div>
+      <div class="ans fragment" data-fragment-index="3"><span class="lbl-ans">¿Por qué funciona?</span>
+        <ul>
+          <li><span class="forma xs" data-gram="S→aS"></span> agrega una <span class="mono">a</span> y deja la S para seguir: tantas <span class="mono">a</span> como queramos (o ninguna).</li>
+          <li><span class="forma xs" data-gram="S→b"></span> pone la <b>única</b> <span class="mono">b</span> y termina: nada puede ir después.</li>
+        </ul>
+        <div class="deriv sm mt8" data-g="S→aS|b" data-deriv="S;aS;aaS;aab" data-sin-fragmentos data-reglas data-cadena="aab"></div>
+      </div>
+      <div class="note fragment" data-fragment-index="4" style="margin-top:0;font-size:17px"><i class="fa-solid fa-circle-info"></i><div>Hay otras respuestas correctas, por ejemplo:
+        <div class="mt8" style="display:flex;gap:18px;align-items:center"><div class="prods sm" data-gram="S→Ab;A→aA|ε" data-g="S→Ab;A→aA|ε" data-lenguaje="a^n b"></div><span>¡Es el lenguaje de la expresión regular <span class="mono">a*b</span>!</span></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 26 · EJERCICIO 5 -->
+<section data-transition="slide" id="ej5">
+  <div class="kicker">Ejercicio 5 · Árboles de derivación</div>
+  <h2>Completa el árbol de <span class="forma md" data-f="aabb"></span></h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:440px 1fr;gap:28px">
+    <div class="pilas">
+      <div class="enun">
+        <div class="head"><i class="fa-solid fa-pencil"></i> Con la gramática</div>
+        <div class="center"><div class="prods md" data-gram="S→aSb|ε"></div></div>
+        <p class="small mt8">Dibuja en tu cuaderno el árbol de derivación de <span class="mono">aabb</span>. Cada <span class="sy sy-e" style="font-style:normal;font-family:var(--mono);border-color:var(--amber);color:var(--opr-t)">?</span> es un nodo por llenar.</p>
+      </div>
+      <div class="note pista fragment" data-fragment-index="1" style="margin-top:0"><i class="fa-solid fa-lightbulb"></i><span><b>Pista:</b> primero escribe la derivación <span class="mono">S ⇒ aSb ⇒ aaSbb ⇒ aabb</span>. Cada paso agrega los hijos de una S.</span></div>
+      <div class="ans fragment" data-fragment-index="5"><span class="lbl-ans">Comprobación</span>Hojas de izquierda a derecha: <span class="mono">a · a · ε · b · b</span> = <span class="mono">aabb</span>, porque ε no aporta símbolos. <i class="fa-solid fa-check ok-i"></i></div>
+    </div>
+    <div data-g="S→aSb|ε" data-arbol="S;aSb;aaSbb;aabb" data-crece data-plantilla data-indice="2" data-lectura="5" data-cadena="aabb" data-escala="1.15"></div>
+  </div>
+</section>
+
+<!-- 27 · EJERCICIO 6 -->
+<section data-transition="slide" id="ej6">
+  <div class="kicker">Ejercicio 6 · Encuentra el error</div>
+  <h2>¿Tiene razón el estudiante?</h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:460px 1fr;gap:26px">
+    <div class="pilas">
+      <div class="enun">
+        <div class="head"><i class="fa-solid fa-user-graduate"></i> Un estudiante propone</div>
+        <div class="center"><div class="prods lg" data-gram="S→aSb|b"></div></div>
+        <p class="mt8" style="font-size:20px">y afirma que puede generar <span class="cad">aabb</span>. ¿Es correcto? Muestra una derivación o demuestra que no se puede completar.</p>
+      </div>
+      <div class="note pista fragment" data-fragment-index="1" style="margin-top:0"><i class="fa-solid fa-lightbulb"></i><span><b>Pista:</b> intenta derivarla. ¿Qué regla usas para <b>terminar</b>? ¿Qué agrega?</span></div>
+    </div>
+    <div class="pilas" data-pertenece="S→aSb|b">
+      <div class="ans fragment" data-fragment-index="2" style="border-left-color:var(--red);background:var(--red-l)"><span class="lbl-ans" style="color:var(--red-t)">Intento: nos pasamos</span>
+        <div class="deriv sm mt8" data-g="S→aSb|b" data-deriv="S;aSb;aaSbb;aabbb" data-sin-fragmentos data-reglas data-cadena="aabbb"></div>
+        <p class="small mt8">Para terminar hay que usar <span class="forma xs" data-gram="S→b"></span>, que agrega <b>una b más</b>: sale <span class="mono">aabbb</span>, no <span class="mono">aabb</span>. <span class="cad fuera">aabb</span></p></div>
+      <div class="ans fragment" data-fragment-index="3"><span class="lbl-ans">La verdad: no es correcto</span>
+        Cada <span class="forma xs" data-gram="S→aSb"></span> pone una <span class="mono">a</span> y una <span class="mono">b</span>; la regla final pone una <span class="mono">b</span> <b>sin pareja</b>. Siempre hay <b>una b más</b> que <span class="mono">a</span>:
+        <p class="center mt8" style="font-size:24px" data-g="S→aSb|b" data-lenguaje="a^n b^n+1">\(L = \{\, a^n b^{n+1} \mid n \ge 0 \,\}\)</p>
+        <div class="chips-cad"><span class="cad">b</span><span class="cad">abb</span><span class="cad">aabbb</span><span class="cad muted-c">…</span></div></div>
+      <div class="note fragment" data-fragment-index="4" style="margin-top:0;font-size:17px"><i class="fa-solid fa-wrench"></i><span><b>¿Cómo arreglarla?</b> Cambia el caso base por <span class="forma xs" data-gram="S→ε"></span>: la gramática <span class="forma xs" data-gram="S→aSb|ε"></span> sí genera <span class="mono">aabb</span>.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 28 · EJERCICIO 7 -->
+<section data-transition="slide" id="ej7">
+  <div class="kicker">Ejercicio 7 · Desafío de paréntesis</div>
+  <h2>¿Se puede generar con <span class="prods md" data-gram="S→(S)S|ε" style="vertical-align:middle"></span>?</h2>
+  <div class="two" style="margin-top:10px;grid-template-columns:580px 1fr;gap:22px">
+    <div class="pilas">
+      <div class="tabla-caja">
+        <table class="tbl ejer" data-pertenece="S→(S)S|ε">
+          <thead><tr><th>Cadena</th><th>¿Se genera?</th><th>Niveles al leer</th></tr></thead>
+          <tbody>
+            <tr data-cad="ε" data-res="si"><td><span class="cad">ε</span></td><td class="fragment" data-fragment-index="2"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span></td><td class="fragment" data-fragment-index="2"><span class="small muted">S ⇒ ε</span></td></tr>
+            <tr data-cad="()" data-res="si"><td><span class="cad">()</span></td><td class="fragment" data-fragment-index="2"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span></td><td class="fragment" data-fragment-index="2"><span class="niveles"><span>1</span><span class="cero">0</span></span></td></tr>
+            <tr data-cad="(())" data-res="si"><td><span class="cad">(())</span></td><td class="fragment" data-fragment-index="2"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span></td><td class="fragment" data-fragment-index="2"><span class="niveles"><span>1</span><span>2</span><span>1</span><span class="cero">0</span></span></td></tr>
+            <tr data-cad="()()" data-res="si"><td><span class="cad">()()</span></td><td class="fragment" data-fragment-index="2"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span></td><td class="fragment" data-fragment-index="2"><span class="niveles"><span>1</span><span class="cero">0</span><span>1</span><span class="cero">0</span></span></td></tr>
+            <tr data-cad="(()" data-res="no"><td><span class="cad">(()</span></td><td class="fragment" data-fragment-index="2"><span class="verdict no"><i class="fa-solid fa-xmark"></i> no</span></td><td class="fragment" data-fragment-index="2"><span class="niveles"><span>1</span><span>2</span><span>1</span></span> <span class="small no-t">acaba en 1</span></td></tr>
+            <tr data-cad="())(" data-res="no"><td><span class="cad">())(</span></td><td class="fragment" data-fragment-index="2"><span class="verdict no"><i class="fa-solid fa-xmark"></i> no</span></td><td class="fragment" data-fragment-index="2"><span class="niveles"><span>1</span><span class="cero">0</span><span class="neg">−1</span><span class="cero">0</span></span> <span class="small no-t">baja de 0</span></td></tr>
+            <tr data-cad="(()())" data-res="si"><td><span class="cad">(()())</span></td><td class="fragment" data-fragment-index="2"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span></td><td class="fragment" data-fragment-index="2"><span class="niveles"><span>1</span><span>2</span><span>1</span><span>2</span><span>1</span><span class="cero">0</span></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note pista fragment" data-fragment-index="1" style="margin-top:0;font-size:17px"><i class="fa-solid fa-lightbulb"></i><span><b>Pista:</b> lee de izquierda a derecha sumando 1 con <span class="mono">(</span> y restando 1 con <span class="mono">)</span>. ¿Qué pasa con las válidas?</span></div>
+    </div>
+    <div class="pilas" style="gap:12px">
+      <div class="ans fragment" data-fragment-index="3"><span class="lbl-ans">Derivación de (())</span><div class="deriv xs mt8" data-g="S→(S)S|ε" data-deriv="S;(S)S;((S)S)S;(()S)S;(())S;(())" data-sin-fragmentos data-reglas data-cadena="(())"></div></div>
+      <div class="ans fragment" data-fragment-index="3"><span class="lbl-ans">Derivación de (()())</span><div class="deriv xs mt8" data-g="S→(S)S|ε" data-deriv="S;(S)S;((S)S)S;(()S)S;(()(S)S)S;(()()S)S;(()())S;(()())" data-sin-fragmentos data-sin-marcas data-cadena="(()())"></div></div>
+      <div class="ans fragment" data-fragment-index="4"><span class="lbl-ans">¿Por qué fallan las otras?</span>
+        <ul>
+          <li>La regla pone <span class="mono">(</span> y <span class="mono">)</span> <b>juntos</b>: siempre hay tantos <span class="mono">(</span> como <span class="mono">)</span>. En <span class="mono">(()</span> hay 2 contra 1.</li>
+          <li>Cada <span class="mono">)</span> cierra un <span class="mono">(</span> que está <b>antes</b>. En <span class="mono">())(</span> el tercer símbolo cierra algo que nunca se abrió: el nivel baja a −1.</li>
+        </ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 29 · EJERCICIO 8 -->
+<section data-transition="slide" id="ej8">
+  <div class="kicker">Ejercicio 8 · Relaciona los tres temas</div>
+  <h2>¿Qué herramienta usarías?</h2>
+  <div class="three" style="margin-top:16px;gap:18px">
+    <div class="problema">
+      <div class="tit"><span class="letra-p">A</span><span>Reconocer si una cadena sigue el patrón <span class="mono">a*b</span></span></div>
+      <div class="fragment" data-fragment-index="2"><span class="herr re"><i class="fa-solid fa-font"></i> ER + autómata finito</span>
+        <p class="small mt8">Es un lenguaje <b>regular</b>: basta una expresión regular y un AFD de 2 estados. (Una GLC también podría, pero es más de lo necesario).</p></div>
+    </div>
+    <div class="problema">
+      <div class="tit"><span class="letra-p">B</span><span>Igual número de <span class="mono">a</span> seguidas de <span class="mono">b</span>: <span class="mono">aabb</span>, <span class="mono">aaabbb</span></span></div>
+      <div class="fragment" data-fragment-index="3"><span class="herr"><i class="fa-solid fa-sitemap"></i> Gramática libre de contexto</span>
+        <p class="small mt8"><span class="forma xs" data-gram="S→aSb|ε"></span>. Ninguna ER ni autómata finito puede describir \(\{a^n b^n\}\): no es regular.</p></div>
+    </div>
+    <div class="problema">
+      <div class="tit"><span class="letra-p">C</span><span>Estructura de expresiones aritméticas con paréntesis y operadores</span></div>
+      <div class="fragment" data-fragment-index="4"><span class="herr"><i class="fa-solid fa-sitemap"></i> GLC</span> <span class="herr re"><i class="fa-solid fa-font"></i> + ER para tokens</span>
+        <p class="small mt8">Los paréntesis se anidan: hace falta una gramática como <span class="mono">E, T, F</span>. Las ER ayudan a reconocer cada <span class="mono">id</span>.</p></div>
+    </div>
+  </div>
+  <div class="note pista fragment" data-fragment-index="1" style="margin-top:20px"><i class="fa-solid fa-lightbulb"></i><span><b>Pista:</b> pregúntate si hace falta <b>recordar una cantidad sin límite</b> (o anidar sin límite). Si sí, lo regular no alcanza.</span></div>
+  <div class="note fragment" data-fragment-index="5" style="margin-top:14px;background:var(--accent-l);border-color:var(--accent-d);color:var(--accent-d)"><i class="fa-solid fa-puzzle-piece" style="color:var(--accent-d)"></i><span>Las herramientas <b>se complementan</b>; pero ningún lenguaje regular describe «misma cantidad de <span class="mono">a</span> y luego de <span class="mono">b</span>, en ese orden».</span></div>
+</section>
+
+<!-- 30 · RETO FINAL -->
+<section data-transition="zoom" id="reto-final">
+  <div class="kicker">Reto final de investigación</div>
+  <h2>Diseña la gramática de tu propio lenguaje</h2>
+  <div class="q" style="margin-top:16px"><i class="fa-solid fa-flask"></i><p style="font-size:26px">Queremos un pequeño lenguaje con <b>identificadores</b>, <b>sumas</b>, <b>multiplicaciones</b> y <b>paréntesis</b>. ¿Cómo diseñarías una gramática que describa sus expresiones válidas?</p></div>
+  <div class="two" style="margin-top:22px;grid-template-columns:1fr 470px;gap:26px">
+    <div class="steps small" style="gap:9px">
+      <div class="step fragment fade-right">Identifica los <b>terminales</b>: ¿qué fichas aparecen en una expresión?</div>
+      <div class="step fragment fade-right">Elige las <b>variables</b>: ¿qué categorías necesitas (expresión, término…)?</div>
+      <div class="step fragment fade-right">Escribe las <b>producciones</b>: ¿cómo se arma cada categoría?</div>
+      <div class="step fragment fade-right"><b>Deriva</b> una expresión válida, por ejemplo <span class="mono">(x + y) * z</span>.</div>
+      <div class="step fragment fade-right">Dibuja su <b>árbol de derivación</b> y revisa que las hojas den la expresión.</div>
+    </div>
+    <div class="pilas">
+      <div class="note fragment" style="margin-top:0;font-size:17.5px"><i class="fa-solid fa-circle-info"></i><span>No hay <b>una sola</b> respuesta correcta: varias gramáticas describen el mismo lenguaje. Compáralas con tus compañeros: ¿alguna es ambigua?</span></div>
+      <div class="note fragment" style="margin-top:0;font-size:17.5px;background:var(--accent-l);border-color:var(--accent-d);color:var(--accent-d)"><i class="fa-solid fa-vial" style="color:var(--accent-d)"></i><span>Pruébala en el <b>laboratorio</b> (siguiente diapositiva) con cadenas como <span class="mono">(id+id)*id</span>.</span></div>
+      <div class="note fragment" style="margin-top:0;font-size:17.5px;background:var(--ok-l);border-color:var(--ok);color:#14532d"><i class="fa-solid fa-rocket" style="color:var(--ok)"></i><span><b>Próximo paso:</b> convertir tu gramática en un pequeño <b>analizador sintáctico</b> que construya el árbol de una expresión.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 31 · LABORATORIO -->
+<section data-transition="slide" id="laboratorio">
+  <div class="kicker">Laboratorio</div>
+  <h2>Prueba tu propia gramática</h2>
+  <div class="lab">
+    <div>
+      <label for="lab-g" class="etq">Gramática (una variable por línea)</label>
+      <textarea id="lab-g" spellcheck="false" autocomplete="off">S→(S)S|ε</textarea>
+      <label for="lab-w" class="etq">Cadena</label>
+      <div style="display:flex;gap:10px"><input id="lab-w" type="text" value="(()())" spellcheck="false" autocomplete="off" aria-describedby="lab-err"><button class="ans-btn" id="lab-ir" type="button" style="margin-top:0"><i class="fa-solid fa-play"></i> Probar</button></div>
+      <p class="lab-ayuda">Mayúsculas = variables · <span class="mono">id</span> = un terminal · <span class="mono">→</span> o <span class="mono">-&gt;</span> · <span class="mono">|</span> separa alternativas · <span class="mono">ε</span> (o nada) es la cadena vacía. La primera variable es el símbolo inicial. Prueba: <span class="mono">E→E+T|T</span> / <span class="mono">T→T*F|F</span> / <span class="mono">F→(E)|id</span>.</p>
+      <p class="lab-err" id="lab-err" role="status"></p>
+    </div>
+    <div id="lab-out" aria-live="polite"></div>
+  </div>
+</section>
+
+</div></div>
+<script src="lib/reveal/reveal.min.js"></script>
+<script src="lib/reveal/plugin/math/math.min.js"></script>
+<script src="lib/reveal/plugin/notes/notes.min.js"></script>
+<script src="glc.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>

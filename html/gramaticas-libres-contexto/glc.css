@@ -1,0 +1,274 @@
+/* =====================================================================
+   GRAMÁTICAS LIBRES DE CONTEXTO · Complemento de tema-redes.css (+ mate.css)
+   Orden de carga: tema-redes.css → mate.css → este.
+   Reutiliza variables, tipografías, contornos y sombra dura del tema;
+   solo añade piezas nuevas: fichas de símbolos, gramáticas, derivaciones,
+   árboles de derivación, arcos de parejas, ejercicios y laboratorio.
+
+   Código de colores (siempre acompañado de forma o texto):
+     variable / no terminal → azul marino del acento, ficha redonda (.sy-v)
+     terminal               → azul, ficha cuadrada                  (.sy-t)
+     ε (cadena vacía)       → gris, borde punteado                  (.sy-e)
+     variable que se reemplaza en el paso → anillo ámbar           (.marca)
+     símbolos que acaban de aparecer      → anillo verde           (.nuevo)
+   ===================================================================== */
+
+:root{
+  --sym-t:#1f5fa8;                 /* texto azul con contraste AA sobre --blue-l */
+  --opr-t:#8a5a00;                 /* texto ámbar con contraste AA sobre --amber-l */
+}
+.kicker .lc, .head .lc, .tbl th .lc, .etq .lc{text-transform:none; letter-spacing:0;}
+
+/* ---------- Fichas de símbolos ---------- */
+.forma{display:inline-flex; align-items:center; flex-wrap:nowrap; gap:.12em; vertical-align:middle; white-space:nowrap;}
+.sy{display:inline-grid; place-items:center; min-width:1.4em; height:1.45em; padding:0 .14em; box-sizing:border-box;
+  font-family:var(--mono); font-weight:600; line-height:1; border:2px solid; text-transform:none; letter-spacing:0; transition:box-shadow .3s;}
+.sy-v{color:var(--accent-d); background:var(--accent-l); border-color:var(--accent-d); border-radius:.75em; font-family:var(--serif); font-size:1.06em;}
+.sy-t{color:var(--sym-t); background:var(--blue-l); border-color:var(--blue); border-radius:.26em;}
+.sy-e{color:var(--muted); background:#fff; border-color:#9aa5ae; border-style:dashed; border-radius:.26em; font-family:var(--serif); font-style:italic;}
+.sy.nuevo{box-shadow:0 0 0 2px #fff, 0 0 0 4.5px var(--ok);}
+.sy.marca.fija, .reveal .slides section .sy.marca.visible, .mostrar-todo .sy.marca{box-shadow:0 0 0 2px #fff, 0 0 0 5px var(--amber); background:var(--amber-l); color:var(--opr-t); border-color:var(--amber);}
+.sy.quieto{opacity:.45;}
+.forma.xl, .xl > .forma{font-size:52px; gap:8px;} .forma.xl .sy{border-width:2.5px;}
+.forma.lg, .lg > .forma{font-size:38px; gap:6px;} .forma.lg .sy{border-width:2.5px;}
+.forma.md, .md > .forma{font-size:27px; gap:4px;}
+.forma.sm, .sm > .forma{font-size:20px; gap:3px;}
+.forma.xs, .xs > .forma{font-size:16px; gap:2px;} .forma.xs .sy, .xs > .forma .sy{border-width:1.5px;}
+
+/* Leyenda de colores */
+.leyenda{display:flex; justify-content:center; flex-wrap:wrap; gap:8px 22px; font-size:17px; color:var(--muted);}
+.leyenda > span{display:inline-flex; align-items:center; gap:7px;}
+.leyenda .forma{font-size:17px;}
+
+/* ---------- Gramáticas ---------- */
+.prods{display:inline-flex; flex-direction:column; gap:10px; font-size:30px;}
+.prod{display:flex; align-items:center; gap:12px; white-space:nowrap;}
+.prod .fl{font-family:var(--serif); font-weight:600; color:var(--navy); font-size:1.05em; padding:0 2px;}
+.prod .alt{font-family:var(--mono); font-weight:600; color:var(--muted); font-size:1.1em; padding:0 2px;}
+.prods.lg{font-size:40px; gap:14px;} .prods.md{font-size:26px;} .prods.sm{font-size:20px; gap:7px;} .prods.xs{font-size:16px; gap:5px;}
+.prods.sm .prod, .prods.xs .prod{gap:8px;}
+.gram-card{display:inline-flex; flex-direction:column; align-items:center; gap:8px; background:var(--card); border:2.5px solid var(--navy); border-radius:14px; box-shadow:5px 5px 0 var(--navy); padding:12px 22px;}
+.gram-card.hl{border-color:var(--accent-d); box-shadow:0 0 0 7px var(--accent-l), 5px 5px 0 var(--accent-d);}
+.gram-card .etq{align-self:flex-start;}
+
+/* ---------- Derivaciones ---------- */
+.deriv{display:flex; flex-wrap:wrap; align-items:center; gap:10px 8px; font-size:27px;}
+.deriv .paso{display:inline-flex; align-items:center; gap:8px;}
+.deriv .dd{position:relative; display:inline-flex; flex-direction:column; align-items:center; font-family:var(--serif); font-weight:600; color:var(--accent); font-size:1.05em; line-height:1; padding:0 4px;}
+.deriv .dd .rl{font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--muted); white-space:nowrap; margin-top:3px; letter-spacing:0;}
+.deriv.lg{font-size:36px;} .deriv.md{font-size:27px;} .deriv.sm{font-size:20px; gap:8px 6px;} .deriv.xs{font-size:16px; gap:6px 5px;}
+.deriv.centro{justify-content:center;}
+.deriv.sm .paso{gap:6px;}
+
+.tbl.dertab{font-size:18px;}
+.tbl.dertab th{padding:8px 10px; font-size:12.5px;}
+.tbl.dertab td{padding:6px 10px; vertical-align:middle; height:46px;}
+.tbl.dertab td.n{color:var(--muted); font-size:14px; width:30px; text-align:center;}
+.tbl.dertab .forma{font-size:25px;}
+.tbl.dertab td.rg{white-space:nowrap;}
+.tbl.dertab td.nota{font-family:var(--sans); font-size:16.5px; line-height:1.3; color:var(--ink);}
+.tbl.dertab td.nota .forma{font-size:15px;}
+.regla{display:inline-block; font-family:var(--mono); font-size:15px; font-weight:600; color:var(--accent-d); background:var(--accent-l); border:1.5px solid var(--accent-d); border-radius:6px; padding:1px 8px;}
+.fin-ok{font-family:var(--mono); font-size:13px; font-weight:600; color:var(--ok); margin-left:8px; white-space:nowrap;}
+.tbl.dertab tr.fragment.current-fragment td{background:#fffaf0;}
+.tbl.dertab tr.fragment.current-fragment td:first-child{box-shadow:inset 5px 0 0 var(--amber);}
+.tbl.dertab.compacta td{height:38px; padding:3px 9px;}
+.tbl.dertab.compacta .forma{font-size:21px;}
+.reveal .slides section .tbl tr.fragment{transition:opacity .35s ease;}
+.tabla-caja{background:var(--card); border:2.5px solid var(--navy); border-radius:12px; box-shadow:5px 5px 0 var(--navy); padding:4px 10px 6px;}
+.motor-error{color:var(--red-t); font:600 15px var(--mono);}
+
+/* ---------- Árboles de derivación ---------- */
+.arbol{display:flex; justify-content:center;}
+.arbol-svg{display:block; overflow:visible; max-width:100%; height:auto;}
+.arbol-svg .ar{stroke:var(--navy); stroke-width:2.4;}
+.arbol-svg .nd-v{fill:var(--accent-l); stroke:var(--accent-d); stroke-width:2.6;}
+.arbol-svg .nd-t, .arcos-svg .nd-t{fill:var(--blue-l); stroke:var(--blue); stroke-width:2.4;}
+.arbol-svg .nd-e{fill:#fff; stroke:#9aa5ae; stroke-width:2; stroke-dasharray:5 4;}
+.arbol-svg .nd-ph{fill:#fff; stroke:var(--amber); stroke-width:2.4; stroke-dasharray:6 4;}
+.nd-txt{font-family:var(--mono); font-weight:600; font-size:20px; text-anchor:middle; dominant-baseline:central;}
+.nd-txt.v{fill:var(--accent-d); font-family:var(--serif); font-size:22px;}
+.nd-txt.t{fill:var(--sym-t);}
+.nd-txt.e{fill:var(--muted); font-family:var(--serif); font-style:italic;}
+.nd-txt.ph{fill:var(--opr-t);}
+.nd-txt.big{font-size:24px;}
+.arbol-svg .lec-ln{stroke:#9aa5ae; stroke-width:1.8; stroke-dasharray:3 4;}
+.arbol-svg .lec-t{fill:#fff; stroke:var(--blue); stroke-width:2.4;}
+.arbol-svg .lec-fl{stroke:var(--ok); stroke-width:2.6; fill:none;}
+.arbol-svg .lec-pt{fill:var(--ok);}
+.reveal .slides section svg g.fragment{transition:opacity .45s ease;}
+.arbol-cap{font-family:var(--mono); font-size:14px; font-weight:600; color:var(--muted); text-align:center; letter-spacing:.06em;}
+
+/* Arcos que unen las parejas que puso la misma regla */
+.arcos{display:flex; justify-content:center;}
+.arcos-svg{display:block; overflow:visible;}
+.arcos-svg .arco{fill:none; stroke:var(--accent); stroke-width:2.6;}
+.arcos-svg .arco-n{font-family:var(--mono); font-size:13px; font-weight:600; fill:var(--accent-d); text-anchor:middle;}
+
+/* ---------- Cadenas ---------- */
+.chips-cad{display:flex; flex-wrap:wrap; gap:8px; justify-content:center;}
+.cad{font-family:var(--mono); font-weight:600; font-size:20px; padding:3px 12px; border-radius:8px; border:2px solid var(--blue); background:var(--blue-l); color:var(--sym-t); white-space:nowrap; text-transform:none; letter-spacing:0;}
+.cad.fuera{border-color:var(--red); border-style:dashed; background:var(--red-l); color:var(--red-t); text-decoration:line-through; text-decoration-thickness:2px;}
+.cad.muted-c{border-color:#c3cbd2; background:#fff; color:var(--muted);}
+.chips-cad.sm .cad{font-size:16px; padding:2px 9px;}
+.etq{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.14em; color:var(--muted); text-transform:uppercase;}
+
+/* ---------- Bloques generales ---------- */
+.caja{background:var(--card); border:2.5px solid var(--navy); border-radius:14px; box-shadow:5px 5px 0 var(--navy); padding:12px 18px;}
+.caja.hl{border-color:var(--accent-d); box-shadow:0 0 0 7px var(--accent-l), 5px 5px 0 var(--accent-d);}
+.caja h3{font-size:22px; margin-bottom:6px; display:flex; align-items:center; gap:10px;}
+.caja h3 i{color:var(--accent);}
+.llave{display:flex; justify-content:center; gap:10px; align-items:flex-start; margin-top:4px;}
+.llave > div{display:flex; flex-direction:column; align-items:center; gap:6px;}
+.llave .br{height:16px; border:3px solid var(--accent); border-top:0; border-radius:0 0 12px 12px;}
+.llave .lt{font-family:var(--mono); font-size:15px; font-weight:600; color:var(--accent-d); white-space:nowrap; text-align:center; line-height:1.25;}
+.ok-i{color:var(--ok);} .no-i{color:var(--red-t);}
+.grande{font-family:var(--serif); font-size:30px; font-weight:600; color:var(--navy); text-align:center;}
+
+/* ---------- Portada ---------- */
+.portada-esc{position:relative; width:1168px; height:380px; margin:10px auto 0;}
+.present .flota{animation:bob 2.4s ease-in-out var(--delay,0s) infinite;}
+
+/* ---------- Fábrica de palabras ---------- */
+.fabrica{display:flex; align-items:center; justify-content:center; gap:16px; background:var(--card); border:2.5px solid var(--navy); border-radius:16px; box-shadow:5px 5px 0 var(--navy);
+  padding:16px 22px; position:relative;}
+.fabrica .maquina{display:flex; flex-direction:column; align-items:center; gap:4px; font-size:44px; color:var(--accent-d); padding-right:14px; border-right:2px dashed #c3cbd2;}
+.fabrica .maquina span{font-family:var(--mono); font-size:12px; letter-spacing:.14em; color:var(--muted); font-weight:600;}
+.banda{position:relative; padding:10px 0 18px;}
+.banda:after{content:""; position:absolute; left:0; right:0; bottom:4px; height:8px; border-radius:4px;
+  background:repeating-linear-gradient(90deg, var(--navy) 0 14px, #9aa5ae 14px 28px);}
+.present .banda:after{animation:banda 1.6s linear infinite;}
+@keyframes banda{to{background-position:28px 0;}}
+
+/* ---------- Componentes de G = (V, Σ, P, S) ---------- */
+.comp{text-align:center; background:var(--card); border:2.5px solid var(--navy); border-radius:14px; box-shadow:5px 5px 0 var(--navy); padding:12px 12px 14px;}
+.comp .big{font-family:var(--serif); font-size:52px; font-weight:600; line-height:1.05; color:var(--accent-d);}
+.comp .nom{font-family:var(--serif); font-size:22px; font-weight:600; color:var(--navy); margin-top:2px;}
+.comp .dice{font-size:16.5px; color:var(--muted); margin-top:4px; line-height:1.3;}
+.comp .ejm{margin-top:10px; padding-top:8px; border-top:1.5px dashed #c3cbd2; font-size:20px;}
+.comp.hl{border-color:var(--accent-d); box-shadow:0 0 0 6px var(--accent-l), 5px 5px 0 var(--accent-d);}
+
+/* Tarjetas «símbolo» (terminal / no terminal / ε) */
+.tarjeta{display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px; background:var(--card); border:2.5px solid var(--navy); border-radius:14px; box-shadow:5px 5px 0 var(--navy); padding:12px 14px;}
+.tarjeta > .forma{font-size:44px;}
+.tarjeta .t{font-family:var(--serif); font-size:24px; font-weight:600; color:var(--navy);}
+.tarjeta .d{font-size:17.5px; color:var(--ink); line-height:1.35;}
+.tarjeta.tv{border-color:var(--accent-d); box-shadow:5px 5px 0 var(--accent-d);}
+.tarjeta.tt{border-color:var(--blue); box-shadow:5px 5px 0 var(--blue);}
+.tarjeta.te{border-color:#9aa5ae; border-style:dashed; box-shadow:5px 5px 0 #9aa5ae;}
+
+/* Longitudes: ε frente a «a» y a un espacio */
+.longs{display:flex; justify-content:center; gap:26px;}
+.long{display:flex; flex-direction:column; align-items:center; gap:4px;}
+.long .caj{min-width:76px; height:56px; border:2.5px solid var(--navy); border-radius:10px; background:#fff; display:flex; align-items:center; justify-content:center; gap:4px; padding:0 8px; font-family:var(--mono); font-size:26px; font-weight:600; color:var(--navy);}
+.long .caj .hueco-e{width:48px; height:34px; border:2px dashed #c3cbd2; border-radius:6px;}
+.long .caj .esp{width:30px; height:34px; border:2px solid var(--blue); border-radius:6px; background:var(--blue-l); display:grid; place-items:end center; color:var(--sym-t); font-size:18px; line-height:1.2;}
+.long .n{font-family:var(--mono); font-size:15px; font-weight:600; color:var(--muted);}
+
+/* Reemplazo: antes → después */
+.reemplazo{display:grid; grid-template-columns:1fr 70px 1fr; align-items:center; gap:10px;}
+.reemplazo .flecha{text-align:center; color:var(--accent); font-size:30px;}
+.reemplazo .lado{display:flex; flex-direction:column; align-items:center; gap:8px;}
+
+/* Ejemplos de reglas */
+.reglas-ej{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px;}
+.regla-ej{display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; background:var(--card); border:2px solid var(--navy); border-radius:12px; box-shadow:4px 4px 0 var(--navy); padding:10px 10px;}
+.regla-ej .prods{font-size:24px;}
+.regla-ej .d{font-size:16.5px; color:var(--muted); line-height:1.3;}
+
+/* Cajas anidadas (recursión) */
+.nido{display:inline-flex; align-items:center; gap:8px; position:relative; border:2.5px solid var(--accent-d); border-radius:14px; padding:22px 12px 10px; background:rgba(219,228,245,.35); font-size:30px;}
+.nido > .rot{position:absolute; top:-2px; left:10px; transform:translateY(-50%); font-family:var(--serif); font-weight:600; font-size:17px; color:var(--accent-d); background:var(--bg); padding:0 6px; border-radius:6px; border:2px solid var(--accent-d);}
+.nido.base{border-style:dashed; background:#fff;}
+
+/* Comparación ER / GLC */
+.tbl.vs td{font-family:var(--sans); font-size:18px; vertical-align:middle;}
+.tbl.vs td:first-child{font-weight:600; color:var(--navy);}
+.tbl.vs th{font-size:12.5px;}
+
+/* Autómata que «se queda sin dedos» */
+.mini-af{display:block; overflow:visible;}
+.mini-af .st{fill:#fff; stroke:var(--navy); stroke-width:2.5;}
+.mini-af .st.fin{fill:var(--accent-l); stroke:var(--accent-d);}
+.mini-af .st.lleno{fill:var(--amber-l); stroke:var(--amber);}
+.mini-af .lb{font-family:var(--mono); font-weight:600; font-size:17px; fill:var(--navy); text-anchor:middle; dominant-baseline:central;}
+.mini-af .ed{stroke:var(--navy); stroke-width:2.3; fill:none;}
+.mini-af .el{font-family:var(--mono); font-weight:600; font-size:16px; fill:var(--sym-t); text-anchor:middle;}
+.mini-af .cap2{font-family:var(--mono); font-size:13px; fill:var(--muted); text-anchor:middle;}
+
+/* Diagrama de conjuntos (regulares ⊂ libres de contexto) */
+.venn{display:block; overflow:visible;}
+.venn .c1{fill:var(--amber-l); stroke:var(--amber); stroke-width:2.5;}
+.venn .c2{fill:var(--accent-l); stroke:var(--accent-d); stroke-width:2.5;}
+.venn .t1{font-family:var(--serif); font-weight:600; font-size:20px; fill:var(--opr-t); text-anchor:middle;}
+.venn .t2{font-family:var(--serif); font-weight:600; font-size:20px; fill:var(--accent-d); text-anchor:middle;}
+.venn .ej{font-family:var(--mono); font-weight:600; font-size:16px; fill:var(--navy); text-anchor:middle;}
+
+/* Regla libre de contexto: A → α */
+.forma-regla{display:flex; justify-content:center; align-items:flex-start; gap:18px;}
+.forma-regla .pz{display:flex; flex-direction:column; align-items:center; gap:8px;}
+.forma-regla .gr{font-family:var(--serif); font-size:64px; font-weight:600; color:var(--navy); line-height:1;}
+.forma-regla .gr.v{color:var(--accent-d);}
+.forma-regla .exn{font-size:16px;}
+.vecinos{display:flex; flex-direction:column; gap:10px;}
+.vecino{display:flex; align-items:center; gap:12px; font-size:24px;}
+
+/* Ejercicios: enunciado, pista y solución */
+.enun{background:var(--card); border:2.5px solid var(--navy); border-radius:14px; box-shadow:5px 5px 0 var(--navy); padding:12px 18px;}
+.enun .head{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.14em; color:var(--opr-t); text-transform:uppercase; margin-bottom:6px;}
+.enun .head i{color:var(--amber); font-size:19px;}
+.enun ol{margin:6px 0 0 26px; padding:0; font-size:19px; line-height:1.5;}
+.pista{margin-top:0; font-size:18px;}
+.pista b:first-child{color:#5f4300;}
+.reveal .ans{margin-top:0; font-size:18.5px; line-height:1.4;}
+.ans .lbl-ans{font-family:var(--mono); font-size:13px; font-weight:600; letter-spacing:.14em; color:var(--accent-d); text-transform:uppercase; display:block; margin-bottom:2px;}
+.ans ol, .ans ul{margin:2px 0 0 22px; padding:0;}
+.pilas{display:flex; flex-direction:column; gap:12px;}
+.tbl.ejer td{font-size:18px; vertical-align:middle; padding:5px 10px;}
+.tbl.ejer td.just{font-family:var(--sans); font-size:16.5px; line-height:1.3;}
+.tbl.ejer td .cad{font-size:18px;}
+.niveles{display:inline-flex; gap:4px; vertical-align:middle;}
+.niveles span{display:inline-grid; place-items:center; min-width:26px; height:26px; font-family:var(--mono); font-size:14px; font-weight:600; border:2px solid var(--navy); border-radius:6px; background:#fff;}
+.niveles span.neg{border-color:var(--red); color:var(--red-t); background:var(--red-l);}
+.niveles span.cero{border-color:var(--ok); color:var(--ok); background:var(--ok-l);}
+
+/* Problemas A, B, C (ejercicio 8) */
+.problema{display:flex; flex-direction:column; gap:8px; background:var(--card); border:2px solid var(--navy); border-radius:12px; box-shadow:4px 4px 0 var(--navy); padding:12px 14px; font-size:18.5px;}
+.problema .letra-p{font-family:var(--serif); font-weight:600; font-size:30px; color:#fff; background:var(--navy); width:44px; height:44px; border-radius:10px; display:grid; place-items:center;}
+.problema .tit{display:flex; align-items:center; gap:12px; font-weight:600; color:var(--navy);}
+.herr{display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:15px; font-weight:600; border-radius:999px; padding:4px 12px; border:2px solid var(--accent-d); color:var(--accent-d); background:var(--accent-l);}
+.herr.re{border-color:var(--amber); color:var(--opr-t); background:var(--amber-l);}
+
+/* Mapa conceptual del resumen */
+.cmap .nodec{max-width:300px;}
+.cmap .nodec .d{font-size:15px;}
+.cmap .nodec.centro{min-width:300px; padding:14px 18px;}
+
+/* Laboratorio */
+.lab{display:grid; grid-template-columns:380px 1fr; gap:24px; margin-top:12px; align-items:start;}
+.lab textarea{width:100%; height:150px; resize:none; box-sizing:border-box; font:600 22px/1.45 var(--mono); color:var(--navy); padding:10px 12px; border:2.5px solid var(--navy); border-radius:10px; box-shadow:4px 4px 0 var(--navy); background:#fff;}
+.lab input{width:100%; box-sizing:border-box; font:600 24px var(--mono); color:var(--navy); padding:8px 12px; border:2.5px solid var(--navy); border-radius:10px; box-shadow:4px 4px 0 var(--navy); background:#fff;}
+.lab textarea:focus-visible, .lab input:focus-visible{outline:3px solid var(--blue); outline-offset:3px;}
+.lab label{display:block; margin:10px 0 6px;}
+.lab-ayuda{font-size:15.5px; color:var(--muted); line-height:1.35; margin-top:10px;}
+.lab-fila{display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-bottom:12px;}
+.lab-fila .chips-cad{justify-content:flex-start;}
+.lab-fila .cad{font-size:16px; padding:2px 9px;}
+.lab-deriv{font-size:17px;}
+.lab-arbol{justify-content:flex-start; max-height:300px;}
+.lab-arbol .arbol-svg{max-height:300px; width:auto;}
+.lab-err{color:var(--red-t); font-weight:600; min-height:26px; font-size:18px;}
+
+/* ---------- Ajustes ---------- */
+.portada-esc .gram-card, .portada-esc .deriv, .portada-esc .flecha-p{position:absolute;}
+.portada-esc .flecha-p{font-size:44px; color:var(--accent);}
+.portada-esc .letra{position:absolute; font-size:40px;}
+.ans .lbl-ans .mono, .ans .lbl-ans .lc{text-transform:none; letter-spacing:.02em;}
+/* En ?mostrar los fragmentos pierden su transform: el mapa conceptual necesita su centrado */
+.mostrar-todo .reveal .slides section .cmap .nodec.fragment{transform:translate(-50%,-50%)!important;}
+/* Regla anotada: cada símbolo con su etiqueta debajo */
+.anotada{display:flex; align-items:flex-start; gap:8px;}
+.anotada > div{display:flex; flex-direction:column; align-items:center; gap:6px;}
+.anotada .fl{font-family:var(--serif); font-weight:600; font-size:38px; color:var(--navy); line-height:1.45;}
+.anotada .lt{font-family:var(--mono); font-size:14px; font-weight:600; color:var(--accent-d); white-space:nowrap;}
+.tbl.ejer .niveles + .small{white-space:nowrap;}
