@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notación posfija</title>
+<link rel="stylesheet" href="lib/reveal/reveal.min.css">
+<link rel="stylesheet" href="lib/fontawesome/css/all.min.css">
+<link href="lib/fuentes/fuentes.css" rel="stylesheet">
+<link rel="stylesheet" href="tema-redes.css">
+<link rel="stylesheet" href="mate.css">
+<link rel="stylesheet" href="posfija.css">
+</head>
+<body>
+<!--
+  Atributos que comprueban verificar.mjs y ?verificar (todo sale de posfija.js):
+    data-tk="X"              dibuja X con fichas de colores
+    data-posfija-de="Y"      afirma que aPosfija(Y) = X
+    data-norm-de="Y"         afirma que normalizar(Y) = X
+    data-infija-de="P"       afirma que aInfija(P) = X   (data-con-punto: con «·»)
+    data-no-posfija-de="Y"   afirma que X NO es la posfija de Y (ejemplos de errores)
+    data-re + data-en / data-fuera   cadenas que están / no están en L(re)
+    table[data-traza]        tabla de seguimiento generada con trazar()
+    table[data-evalua]       recorrido de la posfija generado con evaluar()
+-->
+<div class="reveal"><div class="slides">
+
+<!-- =====================================================================
+     BLOQUE A · ¿DE QUÉ HABLAMOS?
+     ===================================================================== -->
+
+<!-- 1 · PORTADA -->
+<section data-transition="zoom" id="portada">
+  <div class="kicker">Teoría de la computación · Antes de Thompson</div>
+  <h1 class="center" style="font-size:60px;margin-top:18px;line-height:1.08">De una expresión regular<br>a la notación posfija</h1>
+  <p class="sub" style="font-size:25px;margin-top:12px">Aprendamos a ordenar símbolos para construir autómatas</p>
+  <div class="portada-esc" aria-hidden="true">
+    <div class="nube">
+      <span class="tk par flota" style="left:10px;top:40px;--delay:.2s">(</span>
+      <span class="tk sym flota" style="left:90px;top:10px;--delay:.6s">a</span>
+      <span class="tk opr flota" style="left:180px;top:60px;--delay:.1s">+</span>
+      <span class="tk sym flota" style="left:265px;top:20px;--delay:.9s">b</span>
+      <span class="tk par flota" style="left:40px;top:150px;--delay:1.1s">)</span>
+      <span class="tk opr flota" style="left:130px;top:170px;--delay:.4s">*</span>
+      <span class="tk sym flota" style="left:215px;top:150px;--delay:1.4s">a</span>
+      <span class="tk sym flota" style="left:280px;top:185px;--delay:.7s">b</span>
+    </div>
+    <i class="fa-solid fa-arrow-right-long flecha-p" style="left:405px"></i>
+    <div class="torre">
+      <div class="plato"><span class="tk par">(</span></div>
+      <div class="plato pop-in" style="--delay:.5s"><span class="tk opr">+</span></div>
+      <span class="base">PILA</span>
+    </div>
+    <i class="fa-solid fa-arrow-right-long flecha-p" style="left:712px"></i>
+    <div class="salida-p">
+      <span class="etq">Salida posfija</span>
+      <span class="expr md" data-tk="ab+*a·b·" data-posfija-de="(a+b)*ab">ab+*a·b·</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · RUTA -->
+<section data-transition="convex" id="ruta">
+  <div class="kicker">El camino</div>
+  <h2>¿Qué vamos a aprender?</h2>
+  <div class="pipe" style="margin-top:56px;gap:6px">
+    <div class="stepc hl fragment fade-up" style="width:220px">
+      <div class="sq"><i class="fa-solid fa-font"></i></div>
+      <div class="t">Expresión regular</div>
+      <div class="d" style="margin-top:10px"><span class="expr sm" data-tk="(a+b)*ab">(a+b)*ab</span></div>
+    </div>
+    <div class="link fragment fade-up" style="width:84px"><i class="fa-solid fa-arrow-right-long"></i><span>pila</span></div>
+    <div class="stepc hl fragment fade-up" style="width:220px">
+      <div class="sq"><i class="fa-solid fa-layer-group"></i></div>
+      <div class="t">Notación posfija</div>
+      <div class="d" style="margin-top:10px"><span class="expr sm" data-tk="ab+*a·b·" data-posfija-de="(a+b)*ab">ab+*a·b·</span></div>
+    </div>
+    <div class="link fragment fade-up" style="width:84px"><i class="fa-solid fa-arrow-right-long"></i><span>piezas</span></div>
+    <div class="stepc fragment fade-up" style="width:220px">
+      <div class="sq"><i class="fa-solid fa-puzzle-piece"></i></div>
+      <div class="t">Algoritmo de Thompson</div>
+      <div class="d">une pequeños autómatas</div>
+    </div>
+    <div class="link fragment fade-up" style="width:84px"><i class="fa-solid fa-arrow-right-long"></i><span>arma</span></div>
+    <div class="stepc fragment fade-up" style="width:220px">
+      <div class="sq"><i class="fa-solid fa-diagram-project"></i></div>
+      <div class="t">AFN</div>
+      <div class="d">autómata finito no determinista</div>
+    </div>
+  </div>
+  <div class="llave fragment fade-up" style="justify-content:flex-start;margin:22px 0 0 2px;gap:14px">
+    <div style="width:530px"><div class="br" style="width:100%"></div><span class="lt"><i class="fa-solid fa-star"></i> HOY · pasos 1 y 2</span></div>
+    <div style="width:600px;opacity:.6"><div class="br" style="width:100%;border-color:#9aa5ae;border-style:dashed"></div><span class="lt" style="color:var(--muted)">próxima sesión · pasos 3 y 4</span></div>
+  </div>
+  <div class="note fragment" style="max-width:900px;margin:30px auto 0"><i class="fa-solid fa-lightbulb"></i><span>Hoy aprenderemos a <b>reordenar</b> los símbolos de una expresión regular para que una computadora sepa, sin dudar, qué operación va primero.</span></div>
+</section>
+
+<!-- 3 · ¿QUÉ ES UNA EXPRESIÓN REGULAR? -->
+<section data-transition="slide" id="que-es-er">
+  <div class="kicker">Repaso</div>
+  <h2>¿Qué es una expresión regular?</h2>
+  <div class="two" style="margin-top:22px;gap:36px">
+    <div>
+      <div class="def">
+        <div class="head"><i class="fa-solid fa-shapes"></i> El alfabeto</div>
+        <div class="body">
+          <p class="formula">\(\Sigma = \{a, b\}\)</p>
+          <p>Es el conjunto de <b>símbolos</b> que podemos usar, como las fichas de un juego de letras.</p>
+          <div class="center" style="margin-top:10px"><span class="expr xl"><span class="tk sym">a</span><span class="tk sym">b</span></span></div>
+        </div>
+      </div>
+      <div class="panel mt16 fragment fade-up">
+        <h3><i class="fa-solid fa-link ac"></i> Cadenas: palabras hechas con fichas</h3>
+        <div class="chips-cad" style="margin-top:8px"><span class="cad">a</span><span class="cad">b</span><span class="cad">ab</span><span class="cad">ba</span><span class="cad">aab</span><span class="cad">…</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="lead fragment fade-left">Una expresión regular es una <b>receta</b> que describe un <b>conjunto de cadenas</b>, no necesariamente una sola palabra.</p>
+      <div class="list mt16">
+        <div class="item fragment fade-left"><div class="sq"><span class="mono" style="font-size:20px">ab</span></div><div><div class="t">Solo la cadena <span class="mono">ab</span></div><div class="v">\(\{ab\}\)</div></div></div>
+        <div class="item fragment fade-left"><div class="sq"><span class="mono" style="font-size:18px">a+b</span></div><div><div class="t">La cadena <span class="mono">a</span> o la cadena <span class="mono">b</span></div><div class="v">\(\{a, b\}\)</div></div></div>
+        <div class="item fragment fade-left"><div class="sq"><span class="mono" style="font-size:20px">a*</span></div><div><div class="t">Ninguna, una o muchas <span class="mono">a</span></div><div class="v">\(\{\varepsilon, a, aa, aaa, \dots\}\)</div></div></div>
+      </div>
+      <p class="small muted mt8 fragment">\(\varepsilon\) es la cadena vacía: cero fichas.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · OPERADORES -->
+<section data-transition="convex" id="operadores">
+  <div class="kicker">Las herramientas</div>
+  <h2>Conozcamos los operadores</h2>
+  <div class="three" style="margin-top:26px">
+    <div class="card opcard fragment fade-up">
+      <div class="big">+</div>
+      <div class="nom"><i class="fa-solid fa-code-branch"></i> Unión</div>
+      <div class="dice">«elige uno»</div>
+      <div class="ejm"><span class="expr md" data-tk="a+b">a+b</span></div>
+      <div class="set">\(\{a, b\}\)</div>
+      <div class="dice">a <b>o</b> b</div>
+    </div>
+    <div class="card opcard fragment fade-up">
+      <div class="big">*</div>
+      <div class="nom"><i class="fa-solid fa-repeat"></i> Estrella de Kleene</div>
+      <div class="dice">«repite cero o más veces»</div>
+      <div class="ejm"><span class="expr md" data-tk="a*">a*</span></div>
+      <div class="set">\(\{\varepsilon, a, aa, \dots\}\)</div>
+      <div class="dice">nada, a, aa, aaa…</div>
+    </div>
+    <div class="card opcard fragment fade-up">
+      <div class="big" style="color:var(--muted)">ab</div>
+      <div class="nom"><i class="fa-solid fa-link"></i> Concatenación</div>
+      <div class="dice">«uno detrás de otro»</div>
+      <div class="ejm"><span class="expr md" data-tk="ab">ab</span></div>
+      <div class="set">\(\{ab\}\)</div>
+      <div class="dice">primero a, después b</div>
+    </div>
+  </div>
+  <div class="note fragment" style="margin-top:28px"><i class="fa-solid fa-triangle-exclamation"></i><span><b>Cuidado:</b> aquí el signo <span class="expr sm" data-tk="+">+</span> significa <b>unión</b> («o»), <b>no suma</b>. La expresión <span class="expr sm" data-tk="a+b">a+b</span> no da un número: describe el conjunto \(\{a, b\}\).</span></div>
+</section>
+
+<!-- 5 · INFIJA -->
+<section data-transition="slide" id="infija">
+  <div class="kicker">Dos formas de escribir</div>
+  <h2>¿Qué significa <em>infija</em>?</h2>
+  <p class="lead center mt16">En notación <b>infija</b> el operador se escribe <b>entre</b> los elementos sobre los que actúa.</p>
+  <div class="two" style="margin-top:26px">
+    <div class="panel" style="padding:18px">
+      <h3><i class="fa-solid fa-calculator ac"></i> Como en aritmética</h3>
+      <div class="center" style="margin-top:18px"><span class="expr xl"><span class="tk sym">2</span><span class="tk opr">+</span><span class="tk sym">3</span></span></div>
+      <div class="llave" style="margin-top:8px">
+        <div style="width:72px"><div class="br" style="width:56px"></div><span class="lt">operando</span></div>
+        <div style="width:72px"><div class="br" style="width:56px;border-color:var(--amber)"></div><span class="lt" style="color:var(--opr-t)">operador</span></div>
+        <div style="width:72px"><div class="br" style="width:56px"></div><span class="lt">operando</span></div>
+      </div>
+      <p class="center mt16 small muted">El <b>+</b> queda <b>en medio</b>: «2 más 3».</p>
+    </div>
+    <div class="cmp-list">
+      <div class="cmp-row fragment fade-left" style="grid-template-columns:1fr"><div class="center"><span class="expr lg" data-tk="a+b">a+b</span></div><div class="nota-c">unión: <b>+</b> entre a y b</div></div>
+      <div class="cmp-row fragment fade-left" style="grid-template-columns:1fr"><div class="center"><span class="expr lg" data-tk="a·b">a·b</span></div><div class="nota-c">concatenación: el punto <b>·</b> entre a y b (normalmente no se escribe: <span class="mono">ab</span>)</div></div>
+      <div class="cmp-row fragment fade-left" style="grid-template-columns:1fr"><div class="center"><span class="expr lg" data-tk="(a+b)*">(a+b)*</span></div><div class="nota-c">los <b>paréntesis</b> agrupan: primero la unión, después la estrella</div></div>
+    </div>
+  </div>
+  <div class="note fragment"><i class="fa-solid fa-lightbulb"></i><span>La estrella <span class="expr sm" data-tk="*">*</span> es especial: solo tiene <b>un</b> operando y siempre se escribe a su <b>derecha</b>.</span></div>
+</section>
+
+<!-- 6 · POSFIJA -->
+<section data-transition="slide" id="posfija">
+  <div class="kicker">Dos formas de escribir</div>
+  <h2>¿Qué significa <em>posfija</em>?</h2>
+  <p class="lead center mt16">En notación <b>posfija</b> el operador se escribe <b>después</b> de los elementos sobre los que actúa.</p>
+  <div class="two" style="margin-top:22px;grid-template-columns:430px 1fr;gap:34px">
+    <div class="panel" style="padding:18px">
+      <h3><i class="fa-solid fa-utensils ac"></i> Como una receta</h3>
+      <div class="center" style="margin-top:14px"><span class="expr xl"><span class="tk sym">2</span><span class="tk sym">3</span><span class="tk opr">+</span></span></div>
+      <ol class="small" style="margin:14px 0 0 24px;padding:0;line-height:1.6">
+        <li>Toma el <b>2</b>.</li>
+        <li>Toma el <b>3</b>.</li>
+        <li>Ahora <b>súmalos</b>: 5.</li>
+      </ol>
+      <p class="small muted mt8">Primero juntas los ingredientes; al final dices qué hacer con ellos.</p>
+    </div>
+    <div>
+      <div class="cmp-list">
+        <div class="cmp-row fragment fade-left"><div class="center"><span class="etq">Infija</span><br><span class="expr lg" data-tk="a+b">a+b</span></div><div class="flecha"><i class="fa-solid fa-arrow-right-long"></i></div><div class="center"><span class="etq">Posfija</span><br><span class="expr lg" data-tk="ab+" data-posfija-de="a+b">ab+</span></div></div>
+        <div class="cmp-row fragment fade-left"><div class="center"><span class="expr lg" data-tk="ab">ab</span></div><div class="flecha"><i class="fa-solid fa-arrow-right-long"></i></div><div class="center"><span class="expr lg" data-tk="ab·" data-posfija-de="ab">ab·</span></div></div>
+        <div class="cmp-row fragment fade-left"><div class="center"><span class="expr lg" data-tk="a*">a*</span></div><div class="flecha"><i class="fa-solid fa-arrow-right-long"></i></div><div class="center"><span class="expr lg" data-tk="a*" data-posfija-de="a*">a*</span></div><div class="nota-c">¡la estrella ya estaba después!</div></div>
+      </div>
+      <div class="leyenda mt16"><span><span class="expr"><span class="tk sym">a</span></span> letra (operando)</span><span><span class="expr"><span class="tk opr">+</span></span> operador</span></div>
+    </div>
+  </div>
+  <div class="note fragment" style="margin-top:16px"><i class="fa-solid fa-circle-info"></i><span>El punto <span class="expr sm" data-tk="·">·</span> muestra la concatenación, que en <span class="mono">ab</span> no se ve. En un programa puedes usar otro símbolo interno, siempre que <b>no</b> sea una letra del alfabeto.</span></div>
+</section>
+
+<!-- 7 · ¿POR QUÉ? -->
+<section data-transition="convex" id="por-que">
+  <div class="kicker">La gran ventaja</div>
+  <h2>¿Por qué necesitamos la notación posfija?</h2>
+  <div class="two" style="margin-top:24px;grid-template-columns:470px 1fr;gap:34px">
+    <div class="panel">
+      <h3>Infija: hay que pensar</h3>
+      <div class="center mt8"><span class="expr xl" data-tk="a+b·a">a+b·a</span></div>
+      <p class="center mt16">¿Qué se hace primero?</p>
+      <div class="two" style="margin-top:8px;gap:12px">
+        <div class="center fragment" data-fragment-index="1"><span class="verdict no"><i class="fa-solid fa-xmark"></i> ¿(a+b)·a?</span><p class="small muted mt8">primero la unión</p></div>
+        <div class="center fragment" data-fragment-index="2"><span class="verdict yes"><i class="fa-solid fa-check"></i> a+(b·a)</span><p class="small muted mt8">primero la concatenación</p></div>
+      </div>
+      <p class="small mt16 fragment" data-fragment-index="3">Para decidir necesitamos <b>reglas de precedencia</b> o <b>paréntesis</b>.</p>
+    </div>
+    <div class="panel hl">
+      <h3>Posfija: el orden ya está escrito</h3>
+      <div class="center" style="margin-top:18px;height:215px">
+        <span class="grupos" data-tk-check="aba·+" data-posfija-de="a+b·a">
+          <span class="grupo ext fragment custom" data-fragment-index="5">
+            <span class="tk sym">a</span>
+            <span class="grupo fragment custom" data-fragment-index="4"><span class="tk sym">b</span><span class="tk sym">a</span><span class="tk opr">·</span><span class="gl">① b·a</span></span>
+            <span class="tk opr">+</span>
+            <span class="gl">② a + (b·a)</span>
+          </span>
+        </span>
+      </div>
+      <p class="small fragment" data-fragment-index="6">Cada operador se aplica, en cuanto aparece, a las piezas que tiene <b>justo antes</b>. ¡Sin paréntesis!</p>
+      <p class="small muted mt8 fragment" data-fragment-index="7">Si quisiéramos <span class="mono">(a+b)·a</span> escribiríamos <span class="expr xs" data-tk="ab+a·" data-posfija-de="(a+b)·a">ab+a·</span>: otra posfija, otro significado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8 · PRECEDENCIA -->
+<section data-transition="slide" id="precedencia">
+  <div class="kicker">Quién va primero</div>
+  <h2>Reglas de precedencia</h2>
+  <div class="tabla-caja" style="max-width:1000px;margin:18px auto 0">
+    <table class="tbl">
+      <thead><tr><th>Operación</th><th class="c">Símbolo</th><th class="c">Precedencia</th><th style="width:300px">Fuerza</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr class="fragment"><td style="font-family:var(--sans)">Estrella</td><td class="c"><span class="expr md" data-tk="*">*</span></td><td class="c S">3</td><td><div class="prec-bar" style="padding:0;border:0;box-shadow:none;background:none"><div class="meter"><b style="width:100%"></b></div></div></td><td style="font-family:var(--sans)">unario (un operando)</td></tr>
+        <tr class="fragment"><td style="font-family:var(--sans)">Concatenación</td><td class="c"><span class="expr md" data-tk="·">·</span></td><td class="c S">2</td><td><div class="prec-bar" style="padding:0;border:0;box-shadow:none;background:none"><div class="meter"><b style="width:66%"></b></div></div></td><td style="font-family:var(--sans)">binario, por la izquierda</td></tr>
+        <tr class="fragment"><td style="font-family:var(--sans)">Unión</td><td class="c"><span class="expr md" data-tk="+">+</span></td><td class="c S">1</td><td><div class="prec-bar" style="padding:0;border:0;box-shadow:none;background:none"><div class="meter"><b style="width:33%"></b></div></div></td><td style="font-family:var(--sans)">binario, por la izquierda</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="center mt16 fragment">Primero se resuelve el operador con <b>mayor</b> precedencia: el que «pesa» más.</p>
+  <div class="three" style="margin-top:16px;gap:20px">
+    <div class="panel fragment fade-up">
+      <h3><i class="fa-solid fa-object-group ac"></i> ( ) mandan</h3>
+      <p class="small">Los paréntesis agrupan antes que todo.</p>
+      <p class="mt8 center"><span class="expr xs" data-tk="(a+b)·a">(a+b)·a</span> <i class="fa-solid fa-arrow-right muted"></i> <span class="expr xs" data-tk="ab+a·" data-posfija-de="(a+b)·a">ab+a·</span></p>
+    </div>
+    <div class="panel fragment fade-up">
+      <h3><i class="fa-solid fa-arrow-left ac"></i> Por la izquierda</h3>
+      <p class="small">Empates de · o +: primero el de la izquierda.</p>
+      <p class="mt8 center"><span class="expr xs" data-tk="a·b·c">a·b·c</span> <i class="fa-solid fa-arrow-right muted"></i> <span class="expr xs" data-tk="ab·c·" data-posfija-de="a·b·c">ab·c·</span></p>
+    </div>
+    <div class="panel fragment fade-up">
+      <h3><i class="fa-solid fa-star ac"></i> * es unario</h3>
+      <p class="small">Actúa solo sobre lo que tiene a su izquierda.</p>
+      <p class="mt8 center"><span class="expr xs" data-tk="ab*">ab*</span> <i class="fa-solid fa-arrow-right muted"></i> <span class="expr xs" data-tk="ab*·" data-posfija-de="ab*">ab*·</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     BLOQUE B · PREPARAR LA EXPRESIÓN
+     ===================================================================== -->
+
+<!-- 9 · NUESTRA EXPRESIÓN -->
+<section data-transition="zoom" id="nuestra">
+  <div class="kicker">El problema de hoy</div>
+  <h2>Nuestra expresión regular</h2>
+  <div class="center" style="margin-top:14px">
+    <div class="caja-expr hl"><span class="expr xl" data-tk="(a+b)*ab">(a+b)*ab</span><span class="mono" style="font-size:22px;color:var(--muted)">con \(\Sigma = \{a, b\}\)</span></div>
+  </div>
+  <div class="center" style="margin-top:22px">
+    <span class="expr lg">
+      <span class="caja-expr fragment" data-fragment-index="1" style="padding:6px 12px;box-shadow:3px 3px 0 var(--navy)"><span class="expr lg" data-tk="(a+b)*">(a+b)*</span></span>
+      <span class="tk opr fragment" data-fragment-index="2">·</span>
+      <span class="caja-expr fragment" data-fragment-index="2" style="padding:6px 12px;box-shadow:3px 3px 0 var(--navy)"><span class="expr lg" data-tk="a">a</span></span>
+      <span class="tk opr fragment" data-fragment-index="3">·</span>
+      <span class="caja-expr fragment" data-fragment-index="3" style="padding:6px 12px;box-shadow:3px 3px 0 var(--navy)"><span class="expr lg" data-tk="b">b</span></span>
+    </span>
+  </div>
+  <div class="three" style="margin-top:22px;gap:20px">
+    <div class="parte fragment" data-fragment-index="1"><span class="expr md" data-tk="(a+b)">(a+b)</span><span class="d">elige <b>a</b> o <b>b</b></span></div>
+    <div class="parte fragment" data-fragment-index="1"><span class="expr md" data-tk="(a+b)*">(a+b)*</span><span class="d">repite esa elección <b>0 o más</b> veces</span></div>
+    <div class="parte fragment" data-fragment-index="3"><span class="expr md" data-tk="ab">ab</span><span class="d">al final, una <b>a</b> y después una <b>b</b></span></div>
+  </div>
+  <div class="two" style="margin-top:22px;gap:24px" data-re="(a+b)*ab" data-en="ab,aab,bab,abab,bbab" data-fuera="a,b,ba,abb,aba">
+    <div class="center fragment" data-fragment-index="4"><span class="verdict yes"><i class="fa-solid fa-check"></i> sí</span> <span class="chips-cad" style="display:inline-flex"><span class="cad">ab</span><span class="cad">aab</span><span class="cad">bab</span><span class="cad">abab</span><span class="cad">bbab</span></span></div>
+    <div class="center fragment" data-fragment-index="4"><span class="verdict no"><i class="fa-solid fa-xmark"></i> no</span> <span class="chips-cad" style="display:inline-flex"><span class="cad fuera">a</span><span class="cad fuera">b</span><span class="cad fuera">ba</span><span class="cad fuera">abb</span><span class="cad fuera">aba</span></span></div>
+  </div>
+  <div class="note fragment" data-fragment-index="5" style="margin-top:20px"><i class="fa-solid fa-triangle-exclamation"></i><span>En toda la presentación el <span class="expr sm" data-tk="+">+</span> de una expresión regular es <b>unión</b>, nunca una suma de números.</span></div>
+</section>
+
+<!-- 10 · CONCATENACIÓN EXPLÍCITA -->
+<section data-transition="slide" id="concatenacion">
+  <div class="kicker">Paso 1 · Preparar</div>
+  <h2>Hagamos explícita la concatenación</h2>
+  <p class="lead center mt8">En <span class="mono">ab</span> hay una operación escondida. El algoritmo solo procesa lo que <b>ve</b>: hay que escribirla.</p>
+  <div class="cinta insercion" data-insertar="(a+b)*ab" style="margin-top:30px"></div>
+  <div class="center fragment" style="margin-top:6px">
+    <div class="caja-expr hl"><span class="etq">Resultado</span><span class="expr lg" data-tk="(a+b)*·a·b" data-norm-de="(a+b)*ab">(a+b)*·a·b</span></div>
+  </div>
+  <div class="two" style="margin-top:28px;gap:24px">
+    <div class="def fragment">
+      <div class="head"><i class="fa-solid fa-check"></i> Pon un · entre X y Y cuando…</div>
+      <div class="body small">
+        X es una <b>letra</b>, <span class="expr xs" data-tk=")">)</span> o <span class="expr xs" data-tk="*">*</span>
+        &nbsp;<b>y</b>&nbsp; Y es una <b>letra</b> o <span class="expr xs" data-tk="(">(</span>
+        <p class="muted mt8">Ejemplos: <span class="expr xs" data-tk="a·b">a·b</span> &nbsp; <span class="expr xs" data-tk=")·a">)·a</span> &nbsp; <span class="expr xs" data-tk="*·a">*·a</span> &nbsp; <span class="expr xs" data-tk="a·(">a·(</span></p>
+      </div>
+    </div>
+    <div class="def fragment">
+      <div class="head"><i class="fa-solid fa-ban"></i> Nunca pongas un ·…</div>
+      <div class="body small">
+        después de <span class="expr xs" data-tk="(">(</span> o <span class="expr xs" data-tk="+">+</span>, ni antes de <span class="expr xs" data-tk=")">)</span>, <span class="expr xs" data-tk="+">+</span> o <span class="expr xs" data-tk="*">*</span>
+        <p class="muted mt8">En <span class="expr xs" data-tk="(a+b)*">(a+b)*</span> no se inserta ninguno.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · LA PILA -->
+<section data-transition="convex" id="pila">
+  <div class="kicker">Nuestra herramienta</div>
+  <h2>¿Qué es una pila?</h2>
+  <div style="display:grid;grid-template-columns:360px 300px 1fr;gap:30px;margin-top:22px;align-items:start">
+    <div>
+      <p class="lead">Es como una <b>torre de platos</b>: el <b>último</b> plato que pones es el <b>primero</b> que quitas.</p>
+      <div class="note"><i class="fa-solid fa-lightbulb"></i><span>Nadie saca un plato de en medio: siempre se toma el de <b>arriba</b> (el <i>tope</i>).</span></div>
+      <div class="note" style="background:var(--accent-l);border-color:var(--accent-d);color:var(--accent-d)"><i class="fa-solid fa-layer-group" style="color:var(--accent-d)"></i><span>Durante la conversión, la pila guarda <b>operadores y paréntesis</b> que esperan su turno.</span></div>
+    </div>
+    <div style="position:relative;height:330px;display:flex;justify-content:center;padding-top:40px">
+      <div class="torre" style="min-height:230px">
+        <div class="plato fragment" data-fragment-index="1"><span class="tk par">(</span></div>
+        <div class="fragment fade-out" data-fragment-index="4"><div class="plato fragment" data-fragment-index="2"><span class="tk opr">+</span></div></div>
+        <span class="base">PILA</span>
+      </div>
+      <div class="mira fragment fade-in-then-out" data-fragment-index="3" style="left:8px;top:258px"><i class="fa-solid fa-eye"></i></div>
+      <div class="mira fragment" data-fragment-index="4" style="right:4px;top:70px;flex-direction:column"><i class="fa-solid fa-hand"></i><span class="expr md"><span class="tk opr nuevo">+</span></span></div>
+    </div>
+    <div class="opsp">
+      <div class="item"><div class="sq"><i class="fa-solid fa-arrow-down"></i></div><div><div class="t">push(x)</div><div class="v">coloca x arriba</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-arrow-up"></i></div><div><div class="t">pop()</div><div class="v">quita y entrega el de arriba</div></div></div>
+      <div class="item"><div class="sq"><i class="fa-solid fa-eye"></i></div><div><div class="t">peek()</div><div class="v">mira el de arriba sin quitarlo</div></div></div>
+    </div>
+  </div>
+  <div class="captions" style="margin-top:8px">
+    <div class="cap fragment fade-out" data-fragment-index="1"><span class="n">0</span><span>La pila empieza <b>vacía</b>. Avanza para ver cada operación.</span></div>
+    <div class="cap fragment fade-in-then-out" data-fragment-index="1"><span class="n">1</span><span><span class="mono">push(«(»)</span>: el paréntesis queda en el tope.</span></div>
+    <div class="cap fragment fade-in-then-out" data-fragment-index="2"><span class="n">2</span><span><span class="mono">push(«+»)</span>: el + queda <b>encima</b> del paréntesis.</span></div>
+    <div class="cap fragment fade-in-then-out" data-fragment-index="3"><span class="n">3</span><span><span class="mono">peek()</span> responde <b>+</b> y la pila <b>no cambia</b>.</span></div>
+    <div class="cap done fragment fade-in" data-fragment-index="4"><span class="n">4</span><span><span class="mono">pop()</span> quita y entrega <b>+</b>. Ahora el tope vuelve a ser «(».</span></div>
+  </div>
+</section>
+
+<!-- =====================================================================
+     BLOQUE C · EL ALGORITMO
+     ===================================================================== -->
+
+<!-- 12 · EL ALGORITMO (+ subdiapositiva con el código) -->
+<section>
+<section data-transition="zoom" id="algoritmo">
+  <div class="kicker">Paso 2 · Convertir</div>
+  <h2>El algoritmo de conversión con una pila</h2>
+  <div class="steps small" style="margin-top:16px;gap:7px">
+    <div class="step fragment fade-right">Recorre la expresión de <b>izquierda a derecha</b>, un símbolo a la vez. <span style="float:right"><span class="expr xs" data-tk="(a+b)*·a·b">(a+b)*·a·b</span> <i class="fa-solid fa-arrow-right ac"></i></span></div>
+    <div class="step fragment fade-right"><b>Letra</b> del alfabeto <i class="fa-solid fa-arrow-right ac"></i> va directo a la <b>salida</b>. <span style="float:right" class="muted">lee <span class="expr xs" data-tk="a">a</span> → salida <span class="expr xs" data-tk="a">a</span></span></div>
+    <div class="step fragment fade-right"><span class="expr xs" data-tk="(">(</span> <i class="fa-solid fa-arrow-right ac"></i> a la <b>pila</b>, como marca de inicio de grupo. <span style="float:right" class="muted">pila: <span class="expr xs" data-tk="(">(</span></span></div>
+    <div class="step fragment fade-right">Operador <span class="expr xs" data-tk="·">·</span> o <span class="expr xs" data-tk="+">+</span>: mientras arriba haya un operador de precedencia <b>mayor o igual</b>, sácalo a la salida. Para en <span class="expr xs" data-tk="(">(</span> o con la pila vacía. <span style="float:right" class="muted">llega <span class="expr xs" data-tk="+">+</span>, arriba <span class="expr xs" data-tk="·">·</span> → sale <span class="expr xs" data-tk="·">·</span></span></div>
+    <div class="step fragment fade-right">Después, <b>mete</b> el operador actual en la pila. <span style="float:right" class="muted">pila: <span class="expr xs" data-tk="+">+</span></span></div>
+    <div class="step fragment fade-right"><span class="expr xs" data-tk=")">)</span> <i class="fa-solid fa-arrow-right ac"></i> saca operadores hasta el <span class="expr xs" data-tk="(">(</span> y <b>tira los dos</b> paréntesis. <span style="float:right" class="muted">pila <span class="expr xs" data-tk="(+">(+</span> → sale <span class="expr xs" data-tk="+">+</span></span></div>
+    <div class="step fragment fade-right">Al terminar la expresión, <b>vacía</b> la pila en la salida (de arriba hacia abajo). <span style="float:right" class="muted">pila <span class="expr xs" data-tk="+·">+·</span> → sale <span class="expr xs" data-tk="·+">·+</span></span></div>
+    <div class="step concl fragment fade-right"><b>Caso especial</b> <span class="expr xs" data-tk="*">*</span> (unario, regla <b>4★</b>): su operando ya está completo a la izquierda y nadie pesa más que él, así que pasa <b>directo a la salida</b>. Es lo mismo que meterlo y sacarlo enseguida.</div>
+  </div>
+  <div class="note fragment" style="margin-top:12px"><i class="fa-solid fa-triangle-exclamation"></i><span>Los paréntesis <b>nunca</b> llegan a la salida, y <span class="expr sm" data-tk="*">*</span> <b>no</b> es binario: jamás espera a un segundo operando.</span></div>
+</section>
+<section data-transition="slide" id="codigo">
+  <div class="kicker">Paso 2 · En JavaScript</div>
+  <h2>El mismo algoritmo, en código</h2>
+  <div style="display:grid;grid-template-columns:660px 1fr;gap:26px;margin-top:14px;align-items:start">
+    <div class="code xs" style="--lh:21.5px">
+      <div class="bar"><b></b><b></b><b></b>&nbsp; posfija.js</div>
+      <div class="src">
+<pre data-check="aPosfija('(a+b)*·a·b') === 'ab+*a·b·' &amp;&amp; __out[0] === 'ab+*a·b·'"><code>const PREC = { '*': 3, '·': 2, '+': 1 };
+const tope = (pila) =&gt; pila[pila.length - 1];
+function aPosfija(expr) {   // expr ya trae los «·»
+  const salida = [], pila = [];
+  for (const c of expr) {
+    if (/[a-z]/.test(c)) salida.push(c);         // R2
+    else if (c === '(') pila.push(c);            // R3
+    else if (c === ')') {                        // R6
+      while (tope(pila) !== '(') salida.push(pila.pop());
+      pila.pop();                      // tira el «(»
+    } else if (c === '*') salida.push(c);        // R4★
+    else {                                       // R4 y R5
+      while (pila.length &amp;&amp; tope(pila) !== '(' &amp;&amp;
+             PREC[tope(pila)] &gt;= PREC[c])
+        salida.push(pila.pop());
+      pila.push(c);
+    }
+  }
+  while (pila.length) salida.push(pila.pop());  // R7
+  return salida.join('');
+}
+console.log(aPosfija('(a+b)*·a·b'));  // ab+*a·b·</code></pre>
+        <div class="hl fragment fade-in-then-out" style="--l:6"></div>
+        <div class="hl fragment fade-in-then-out" style="--l:7"></div>
+        <div class="hl fragment fade-in-then-out" style="--l:12;--n:5"></div>
+        <div class="hl fragment fade-in-then-out" style="--l:8;--n:3"></div>
+        <div class="hl fragment fade-in-then-out" style="--l:11"></div>
+        <div class="hl fragment fade-in" style="--l:19"></div>
+      </div>
+    </div>
+    <div class="list tight">
+      <div class="item"><div class="sq">2</div><div><div class="t">letra → salida</div></div></div>
+      <div class="item"><div class="sq">3</div><div><div class="t">«(» → pila</div></div></div>
+      <div class="item"><div class="sq">4·5</div><div><div class="t">saca los que pesan ≥, luego mete</div></div></div>
+      <div class="item"><div class="sq">6</div><div><div class="t">«)» → saca hasta «(»</div></div></div>
+      <div class="item"><div class="sq">★</div><div><div class="t">«*» → salida directa</div></div></div>
+      <div class="item"><div class="sq">7</div><div><div class="t">al final, vacía la pila</div></div></div>
+      <div class="note" style="margin-top:6px;font-size:16.5px"><i class="fa-solid fa-flask"></i><span>Antes de llamarla hay que insertar los <b>·</b> (paso 1). <span class="mono">verificar.mjs</span> ejecuta este código y lo compara con el motor de la presentación.</span></div>
+    </div>
+  </div>
+</section>
+</section>
+
+<!-- 13 · EJEMPLO SENCILLO -->
+<section data-transition="slide" id="ejemplo">
+  <div class="kicker">Calentamiento</div>
+  <h2>Ejemplo sencillo: <span class="expr lg" data-tk="a+b·a">a+b·a</span></h2>
+  <div class="cinta con-flecha" data-cinta="a+b·a"></div>
+  <div class="tabla-caja">
+    <table class="tbl traza compacta" data-traza="a+b·a"></table>
+  </div>
+  <div class="two" style="margin-top:12px;gap:20px;grid-template-columns:auto 1fr;align-items:center">
+    <div class="caja-expr hl fragment" style="padding:8px 16px"><span class="etq" style="min-width:0">Resultado</span><span class="expr md" data-tk="aba·+" data-posfija-de="a+b·a">aba·+</span></div>
+    <p class="small fragment"><i class="fa-solid fa-circle-check" style="color:var(--ok)"></i> El <b>·</b> salió antes que el <b>+</b>: primero se junta <b>b·a</b> y después se une con <b>a</b>, porque la concatenación (2) pesa más que la unión (1).</p>
+  </div>
+</section>
+
+<!-- 14 · PARSEO PASO A PASO (1) -->
+<section data-transition="slide" id="parseo-1">
+  <div class="kicker">El problema principal · Parte 1</div>
+  <h2>Parseo paso a paso: <span class="expr lg" data-tk="(a+b)*·a·b">(a+b)*·a·b</span></h2>
+  <div class="cinta con-flecha" data-cinta="(a+b)*·a·b"></div>
+  <div class="tabla-caja">
+    <table class="tbl traza" data-traza="(a+b)*·a·b" data-filas="1-6"></table>
+  </div>
+  <div class="leyenda" style="margin-top:12px" data-leyenda></div>
+</section>
+
+<!-- 15 · PARSEO PASO A PASO (2) -->
+<section data-transition="slide" id="parseo-2">
+  <div class="kicker">El problema principal · Parte 2</div>
+  <h2>Parseo paso a paso: <span class="expr lg" data-tk="(a+b)*·a·b">(a+b)*·a·b</span></h2>
+  <div class="cinta con-flecha" data-cinta="(a+b)*·a·b"></div>
+  <div class="tabla-caja">
+    <table class="tbl traza" data-traza="(a+b)*·a·b" data-filas="7-11" data-previa="6"></table>
+  </div>
+  <div class="leyenda" style="margin-top:12px" data-leyenda></div>
+</section>
+
+<!-- 16 · RESULTADO FINAL -->
+<section data-transition="zoom" id="resultado">
+  <div class="kicker">¡Lo logramos!</div>
+  <h2>Resultado final</h2>
+  <div class="two" style="margin-top:22px;grid-template-columns:560px 1fr;gap:26px">
+    <div class="filas-expr" style="margin-top:0;align-items:stretch">
+      <div class="caja-expr"><span class="etq" style="min-width:96px">Original</span><span class="expr md" data-tk="(a+b)*ab">(a+b)*ab</span></div>
+      <div class="center"><i class="fa-solid fa-arrow-down ac"></i> <span class="small muted">paso 1: insertar ·</span></div>
+      <div class="caja-expr"><span class="etq" style="min-width:96px">Con ·</span><span class="expr md" data-tk="(a+b)*·a·b" data-norm-de="(a+b)*ab">(a+b)*·a·b</span></div>
+      <div class="center"><i class="fa-solid fa-arrow-down ac"></i> <span class="small muted">paso 2: algoritmo de la pila</span></div>
+      <div class="caja-expr hl"><span class="etq" style="min-width:96px">Posfija</span><span class="expr md" data-tk="ab+*a·b·" data-posfija-de="(a+b)*ab">ab+*a·b·</span></div>
+    </div>
+    <div>
+      <h3>¿Cómo se lee?</h3>
+      <div class="steps mt8" style="gap:12px">
+        <div class="step fragment fade-left"><span class="expr sm" data-tk="ab+">ab+</span> &nbsp;elige entre <b>a</b> y <b>b</b> <span class="muted">= <span class="mono" data-tk-plain="a+b" data-infija-de="ab+">a+b</span></span></div>
+        <div class="step fragment fade-left"><span class="expr sm" data-tk="ab+*">ab+*</span> &nbsp;repite esa elección 0 o más veces <span class="muted">= <span class="mono" data-tk-plain="(a+b)*" data-infija-de="ab+*">(a+b)*</span></span></div>
+        <div class="step fragment fade-left"><span class="expr sm" data-tk="ab+*a·">ab+*a·</span> &nbsp;concatena una <b>a</b> <span class="muted">= <span class="mono" data-tk-plain="(a+b)*a" data-infija-de="ab+*a·">(a+b)*a</span></span></div>
+        <div class="step concl fragment fade-left"><span class="expr sm" data-tk="ab+*a·b·">ab+*a·b·</span> &nbsp;concatena una <b>b</b> <span class="muted">= <span class="mono" data-tk-plain="(a+b)*ab" data-infija-de="ab+*a·b·">(a+b)*ab</span></span></div>
+      </div>
+      <p class="small mt16 fragment"><i class="fa-solid fa-circle-check" style="color:var(--ok)"></i> Primero la unión (dentro del paréntesis), luego la estrella (3) y al final las dos concatenaciones (2), de izquierda a derecha.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 17 · ¿CÓMO SABE EL PROGRAMA QUÉ HACER? -->
+<section data-transition="convex" id="programa">
+  <div class="kicker">Hacia Thompson</div>
+  <h2>¿Cómo sabe el programa qué hacer?</h2>
+  <p class="center mt8"><b>Parsear</b> es leer una expresión y descubrir su estructura. Con la posfija basta <b>una pila de piezas</b>:</p>
+  <div class="pills" style="margin-top:10px;gap:12px">
+    <span class="pill"><span class="expr sm"><span class="tk sym">x</span></span> letra → apila una pieza nueva</span>
+    <span class="pill"><span class="expr sm"><span class="tk opr">*</span></span> toma <b>1</b> pieza</span>
+    <span class="pill"><span class="expr sm"><span class="tk opr">·</span><span class="tk opr">+</span></span> toman <b>2</b> piezas, las combinan y apilan el resultado</span>
+  </div>
+  <div class="tabla-caja">
+    <table class="tbl traza compacta apretada" data-evalua="ab+*a·b·"></table>
+  </div>
+  <div class="note fragment" style="margin-top:8px;padding:8px 16px"><i class="fa-solid fa-puzzle-piece"></i><span>Al final queda <b>una sola pieza</b>: la expresión completa. En la próxima sesión, cada pieza será un pequeño <b>AFN</b> y Thompson los unirá con estas mismas reglas.</span></div>
+</section>
+
+<!-- =====================================================================
+     BLOQUE D · PRÁCTICA
+     ===================================================================== -->
+
+<!-- 18 · ERRORES COMUNES -->
+<section data-transition="slide" id="errores">
+  <div class="kicker">¡Cuidado!</div>
+  <h2>Errores comunes</h2>
+  <div class="errs">
+    <div class="err fragment fade-up">
+      <div class="t"><i class="fa-solid fa-circle-xmark"></i> Olvidar los ·</div>
+      <div class="mal"><i class="fa-solid fa-xmark"></i> <span class="expr" data-tk="(a+b)*ab">(a+b)*ab</span> → <span class="expr" data-tk="ab+*ab">ab+*ab</span></div>
+      <div class="small muted">la a y la b quedan sueltas: nadie las une</div>
+      <div class="bien"><i class="fa-solid fa-check"></i> <span class="expr" data-tk="(a+b)*·a·b" data-norm-de="(a+b)*ab">(a+b)*·a·b</span> → <span class="expr" data-tk="ab+*a·b·" data-posfija-de="(a+b)*ab">ab+*a·b·</span></div>
+    </div>
+    <div class="err fragment fade-up">
+      <div class="t"><i class="fa-solid fa-circle-xmark"></i> Unión ≠ suma</div>
+      <div class="mal"><i class="fa-solid fa-xmark"></i> <span class="expr" data-tk="a+b">a+b</span> «junta a con b» → ab</div>
+      <div class="small muted">el + no suma ni pega: elige</div>
+      <div class="bien"><i class="fa-solid fa-check"></i> <span class="expr" data-tk="a+b">a+b</span> = \(\{a, b\}\): <b>a o b</b></div>
+    </div>
+    <div class="err fragment fade-up">
+      <div class="t"><i class="fa-solid fa-circle-xmark"></i> No vaciar la pila</div>
+      <div class="mal"><i class="fa-solid fa-xmark"></i> <span class="expr" data-tk="a+b·a">a+b·a</span> → <span class="expr" data-tk="aba">aba</span></div>
+      <div class="small muted">se quedaron · y + dentro de la pila</div>
+      <div class="bien"><i class="fa-solid fa-check"></i> <span class="expr" data-tk="a+b·a">a+b·a</span> → <span class="expr" data-tk="aba·+" data-posfija-de="a+b·a">aba·+</span></div>
+    </div>
+    <div class="err fragment fade-up">
+      <div class="t"><i class="fa-solid fa-circle-xmark"></i> Paréntesis en la salida</div>
+      <div class="mal"><i class="fa-solid fa-xmark"></i> <span class="expr" data-tk="(ab+)*a·b·">(ab+)*a·b·</span></div>
+      <div class="small muted">los paréntesis se tiran al cerrar el grupo</div>
+      <div class="bien"><i class="fa-solid fa-check"></i> <span class="expr" data-tk="ab+*a·b·" data-posfija-de="(a+b)*·a·b">ab+*a·b·</span></div>
+    </div>
+    <div class="err fragment fade-up">
+      <div class="t"><i class="fa-solid fa-circle-xmark"></i> Ignorar la precedencia</div>
+      <div class="mal"><i class="fa-solid fa-xmark"></i> <span class="expr" data-tk="a+b·a">a+b·a</span> → <span class="expr" data-tk="ab+a·" data-no-posfija-de="a+b·a">ab+a·</span></div>
+      <div class="small muted">eso significa <span class="mono" data-tk-plain="(a+b)a" data-infija-de="ab+a·">(a+b)a</span>, otra expresión</div>
+      <div class="bien"><i class="fa-solid fa-check"></i> <span class="expr" data-tk="aba·+" data-posfija-de="a+b·a">aba·+</span> &nbsp;el · va antes</div>
+    </div>
+    <div class="err fragment fade-up">
+      <div class="t"><i class="fa-solid fa-circle-xmark"></i> * antes de su operando</div>
+      <div class="mal"><i class="fa-solid fa-xmark"></i> <span class="expr" data-tk="(a+b)*">(a+b)*</span> → <span class="expr" data-tk="*ab+" data-no-posfija-de="(a+b)*">*ab+</span></div>
+      <div class="small muted">la * no tiene nada a su izquierda</div>
+      <div class="bien"><i class="fa-solid fa-check"></i> <span class="expr" data-tk="ab+*" data-posfija-de="(a+b)*">ab+*</span> &nbsp;la * va después</div>
+    </div>
+  </div>
+</section>
+
+<!-- 19 · EJERCICIO GUIADO -->
+<section data-transition="zoom" id="ejercicio">
+  <div class="kicker">Ejercicio guiado · ¡Predice el siguiente paso!</div>
+  <h2>Convierte <span class="expr lg" data-tk="a(b+a)">a(b+a)</span></h2>
+  <div class="two" style="margin-top:12px;grid-template-columns:auto 1fr;gap:24px;align-items:center">
+    <div class="caja-expr" style="padding:8px 16px"><span class="etq" style="min-width:0">Paso 1 · con ·</span>
+      <span class="slot"><span class="hueco fragment fade-out" data-fragment-index="1">?</span><span class="fragment fade-in" data-fragment-index="1"><span class="expr md" data-tk="a·(b+a)" data-norm-de="a(b+a)">a·(b+a)</span></span></span>
+    </div>
+    <p class="small muted">Antes de cada clic, el grupo decide qué pasa con la <b>salida</b> y la <b>pila</b>. Luego revela la fila.</p>
+  </div>
+  <div class="tabla-caja">
+    <table class="tbl traza compacta" data-traza="a·(b+a)" data-adivinar="3" data-indice="2"></table>
+  </div>
+  <div class="center fragment" style="margin-top:10px" data-fragment-index="8">
+    <div class="caja-expr hl" style="padding:8px 18px"><span class="etq" style="min-width:0">Posfija</span><span class="expr md" data-tk="aba+·" data-posfija-de="a(b+a)">aba+·</span><span class="small muted">la unión dentro del paréntesis va antes que la concatenación</span></div>
+  </div>
+</section>
+
+<!-- 20 · RETO FINAL -->
+<section data-transition="slide" id="reto">
+  <div class="kicker">Reto final</div>
+  <h2>Ahora tú: <span class="expr lg" data-tk="(a+b)a*">(a+b)a*</span></h2>
+  <div class="two" style="margin-top:16px;grid-template-columns:520px 1fr;gap:26px">
+    <div class="reto">
+      <div class="head"><i class="fa-solid fa-trophy"></i> Cuatro pasos</div>
+      <div class="steps small" style="gap:9px;margin-top:6px">
+        <div class="step">Inserta la concatenación explícita.
+          <div class="fragment mt8" data-fragment-index="1"><span class="expr sm" data-tk="(a+b)·a*" data-norm-de="(a+b)a*">(a+b)·a*</span> <span class="muted small">entre ) y a</span></div></div>
+        <div class="step">Identifica la precedencia.
+          <div class="fragment mt8 small" data-fragment-index="2">( ) protegen la <b>unión</b>; <b>*</b> (3) actúa solo sobre la <b>a</b>; al final la <b>·</b> (2) une los dos lados.</div></div>
+        <div class="step">Simula la pila.
+          <div class="fragment mt8 small muted" data-fragment-index="3">mira la tabla <i class="fa-solid fa-arrow-right"></i></div></div>
+        <div class="step concl">Escribe la posfija.
+          <div class="fragment mt8" data-fragment-index="4"><span class="expr md" data-tk="ab+a*·" data-posfija-de="(a+b)a*">ab+a*·</span></div></div>
+      </div>
+    </div>
+    <div class="tabla-caja fragment" data-fragment-index="3" style="margin-top:0">
+      <table class="tbl traza compacta" data-traza="(a+b)·a*" data-columnas="n,lee,salida,pila,regla" data-sin-fragmentos></table>
+    </div>
+  </div>
+</section>
+
+<!-- 21 · RESUMEN (+ laboratorio) -->
+<section>
+<section data-transition="zoom" id="resumen">
+  <div class="kicker">Resumen</div>
+  <h2>Todo el camino</h2>
+  <div class="pipe" style="margin-top:40px;gap:4px">
+    <div class="stepc fragment fade-up" style="width:200px;padding:14px 6px"><div class="sq"><i class="fa-solid fa-font"></i></div><div class="t" style="font-size:18px">Expresión regular</div><div class="d mt8"><span class="expr xxs" data-tk="(a+b)*ab">(a+b)*ab</span></div></div>
+    <div class="link fragment fade-up" style="width:34px"><i class="fa-solid fa-arrow-right-long"></i></div>
+    <div class="stepc fragment fade-up" style="width:200px;padding:14px 6px"><div class="sq"><i class="fa-solid fa-link"></i></div><div class="t" style="font-size:18px">Concatenación explícita</div><div class="d mt8"><span class="expr xxs" data-tk="(a+b)*·a·b" data-norm-de="(a+b)*ab">(a+b)*·a·b</span></div></div>
+    <div class="link fragment fade-up" style="width:34px"><i class="fa-solid fa-arrow-right-long"></i></div>
+    <div class="stepc fragment fade-up" style="width:200px;padding:14px 6px"><div class="sq"><i class="fa-solid fa-layer-group"></i></div><div class="t" style="font-size:18px">Conversión con pila</div><div class="d">precedencia 3 · 2 · 1</div></div>
+    <div class="link fragment fade-up" style="width:34px"><i class="fa-solid fa-arrow-right-long"></i></div>
+    <div class="stepc hl fragment fade-up" style="width:200px;padding:14px 6px"><div class="sq"><i class="fa-solid fa-list-ol"></i></div><div class="t" style="font-size:18px">Notación posfija</div><div class="d mt8"><span class="expr xxs" data-tk="ab+*a·b·" data-posfija-de="(a+b)*ab">ab+*a·b·</span></div></div>
+    <div class="link fragment fade-up" style="width:34px"><i class="fa-solid fa-arrow-right-long"></i></div>
+    <div class="stepc fragment fade-up" style="width:200px;padding:14px 6px;opacity:.75"><div class="sq"><i class="fa-solid fa-diagram-project"></i></div><div class="t" style="font-size:18px">AFN con Thompson</div><div class="d">próxima sesión</div></div>
+  </div>
+  <div class="q fragment zoom-in" style="margin-top:46px"><i class="fa-solid fa-rocket"></i><p>Ya sabes ordenar los símbolos: ahora enséñaselo a tu computadora. ¡Programa <span class="mono">aPosfija()</span> en JavaScript y prepárate para construir tu primer AFN!</p></div>
+  <p class="center small muted mt16 fragment"><i class="fa-solid fa-arrow-down"></i> Abajo hay un laboratorio para comprobar tus propias conversiones.</p>
+</section>
+<section data-transition="slide" id="laboratorio">
+  <div class="kicker">Laboratorio</div>
+  <h2>Prueba tu propia expresión</h2>
+  <div class="lab-in mt16">
+    <label for="lab-expr" class="etq">Expresión</label>
+    <input id="lab-expr" type="text" value="(a+b)*ab" spellcheck="false" autocomplete="off" aria-describedby="lab-err">
+    <button class="ans-btn" id="lab-ir" type="button"><i class="fa-solid fa-play"></i> Convertir</button>
+  </div>
+  <p class="center small muted mt8">Usa letras minúsculas, <span class="mono">+</span>, <span class="mono">*</span>, paréntesis y, si quieres, <span class="mono">.</span> para la concatenación.</p>
+  <div class="lab-res">
+    <div class="key"><div class="k">Con concatenación explícita</div><div class="v" id="lab-norm"></div></div>
+    <div class="key"><div class="k">Posfija</div><div class="v" id="lab-pos"></div></div>
+    <div class="key"><div class="k">Releída (paréntesis mínimos)</div><div class="v" id="lab-inf"></div></div>
+  </div>
+  <p class="lab-err" id="lab-err" role="status"></p>
+  <div class="tabla-caja lab-tabla" style="margin-top:4px"><table class="tbl traza compacta" id="lab-tabla"></table></div>
+</section>
+</section>
+
+</div></div>
+<script src="lib/reveal/reveal.min.js"></script>
+<script src="lib/reveal/plugin/math/math.min.js"></script>
+<script src="lib/reveal/plugin/notes/notes.min.js"></script>
+<script src="posfija.js"></script>
+<script src="presentacion.js"></script>
+</body>
+</html>
